@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 140" fill="none" width="100%" height="100%">
+  <!-- Definitions -->
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&amp;display=swap');
+      .logo-text-bold { font-family: 'Plus Jakarta Sans', 'Arial Black', sans-serif; font-weight: 900; }
+      .logo-subtext { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; letter-spacing: 0.22em; }
+    </style>
+  </defs>
+
+  <!-- Left Yellow Rounded Badge for "even" -->
+  <rect x="8" y="18" width="224" height="102" rx="28" fill="#FED000" />
+  
+  <!-- "even" in solid deep black -->
+  <!-- Stylized custom 'even' glyphs -->
+  <g fill="#000000">
+    <!-- e -->
+    <path d="M 46 69 C 46 54 57 44 71 44 C 85 44 94 54 94 70 C 94 73 93 75 92 76 L 58 76 C 59 86 65 91 75 91 C 82 91 87 87 90 82 L 98 86 C 94 94 85 101 74 101 C 57 101 46 87 46 69 Z M 58 67 L 83 67 C 82 59 78 54 71 54 C 64 54 59 59 58 67 Z" />
+    <!-- v -->
+    <path d="M 99 46 L 111 46 L 122 84 L 133 46 L 145 46 L 128 99 L 115 99 Z" />
+    <!-- e -->
+    <path d="M 148 69 C 148 54 159 44 173 44 C 187 44 196 54 196 70 C 196 73 195 75 194 76 L 160 76 C 161 86 167 91 177 91 C 184 91 189 87 192 82 L 200 86 C 196 94 187 101 176 101 C 159 101 148 87 148 69 Z M 160 67 L 185 67 C 184 59 180 54 173 54 C 166 54 161 59 160 67 Z" />
+    <!-- n -->
+    <path d="M 203 46 L 214 46 L 214 55 C 217 48 224 44 233 44 C 246 44 252 53 252 66 L 252 99 L 241 99 L 241 68 C 241 59 237 54 229 54 C 220 54 214 60 214 70 L 214 99 L 203 99 Z" />
+  </g>
+
+  <!-- Right side "cify." -->
+  <g class="cify-group">
+    <!-- c (white fill with bold black stroke) -->
+    <path d="M 296 69 C 296 52 308 44 322 44 C 334 44 343 51 347 61 L 336 65 C 334 58 329 54 322 54 C 313 54 307 60 307 69 C 307 78 313 84 322 84 C 329 84 334 80 336 73 L 347 77 C 343 87 334 94 322 94 C 308 94 296 86 296 69 Z" fill="#FFFFFF" stroke="#111111" stroke-width="2.8" stroke-linejoin="round" />
+
+    <!-- i with yellow triangle dot -->
+    <rect x="357" y="46" width="11" height="48" fill="#FFFFFF" stroke="#111111" stroke-width="2.8" stroke-linejoin="round" rx="1.5" />
+    <!-- Iconic Yellow Triangle replacing i dot -->
+    <polygon points="362.5,24 350,42 375,42" fill="#FED000" stroke="#111111" stroke-width="1.5" stroke-linejoin="round" />
+
+    <!-- f (white fill with black stroke) -->
+    <path d="M 390 46 L 382 46 L 382 54 L 377 54 L 377 63 L 382 63 L 382 94 L 393 94 L 393 63 L 402 63 L 402 54 L 393 54 L 393 49 C 393 46 395 44 398 44 C 400 44 402 45 403 45 L 405 36 C 402 35 397 34 394 34 C 385 34 380 39 380 47" fill="#FFFFFF" stroke="#111111" stroke-width="2.8" stroke-linejoin="round" />
+
+    <!-- y (white fill with black stroke) -->
+    <path d="M 409 46 L 420 46 L 428 72 L 436 46 L 447 46 L 433 89 C 429 101 423 106 412 106 C 409 106 405 105 403 104 L 406 95 C 408 96 410 96 412 96 C 418 96 422 92 424 85 L 409 46 Z" fill="#FFFFFF" stroke="#111111" stroke-width="2.8" stroke-linejoin="round" />
+
+    <!-- Yellow Period Dot "." -->
+    <circle cx="458" cy="88" r="8" fill="#FED000" stroke="#111111" stroke-width="1.5" />
+  </g>
+
+  <!-- Tagline: "EVENTS MADE EASY" -->
+  <text x="375" y="125" text-anchor="middle" fill="#71717A" font-size="11" class="logo-subtext">EVENTS MADE EASY</text>
+</svg>

@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  --evencify-yellow: #FED000;
+  --evencify-yellow-hover: #E5BB00;
+  --evencify-dark: #0F1014;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #111215;
+  background-color: #FAFAFB;
+}
+
+.font-editorial {
+  font-family: 'Newsreader', Georgia, 'Times New Roman', serif;
+  font-style: italic;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4D4D8;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A1A1AA;
+}
+
+/* ========================================================================= */
+/* EVENCIFY HERO COMPOSITION & SEAMLESS FULL-BLEED BACKGROUND                */
+/* ========================================================================= */
+
+.hero-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.hero-bg-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/hero-banner.webp'), url('/hero-banner.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
+}
+
+/* Portrait orientation / mobile devices: seamlessly use the portrait composition */
+@media (max-width: 768px) {
+  .hero-bg-layer {
+    background-image: url('/hero-banner-portrait.webp'), url('/hero-banner-portrait.png');
+    background-size: cover;
+    background-position: center center;
+  }
+}
+
+/* Subtle ambient overlay preserving the vibrant yellow vector details */
+.hero-blend-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: transparent;
+}
+
+@media (max-width: 768px) {
+  .hero-blend-layer {
+    background: linear-gradient(180deg, rgba(248, 249, 253, 0.72) 0%, rgba(248, 249, 253, 0.45) 50%, transparent 100%);
+  }
+}
+
