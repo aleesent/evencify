@@ -28,7 +28,6 @@ interface NavbarProps {
   userAvatar?: string;
   onSelectRole: (role: UserRole) => void;
   onOpenAuthModal: (role?: UserRole, initialMode?: 'login' | 'signup') => void;
-  onOpenAdminLogin: () => void;
   onLogout: () => void;
   notifications: AppNotification[];
   onOpenNotifications: () => void;
@@ -49,7 +48,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   userAvatar,
   onSelectRole,
   onOpenAuthModal,
-  onOpenAdminLogin,
   onLogout,
   notifications,
   onOpenNotifications,
@@ -68,10 +66,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   const unreadCount = notifications.filter((n) => !n.read).length;
   const effectiveRole: UserRole =
     currentUser?.role || authenticatedRole || (currentRole !== 'visitor' ? currentRole : 'crew');
-  const displayName = currentUser?.name || userName || 'Ananya Sharma';
-  const displayEmail = currentUser?.email || userEmail || 'ananya.sharma@example.com';
+  const displayName = currentUser?.name || userName || (effectiveRole === 'crew' ? 'Crew Member' : 'Organiser');
+  const displayEmail = currentUser?.email || userEmail || '';
   const isAuthenticated = Boolean(
-    currentUser?.email || (userEmail && userEmail.trim().length > 0) || currentRole !== 'visitor'
+    currentUser?.email || (userEmail && userEmail.trim().length > 0)
   );
 
   // Non-blocking scroll listener
@@ -276,12 +274,12 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* ================= RIGHT CONTROLS: DYNAMIC AUTH STATE ================= */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* 1. NOT LOGGED IN: SHOW ONLY 'GET STARTED' */}
+            {/* 1. NOT LOGGED IN: SHOW 'GET STARTED' */}
             {!isAuthenticated ? (
               <div className="flex items-center">
                 <button
                   onClick={() => onOpenAuthModal(undefined, 'signup')}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-black px-4 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-[#FED000] hover:bg-neutral-800 shadow-xs transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-black px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-[#FED000] hover:bg-neutral-800 shadow-xs transition-all cursor-pointer"
                 >
                   <span>Get Started</span>
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -652,19 +650,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>Sign Out</span>
                 </button>
               </div>
-            ) : (
-              <div className="pt-2 border-t border-neutral-100 text-center">
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onOpenAdminLogin();
-                  }}
-                  className="text-[11px] font-bold text-neutral-500 hover:text-black"
-                >
-                  Operator Console
-                </button>
-              </div>
-            )}
+            ) : null}
           </div>
         )}
       </header>

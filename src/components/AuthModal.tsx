@@ -5,19 +5,19 @@ import {
   Mail,
   Lock,
   ArrowRight,
-  UserCheck,
-  Building2,
+  ArrowLeft,
+  User,
+  Building,
   Eye,
   EyeOff,
   AlertCircle,
-  ExternalLink,
-  Zap,
+  CheckCircle2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EvencifyLogo } from './EvencifyLogo';
 import { EvencifyApi } from '../services/api';
 
-interface AuthModalProps {
+export interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   targetRole?: 'crew' | 'organiser' | UserRole;
@@ -29,17 +29,17 @@ interface AuthModalProps {
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
-  targetRole = 'crew',
+  targetRole,
   initialTab,
   initialMode = 'signup',
   onAuthenticated,
 }) => {
-  const effectiveInitialTab = initialTab || initialMode || 'signup';
-  const effectiveTargetRole: 'crew' | 'organiser' =
-    targetRole === 'organiser' ? 'organiser' : 'crew';
+  // Navigation steps: 'choose-role' -> 'auth'
+  const [step, setStep] = useState<'choose-role' | 'auth'>('choose-role');
+  const [selectedRole, setSelectedRole] = useState<'crew' | 'organiser'>('crew');
+  // In the single auth card: 'signup' (Create Account, default) or 'login'
+  const [mode, setMode] = useState<'signup' | 'login'>('signup');
 
-  const [activeTab, setActiveTab] = useState<'signup' | 'login'>(effectiveInitialTab);
-  const [selectedRole, setSelectedRole] = useState<'crew' | 'organiser'>(effectiveTargetRole);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,22 +48,38 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [forgotEmailSent, setForgotEmailSent] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [googleSetupRequired, setGoogleSetupRequired] = useState(false);
-  const [instantEmail, setInstantEmail] = useState('arvexastudio.co@gmail.com');
-  const [instantFullName, setInstantFullName] = useState('');
 
   useEffect(() => {
     if (isOpen) {
-      setActiveTab(effectiveInitialTab);
-      setSelectedRole(effectiveTargetRole);
+      // If a specific role was already targeted (e.g., user clicked "Join as Crew"),
+      // set the role and go directly to auth step, while still preserving "← Change account type".
+      // Otherwise, open with the clean "Choose Account Type" step.
+      if (targetRole && (targetRole === 'crew' || targetRole === 'organiser')) {
+        setSelectedRole(targetRole);
+        setStep('auth');
+      } else {
+        setStep('choose-role');
+      }
+
+      // Create Account must be the default view
+      const resolvedMode = initialMode || initialTab || 'signup';
+      setMode(resolvedMode === 'login' ? 'login' : 'signup');
+
       setShowForgotPassword(false);
       setForgotEmailSent(false);
       setAuthError(null);
-      setGoogleSetupRequired(false);
+      setPassword('');
     }
-  }, [isOpen, effectiveInitialTab, effectiveTargetRole]);
+  }, [isOpen, targetRole, initialMode, initialTab]);
 
   if (!isOpen) return null;
+
+  const handleSelectAccountType = (role: 'crew' | 'organiser') => {
+    setSelectedRole(role);
+    setMode('signup'); // Create Account is default view upon choosing account type
+    setAuthError(null);
+    setStep('auth');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,12 +87,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setAuthError(null);
 
     try {
-      if (activeTab === 'signup') {
+      if (mode === 'signup') {
+        const fallbackName =
+          selectedRole === 'crew' ? 'Aarav Mehta' : 'Singhania Events';
         const res = await EvencifyApi.signUp({
-          email,
+          email: email.trim(),
           password,
           role: selectedRole,
-          fullName: fullName.trim() || (selectedRole === 'crew' ? 'Aarav Mehta' : 'Singhania Events'),
+          fullName: fullName.trim() || fallbackName,
         });
 
         if (res.error) {
@@ -89,7 +107,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         onAuthenticated(selectedRole, res.user.email, res.user.name);
         onClose();
       } else {
-        const res = await EvencifyApi.signIn(email, password);
+        const res = await EvencifyApi.signIn(email.trim(), password);
 
         if (res.error) {
           setAuthError(res.error);
@@ -98,7 +116,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         }
 
         setIsLoading(false);
-        const userRole = res.user.role === 'organiser' ? 'organiser' : 'crew';
+        const userRole =
+          res.user.role === 'organiser' ? 'organiser' : 'crew';
         onAuthenticated(userRole, res.user.email, res.user.name);
         onClose();
       }
@@ -108,414 +127,369 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  const handleGoogleAuth = async () => {
-    setIsLoading(true);
-    setAuthError(null);
-    setGoogleSetupRequired(false);
-
-    try {
-      const res = await EvencifyApi.signInWithGoogle(selectedRole);
-      if (res.providerDisabled) {
-        setIsLoading(false);
-        setGoogleSetupRequired(true);
-        return;
-      }
-      if (!res.success && res.error) {
-        setIsLoading(false);
-        setAuthError(res.error);
-        return;
-      }
-    } catch (err: any) {
-      setIsLoading(false);
-      if (err.message?.toLowerCase().includes('provider is not enabled')) {
-        setGoogleSetupRequired(true);
-      } else {
-        setAuthError(err.message || 'Google sign in failed');
-      }
-    }
-  };
-
-  const handleInstantGoogleLogin = async () => {
-    setIsLoading(true);
-    setAuthError(null);
-    try {
-      const emailToUse = instantEmail.trim() || 'arvexastudio.co@gmail.com';
-      const res = await EvencifyApi.signInWithGoogleInstant({
-        email: emailToUse,
-        fullName: instantFullName.trim() || (selectedRole === 'crew' ? 'Google Verified Crew' : 'Arvexa Studio'),
-        role: selectedRole,
-      });
-      setIsLoading(false);
-      onAuthenticated(selectedRole, res.user.email, res.user.name);
-      onClose();
-    } catch (err: any) {
-      setIsLoading(false);
-      setAuthError(err.message || 'Instant Google sign in failed');
-    }
-  };
-
   const handleForgotPassword = (e: React.FormEvent) => {
     e.preventDefault();
     setForgotEmailSent(true);
     setTimeout(() => {
       setShowForgotPassword(false);
       setForgotEmailSent(false);
-    }, 2000);
+    }, 2500);
   };
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        {/* Subtle backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs"
         />
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-md overflow-hidden rounded-[28px] border-2 border-black bg-white p-6 sm:p-8 shadow-2xl z-10"
-        >
-          <button
-            onClick={onClose}
-            className="absolute top-6 right-6 rounded-full p-2 text-black hover:bg-black/10 transition-colors cursor-pointer"
-            aria-label="Close"
+        {/* ======================================================== */}
+        {/* STEP 1: CHOOSE ACCOUNT TYPE (Clean, Minimal, Modern)     */}
+        {/* ======================================================== */}
+        {step === 'choose-role' ? (
+          <motion.div
+            key="choose-role-step"
+            initial={{ opacity: 0, scale: 0.97, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: 12 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="relative w-full max-w-lg overflow-hidden rounded-2xl sm:rounded-3xl border border-neutral-200/80 bg-white p-6 sm:p-8 shadow-2xl z-10 my-auto"
           >
-            <X className="h-5 w-5" />
-          </button>
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="absolute top-5 right-5 rounded-full p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
 
-          <div className="text-center mb-6">
-            <div className="flex justify-center mb-3">
-              <EvencifyLogo size="sm" showTagline={false} />
-            </div>
-            <h3 className="text-2xl font-black tracking-tight text-black">
-              {showForgotPassword
-                ? 'Reset Password'
-                : activeTab === 'signup'
-                ? 'Create your account'
-                : 'Welcome back'}
-            </h3>
-            <p className="mt-1 text-xs sm:text-sm font-semibold text-black">
-              {showForgotPassword
-                ? 'Enter your registered email to receive reset instructions'
-                : activeTab === 'signup'
-                ? 'Join India’s premier verified event ecosystem'
-                : 'Sign in to access your private dashboard'}
-            </p>
-          </div>
-
-          {/* Mode Switcher: Log In / Sign Up */}
-          {!showForgotPassword && (
-            <div className="mb-5 flex rounded-xl bg-[#FFFDE6] p-1 border-2 border-black">
-              <button
-                type="button"
-                onClick={() => setActiveTab('signup')}
-                className={`flex-1 rounded-lg py-2 text-xs font-black transition-all cursor-pointer ${
-                  activeTab === 'signup'
-                    ? 'bg-black text-[#FED000] shadow-xs'
-                    : 'text-black hover:bg-black/10'
-                }`}
-              >
-                Sign Up
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('login')}
-                className={`flex-1 rounded-lg py-2 text-xs font-black transition-all cursor-pointer ${
-                  activeTab === 'login'
-                    ? 'bg-black text-[#FED000] shadow-xs'
-                    : 'text-black hover:bg-black/10'
-                }`}
-              >
-                Log In
-              </button>
-            </div>
-          )}
-
-          {showForgotPassword ? (
-            <form onSubmit={handleForgotPassword} className="space-y-4">
-              <div>
-                <label className="block text-xs font-black text-black mb-1.5">
-                  Your Account Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-3 h-4 w-4 text-black" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="name@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-xl border-2 border-black bg-white pl-10 pr-4 py-2.5 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
-                  />
-                </div>
+            {/* Clean Header */}
+            <div className="text-center mb-7">
+              <div className="flex justify-center mb-3">
+                <EvencifyLogo size="sm" showTagline={false} />
               </div>
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900">
+                Choose Account Type
+              </h3>
+              <p className="mt-1 text-sm text-neutral-500">
+                Select how you'd like to use Evencify
+              </p>
+            </div>
 
-              {forgotEmailSent ? (
-                <div className="rounded-xl bg-[#FED000] p-3 text-xs font-black text-black border-2 border-black">
-                  Password reset link sent! Check your inbox.
-                </div>
-              ) : (
-                <button
-                  type="submit"
-                  className="w-full rounded-xl bg-[#FED000] border-2 border-black py-3 text-xs sm:text-sm font-black text-black hover:bg-[#E5BB00] transition-all cursor-pointer"
-                >
-                  Send Reset Link
-                </button>
-              )}
-
+            {/* Two responsive clean cards: side-by-side desktop, stacked mobile */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+              {/* Card 1: Crew Member */}
               <button
                 type="button"
-                onClick={() => setShowForgotPassword(false)}
-                className="w-full text-center text-xs font-bold text-black hover:underline cursor-pointer"
+                onClick={() => handleSelectAccountType('crew')}
+                className="group relative flex flex-col justify-between rounded-xl sm:rounded-2xl border border-neutral-200/90 bg-white p-5 text-left transition-all duration-200 hover:border-neutral-900 hover:shadow-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-900"
               >
-                Back to Sign In
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {authError && (
-                <div className="rounded-xl border-2 border-black bg-red-100 p-3 text-xs font-black text-black flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
-                  <span>{authError}</span>
-                </div>
-              )}
-
-              {/* How will you use Evencify? (Selection for signup and login) */}
-              <div>
-                <label className="block text-xs font-black text-black mb-1.5">
-                  How will you use Evencify?
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole('crew')}
-                    className={`flex items-center gap-2 rounded-xl p-2.5 text-left border-2 transition-all cursor-pointer ${
-                      selectedRole === 'crew'
-                        ? 'border-black bg-[#FED000] font-black text-black'
-                        : 'border-black bg-white text-black hover:bg-[#FFFDE6]'
-                    }`}
-                  >
-                    <div
-                      className={`flex h-7 w-7 items-center justify-center rounded-lg border border-black ${
-                        selectedRole === 'crew' ? 'bg-black text-[#FED000]' : 'bg-[#FED000] text-black'
-                      }`}
-                    >
-                      <UserCheck className="h-4 w-4" />
-                    </div>
-                    <div className="text-xs">
-                      <div className="font-black leading-tight">Crew Member</div>
-                      <div className="text-[10px] font-semibold text-black">Find event shifts</div>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole('organiser')}
-                    className={`flex items-center gap-2 rounded-xl p-2.5 text-left border-2 transition-all cursor-pointer ${
-                      selectedRole === 'organiser'
-                        ? 'border-black bg-[#FED000] font-black text-black'
-                        : 'border-black bg-white text-black hover:bg-[#FFFDE6]'
-                    }`}
-                  >
-                    <div
-                      className={`flex h-7 w-7 items-center justify-center rounded-lg border border-black ${
-                        selectedRole === 'organiser' ? 'bg-black text-[#FED000]' : 'bg-[#FED000] text-black'
-                      }`}
-                    >
-                      <Building2 className="h-4 w-4" />
-                    </div>
-                    <div className="text-xs">
-                      <div className="font-black leading-tight">Event Organiser</div>
-                      <div className="text-[10px] font-semibold text-black">Build your team</div>
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              {/* Full Name for signup */}
-              {activeTab === 'signup' && (
                 <div>
-                  <label className="block text-xs font-black text-black mb-1">
-                    {selectedRole === 'crew' ? 'Full Name' : 'Company / Contact Name'}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder={selectedRole === 'crew' ? 'Aarav Mehta' : 'Singhania Events'}
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full rounded-xl border-2 border-black bg-white px-3.5 py-2.5 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
-                  />
-                </div>
-              )}
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-neutral-100 text-neutral-900 group-hover:bg-[#FED000] transition-colors">
+                    <User className="h-5 w-5" />
+                  </div>
 
-              {/* Email */}
-              <div>
-                <label className="block text-xs font-black text-black mb-1">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-3 h-4 w-4 text-black" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="name@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-xl border-2 border-black bg-white pl-10 pr-4 py-2.5 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
-                  />
+                  <h4 className="mt-4 text-base font-bold text-neutral-900 tracking-tight">
+                    Crew Member
+                  </h4>
+                  <p className="mt-1 text-xs text-neutral-500 leading-relaxed">
+                    Find event gigs, work shifts, and receive secure payouts.
+                  </p>
                 </div>
-              </div>
 
-              {/* Password */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-black text-black">Password</label>
-                  {activeTab === 'login' && (
-                    <button
-                      type="button"
-                      onClick={() => setShowForgotPassword(true)}
-                      className="text-[11px] font-bold text-black hover:underline cursor-pointer"
-                    >
-                      Forgot Password?
-                    </button>
-                  )}
+                <div className="mt-5 flex items-center justify-between pt-3 border-t border-neutral-100 text-xs font-semibold text-neutral-900">
+                  <span className="group-hover:text-black">Continue</span>
+                  <ArrowRight className="h-4 w-4 text-neutral-400 group-hover:text-neutral-900 group-hover:translate-x-0.5 transition-all" />
                 </div>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-3 h-4 w-4 text-black" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border-2 border-black bg-white pl-10 pr-10 py-2.5 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-3 text-black hover:opacity-70 cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
+              </button>
 
-              {/* Primary Submit Button */}
+              {/* Card 2: Event Organiser */}
               <button
-                type="submit"
-                disabled={isLoading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FED000] border-2 border-black py-3 text-xs sm:text-sm font-black text-black transition-all hover:bg-[#E5BB00] active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                type="button"
+                onClick={() => handleSelectAccountType('organiser')}
+                className="group relative flex flex-col justify-between rounded-xl sm:rounded-2xl border border-neutral-200/90 bg-white p-5 text-left transition-all duration-200 hover:border-neutral-900 hover:shadow-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-900"
               >
-                {isLoading ? (
-                  <span>Authenticating...</span>
+                <div>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-neutral-100 text-neutral-900 group-hover:bg-[#FED000] transition-colors">
+                    <Building className="h-5 w-5" />
+                  </div>
+
+                  <h4 className="mt-4 text-base font-bold text-neutral-900 tracking-tight">
+                    Event Organiser
+                  </h4>
+                  <p className="mt-1 text-xs text-neutral-500 leading-relaxed">
+                    Hire verified crew, manage call sheets, and coordinate events.
+                  </p>
+                </div>
+
+                <div className="mt-5 flex items-center justify-between pt-3 border-t border-neutral-100 text-xs font-semibold text-neutral-900">
+                  <span className="group-hover:text-black">Continue</span>
+                  <ArrowRight className="h-4 w-4 text-neutral-400 group-hover:text-neutral-900 group-hover:translate-x-0.5 transition-all" />
+                </div>
+              </button>
+            </div>
+          </motion.div>
+        ) : (
+          /* ======================================================== */
+          /* STEP 2: ONE AUTHENTICATION CARD (Clean, Modern, Simple)  */
+          /* ======================================================== */
+          <motion.div
+            key="auth-card-step"
+            initial={{ opacity: 0, scale: 0.97, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: 12 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="relative w-full max-w-md overflow-hidden rounded-2xl sm:rounded-3xl border border-neutral-200/80 bg-white p-6 sm:p-8 shadow-2xl z-10 my-auto"
+          >
+            {/* Top Bar: Change account type + Close button */}
+            <div className="flex items-center justify-between mb-5">
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('choose-role');
+                  setAuthError(null);
+                }}
+                className="group inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer py-1"
+              >
+                <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                <span>Change account type</span>
+              </button>
+
+              <button
+                onClick={onClose}
+                className="rounded-full p-1.5 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Selected Role Pill */}
+            <div className="flex items-center justify-center mb-3">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">
+                {selectedRole === 'crew' ? (
+                  <>
+                    <User className="h-3.5 w-3.5 text-neutral-600" />
+                    <span>Crew Member</span>
+                  </>
                 ) : (
                   <>
-                    <span>
-                      {activeTab === 'signup'
-                        ? `Continue as ${selectedRole === 'crew' ? 'Crew' : 'Organiser'}`
-                        : `Sign In as ${selectedRole === 'crew' ? 'Crew' : 'Organiser'}`}
-                    </span>
-                    <ArrowRight className="h-4 w-4" />
+                    <Building className="h-3.5 w-3.5 text-neutral-600" />
+                    <span>Event Organiser</span>
                   </>
                 )}
-              </button>
-
-              {/* Google Auth Option */}
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-black/20" />
-                </div>
-                <div className="relative flex justify-center text-[11px] text-black font-bold uppercase">
-                  <span className="bg-white px-2">or continue with</span>
-                </div>
               </div>
+            </div>
 
-              <button
-                type="button"
-                onClick={handleGoogleAuth}
-                disabled={isLoading}
-                className="flex w-full items-center justify-center gap-2.5 rounded-xl border-2 border-black bg-white py-2.5 text-xs sm:text-sm font-black text-black hover:bg-[#FFFDE6] transition-colors cursor-pointer"
-              >
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-black text-[#FED000] font-black text-xs">
-                  G
+            {/* Heading & Subtitle */}
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold tracking-tight text-neutral-900">
+                {showForgotPassword
+                  ? 'Reset Password'
+                  : mode === 'signup'
+                  ? 'Create Account'
+                  : 'Welcome Back'}
+              </h3>
+              <p className="mt-1 text-xs sm:text-sm text-neutral-500">
+                {showForgotPassword
+                  ? 'Enter your email to receive reset instructions'
+                  : mode === 'signup'
+                  ? `Sign up to continue as ${selectedRole === 'crew' ? 'Crew' : 'Organiser'}`
+                  : `Log in to your ${selectedRole === 'crew' ? 'Crew' : 'Organiser'} account`}
+              </p>
+            </div>
+
+            {/* Forgot Password Sub-Flow */}
+            {showForgotPassword ? (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-neutral-700 mb-1.5">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-neutral-400" />
+                    <input
+                      type="email"
+                      required
+                      placeholder="name@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full rounded-xl border border-neutral-300 bg-white pl-10 pr-4 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-none transition-all"
+                    />
+                  </div>
                 </div>
-                <span>Continue with Google</span>
-              </button>
 
-              {/* Notice & Bypass when Google OAuth provider is not yet enabled in Supabase */}
-              {googleSetupRequired && (
-                <div className="rounded-2xl border-2 border-black bg-[#FFFDE6] p-4 text-xs space-y-3 mt-3 animate-in fade-in">
-                  <div className="flex items-start gap-2.5">
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-black text-[#FED000] font-black text-xs">
-                      !
-                    </div>
-                    <div>
-                      <p className="font-black text-black text-xs">
-                        Google Provider Setup Needed in Supabase
-                      </p>
-                      <p className="text-[11px] font-medium text-black mt-0.5 leading-relaxed">
-                        Supabase reported that the Google Auth provider is not enabled yet in your project.
-                      </p>
-                    </div>
+                {forgotEmailSent ? (
+                  <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs font-medium text-emerald-800 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                    <span>Reset instructions sent! Check your inbox.</span>
                   </div>
+                ) : (
+                  <button
+                    type="submit"
+                    className="w-full rounded-xl bg-neutral-900 hover:bg-neutral-800 text-[#FED000] py-2.5 text-sm font-semibold transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                  >
+                    Send Reset Link
+                  </button>
+                )}
 
-                  <div className="rounded-xl border-2 border-black bg-white p-3 space-y-2 text-[11px] font-semibold text-black">
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-black">To enable native Google OAuth:</span>
-                      <a
-                        href="https://supabase.com/dashboard/project/tutspdayygbrrqtuepao/auth/providers"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 font-black text-black underline hover:text-black/70 cursor-pointer"
-                      >
-                        Supabase Providers <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                    <ol className="list-decimal pl-4 space-y-1 text-black text-[11px]">
-                      <li>Open the link above in your Supabase dashboard.</li>
-                      <li>Find <strong>Google</strong> and toggle <strong>Enable Provider</strong> to ON.</li>
-                      <li>Add your Google Cloud <strong>Client ID</strong> &amp; <strong>Secret</strong>.</li>
-                    </ol>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(false)}
+                  className="w-full text-center text-xs font-medium text-neutral-500 hover:text-neutral-900 underline cursor-pointer pt-1"
+                >
+                  Back to Log in
+                </button>
+              </form>
+            ) : (
+              /* ONE AUTHENTICATION FORM (Toggles between Create Account & Log In) */
+              <form onSubmit={handleSubmit} className="space-y-3.5">
+                {authError && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-800 flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
+                    <span>{authError}</span>
                   </div>
+                )}
 
-                  <div className="border-t-2 border-black/20 pt-2 space-y-2">
-                    <div className="flex items-center gap-1.5 text-black font-black text-[11px]">
-                      <Zap className="h-3.5 w-3.5 text-black fill-[#FED000]" />
-                      <span>Instant Google Sign-In (Database Connected):</span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <input
-                        type="email"
-                        value={instantEmail}
-                        onChange={(e) => setInstantEmail(e.target.value)}
-                        placeholder="arvexastudio.co@gmail.com"
-                        className="flex-1 rounded-xl border-2 border-black bg-white px-3 py-2 text-xs font-semibold text-black focus:outline-hidden"
-                      />
+                {/* Full Name field (Only shown in Create Account view) */}
+                {mode === 'signup' && (
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-700 mb-1">
+                      {selectedRole === 'crew' ? 'Full Name' : 'Company or Organiser Name'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder={selectedRole === 'crew' ? 'e.g. Aarav Mehta' : 'e.g. Singhania Live Events'}
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-none transition-all"
+                    />
+                  </div>
+                )}
+
+                {/* Email field */}
+                <div>
+                  <label className="block text-xs font-medium text-neutral-700 mb-1">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-neutral-400" />
+                    <input
+                      type="email"
+                      required
+                      placeholder="name@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full rounded-xl border border-neutral-300 bg-white pl-10 pr-4 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Password field */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-medium text-neutral-700">Password</label>
+                    {mode === 'login' && (
                       <button
                         type="button"
-                        onClick={handleInstantGoogleLogin}
-                        disabled={isLoading}
-                        className="rounded-xl bg-[#FED000] border-2 border-black px-3.5 py-2 text-xs font-black text-black hover:bg-[#E5BB00] transition-colors cursor-pointer shrink-0"
+                        onClick={() => setShowForgotPassword(true)}
+                        className="text-xs text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
                       >
-                        Sign In Now
+                        Forgot?
                       </button>
-                    </div>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-neutral-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full rounded-xl border border-neutral-300 bg-white pl-10 pr-10 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-none transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-3 text-neutral-400 hover:text-neutral-700 cursor-pointer"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
-              )}
-            </form>
-          )}
 
-          <div className="mt-6 text-center text-[11px] font-bold text-black">
-            By continuing, you agree to Evencify’s Terms of Service & Privacy Policy.
-          </div>
-        </motion.div>
+                {/* Primary Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-[#FED000] py-2.5 text-sm font-semibold transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer shadow-xs mt-3"
+                >
+                  {isLoading ? (
+                    <span>{mode === 'signup' ? 'Creating Account...' : 'Signing In...'}</span>
+                  ) : (
+                    <>
+                      <span>
+                        {mode === 'signup'
+                          ? `Create ${selectedRole === 'crew' ? 'Crew' : 'Organiser'} Account`
+                          : 'Log In'}
+                      </span>
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </button>
+
+                {/* Bottom Toggle:
+                    - In Create Account view: "Already have an account? Log in"
+                    - In Login view: "Don’t have an account? Create account"
+                */}
+                <div className="text-center pt-3 border-t border-neutral-100">
+                  {mode === 'signup' ? (
+                    <p className="text-xs sm:text-sm text-neutral-600">
+                      Already have an account?{' '}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMode('login');
+                          setAuthError(null);
+                        }}
+                        className="font-semibold text-neutral-900 hover:underline cursor-pointer"
+                      >
+                        Log in
+                      </button>
+                    </p>
+                  ) : (
+                    <p className="text-xs sm:text-sm text-neutral-600">
+                      Don’t have an account?{' '}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMode('signup');
+                          setAuthError(null);
+                        }}
+                        className="font-semibold text-neutral-900 hover:underline cursor-pointer"
+                      >
+                        Create account
+                      </button>
+                    </p>
+                  )}
+                </div>
+              </form>
+            )}
+
+            <div className="mt-5 text-center text-[11px] text-neutral-400">
+              By proceeding, you agree to Evencify’s Terms of Service &amp; Privacy Policy.
+            </div>
+          </motion.div>
+        )}
       </div>
     </AnimatePresence>
   );

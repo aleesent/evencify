@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Lock, Mail, ArrowRight, X, AlertCircle, Key } from 'lucide-react';
+import { Shield, Lock, Mail, ArrowRight, X, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EvencifyApi } from '../../services/api';
 
@@ -14,8 +14,8 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   onClose,
   onAuthenticated,
 }) => {
-  const [email, setEmail] = useState('admin@evencify.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,12 +47,6 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
       setIsLoading(false);
       setError(err.message || 'Authentication error.');
     }
-  };
-
-  const fillDemoCredentials = () => {
-    setEmail('admin@evencify.com');
-    setPassword('admin123');
-    setError('');
   };
 
   return (
@@ -92,33 +86,6 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
             </p>
           </div>
 
-          {/* Demo Credentials Callout */}
-          <div className="mb-5 rounded-xl border border-neutral-200/80 bg-neutral-50/80 p-3.5 text-xs">
-            <div className="flex items-center justify-between font-semibold text-neutral-800 mb-2">
-              <span className="flex items-center gap-1.5">
-                <Key className="h-3.5 w-3.5 text-neutral-600" />
-                Default Admin Credentials
-              </span>
-              <button
-                type="button"
-                onClick={fillDemoCredentials}
-                className="text-[11px] font-semibold text-neutral-900 underline hover:text-neutral-700 cursor-pointer"
-              >
-                Auto-fill
-              </button>
-            </div>
-            <div className="space-y-1 font-mono text-[11px] text-neutral-600">
-              <div className="flex justify-between">
-                <span>Email / ID:</span>
-                <span className="font-semibold text-neutral-900 select-all">admin@evencify.com</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Passcode:</span>
-                <span className="font-semibold text-neutral-900 select-all">admin123</span>
-              </div>
-            </div>
-          </div>
-
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
@@ -132,7 +99,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-xl border border-neutral-200 bg-white pl-10 pr-4 py-2.5 text-xs sm:text-sm font-medium text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-hidden"
-                  placeholder="admin@evencify.com"
+                  placeholder="admin@yourdomain.com"
                 />
               </div>
             </div>

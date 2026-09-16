@@ -60,9 +60,9 @@ import { AdminLoginModal } from './components/admin/AdminLoginModal';
 export default function App() {
   // Navigation & Role State (Only 3 active roles + visitor)
   const [currentRole, setCurrentRole] = useState<UserRole>('visitor');
-  const [authenticatedRole, setAuthenticatedRole] = useState<UserRole>('crew');
-  const [activeUserEmail, setActiveUserEmail] = useState<string>('as4820000@gmail.com');
-  const [activeUserName, setActiveUserName] = useState<string>('Ananya Sharma');
+  const [authenticatedRole, setAuthenticatedRole] = useState<UserRole>('visitor');
+  const [activeUserEmail, setActiveUserEmail] = useState<string>('');
+  const [activeUserName, setActiveUserName] = useState<string>('');
 
   // Domain State
   const [events, setEvents] = useState<EventItem[]>(INITIAL_EVENTS);
@@ -116,6 +116,34 @@ export default function App() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 4000);
   };
+
+  // Secure Admin Access: via /admin or /admin-login URL or discrete shortcut (Ctrl+Shift+A / Cmd+Shift+A)
+  useEffect(() => {
+    const checkAdminRoute = () => {
+      const path = window.location.pathname.toLowerCase();
+      const params = new URLSearchParams(window.location.search);
+      if (path === '/admin' || path === '/admin-login' || path === '/operator' || params.get('admin') === 'true') {
+        setAdminLoginOpen(true);
+      }
+    };
+
+    checkAdminRoute();
+    window.addEventListener('popstate', checkAdminRoute);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        setAdminLoginOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('popstate', checkAdminRoute);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   // Live Supabase auto-sync & real-time updates
   useEffect(() => {
@@ -251,19 +279,34 @@ export default function App() {
     setAuthModalOpen(true);
   };
 
-  const handleAuthenticated = (role: UserRole, email: string) => {
+  const handleAuthenticated = (role: UserRole, email: string, name?: string) => {
     setActiveUserEmail(email);
     setAuthenticatedRole(role);
     setCurrentRole(role);
 
+    const emailName = email.split('@')[0];
+    const defaultName = name || (emailName ? emailName.charAt(0).toUpperCase() + emailName.slice(1) : 'User');
+
     if (role === 'crew') {
-      const existing = users.find((u) => u.email === email && u.role === 'crew');
-      setActiveUserName(existing?.name || currentCrewProfile.name);
-      showToast(`Welcome! Signed in as ${existing?.name || currentCrewProfile.name} (Crew)`);
+      const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.role === 'crew');
+      const existingCrew = crewList.find((c) => c.email.toLowerCase() === email.toLowerCase());
+      const finalName = name || existing?.name || existingCrew?.name || defaultName;
+      setActiveUserName(finalName);
+      if (existingCrew) {
+        setCurrentCrewProfile(existingCrew);
+      } else {
+        setCurrentCrewProfile((prev) => ({
+          ...prev,
+          name: finalName,
+          email: email,
+        }));
+      }
+      showToast(`Welcome! Signed in as ${finalName} (Crew)`);
     } else if (role === 'organiser') {
-      const existing = users.find((u) => u.email === email && u.role === 'organiser');
-      setActiveUserName(existing?.name || currentOrganiserProfile.companyName);
-      showToast(`Welcome! Signed in as ${existing?.name || currentOrganiserProfile.name} (Organiser)`);
+      const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.role === 'organiser');
+      const finalName = name || existing?.name || currentOrganiserProfile.companyName || defaultName;
+      setActiveUserName(finalName);
+      showToast(`Welcome! Signed in as ${finalName} (Organiser)`);
     } else if (role === 'admin') {
       setActiveUserName(currentAdminProfile.name);
       showToast(`Admin Console Unlocked: ${email}`);
@@ -752,13 +795,13 @@ export default function App() {
         currentRole={currentRole}
         authenticatedRole={authenticatedRole}
         userEmail={activeUserEmail}
-        userName={activeUserName || 'Ananya Sharma'}
+        userName={activeUserName}
         currentUser={
           activeUserEmail
             ? {
                 id: authenticatedRole === 'crew' ? currentCrewProfile.id : currentOrganiserProfile.id,
                 email: activeUserEmail,
-                name: activeUserName || 'Ananya Sharma',
+                name: activeUserName || (authenticatedRole === 'crew' ? 'Crew Member' : 'Organiser'),
                 role: authenticatedRole,
               }
             : null
@@ -766,7 +809,6 @@ export default function App() {
         userAvatar={authenticatedRole === 'crew' ? currentCrewProfile.photoUrl : undefined}
         onSelectRole={handleSelectRole}
         onOpenAuthModal={(role, mode) => handleOpenAuth(role, mode)}
-        onOpenAdminLogin={() => setAdminLoginOpen(true)}
         onLogout={handleLogout}
         notifications={notifications}
         onOpenNotifications={() => setNotificationDrawerOpen(true)}
@@ -885,11 +927,10 @@ export default function App() {
         )}
       </main>
 
-      {/* Global Footer (Strictly Marketing Links + Operator Portal) */}
+      {/* Global Footer (Marketing & Governance Links) */}
       <Footer
         onSelectRole={handleSelectRole}
         onNavigateSection={handleScrollToSection}
-        onOpenAdminLogin={() => setAdminLoginOpen(true)}
       />
 
       {/* Global Modals */}

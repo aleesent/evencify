@@ -2,17 +2,15 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { EvencifyLogo } from './EvencifyLogo';
 import { UserRole } from '../types';
-import { Lock, ArrowUpRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowUpRight, ShieldCheck } from 'lucide-react';
 
 interface FooterProps {
   onSelectRole: (role: UserRole) => void;
   onNavigateSection: (id: string) => void;
-  onOpenAdminLogin: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   onNavigateSection,
-  onOpenAdminLogin,
 }) => {
   const currentYear = new Date().getFullYear();
 
@@ -203,23 +201,16 @@ export const Footer: React.FC<FooterProps> = ({
                   <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
                 </button>
               </li>
+              <li>
+                <button
+                  onClick={() => onNavigateSection('trust-safety')}
+                  className="group flex items-center justify-between w-full hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  <span>Enterprise Compliance</span>
+                  <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
+                </button>
+              </li>
             </ul>
-
-            {/* Operator Portal Access Card */}
-            <div className="pt-2">
-              <button
-                onClick={onOpenAdminLogin}
-                className="group w-full flex items-center justify-between rounded-xl border border-neutral-800 bg-neutral-900/90 hover:border-[#FED000]/60 hover:bg-neutral-850 px-3.5 py-2.5 text-xs font-semibold text-neutral-200 hover:text-white transition-all duration-200 cursor-pointer shadow-xs"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-neutral-800 group-hover:bg-[#FED000] text-neutral-400 group-hover:text-black transition-colors">
-                    <Lock className="h-3.5 w-3.5" />
-                  </div>
-                  <span>Admin Operator Portal</span>
-                </div>
-                <Sparkles className="h-3.5 w-3.5 text-neutral-500 group-hover:text-[#FED000] transition-colors" />
-              </button>
-            </div>
           </div>
 
         </div>

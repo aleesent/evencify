@@ -16,9 +16,9 @@ export { CREW_CATEGORIES, EVENT_TYPES };
 export const INITIAL_CREW_PROFILES: CrewProfile[] = [
   {
     id: 'crew-1',
-    name: 'Ananya Sharma',
+    name: 'Sneha Verma',
     phone: '+91 98251 44321',
-    email: 'ananya.sharma@example.com',
+    email: 'sneha.verma@example.com',
     experienceYears: 3,
     experienceLevel: 'Experienced',
     categories: ['Hospitality Staff', 'Registration Desk', 'Event Helper'],
@@ -449,7 +449,7 @@ export const INITIAL_APPLICATIONS: CrewApplication[] = [
     id: 'app-1',
     eventId: 'evt-101',
     crewId: 'crew-1',
-    crewName: 'Ananya Sharma',
+    crewName: 'Sneha Verma',
     crewPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
     crewPhone: '+91 98251 44321',
     crewCategory: 'Hospitality Staff',
@@ -539,7 +539,7 @@ export const INITIAL_APPLICATIONS: CrewApplication[] = [
     id: 'app-7',
     eventId: 'evt-104',
     crewId: 'crew-1',
-    crewName: 'Ananya Sharma',
+    crewName: 'Sneha Verma',
     crewPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
     crewPhone: '+91 98251 44321',
     crewCategory: 'Promoter',
@@ -609,8 +609,8 @@ export const INITIAL_USERS: UserAccount[] = [
   },
   {
     id: 'usr-2',
-    name: 'Ananya Sharma',
-    email: 'ananya.sharma@example.com',
+    name: 'Sneha Verma',
+    email: 'sneha.verma@example.com',
     password: 'crewpass123',
     phone: '+91 98251 44321',
     role: 'crew',
@@ -694,7 +694,7 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [
   {
     id: 'notif-1',
     title: 'New Crew Application Received',
-    message: 'Ananya Sharma applied for Hospitality Staff at "Grand Wedding Celebration".',
+    message: 'Sneha Verma applied for Hospitality Staff at "Grand Wedding Celebration".',
     time: '12m ago',
     type: 'application',
     read: false,
@@ -729,7 +729,7 @@ export const INITIAL_EVENT_GROUPS: EventCoordinationGroup[] = [
     crewMembers: [
       {
         crewId: 'crew-1',
-        crewName: 'Ananya Sharma',
+        crewName: 'Sneha Verma',
         crewPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
         crewCategory: 'Hospitality Staff',
         phone: '+91 98251 44321',
@@ -769,7 +769,7 @@ export const INITIAL_EVENT_GROUPS: EventCoordinationGroup[] = [
         id: 'msg-3',
         groupId: 'group-evt-101',
         senderId: 'crew-1',
-        senderName: 'Ananya Sharma',
+        senderName: 'Sneha Verma',
         senderRole: 'crew',
         senderPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
         content: 'Noted sir! I have arrived in Surat and will reach the venue by 15:15 with full uniform.',

@@ -28,6 +28,7 @@ export type RouteType =
   | 'faq'
   | 'sitemap'
   | 'robots'
+  | 'admin'
   | 'not-found';
 
 export interface ParsedRoute {
@@ -87,6 +88,9 @@ export function parseRoute(pathname: string): ParsedRoute {
   }
   if (clean === '/robots.txt' || clean === '/robots') {
     return { type: 'robots', path: clean };
+  }
+  if (clean === '/admin' || clean === '/admin-login' || clean === '/operator') {
+    return { type: 'admin', path: clean };
   }
 
   // Organiser Public Profile Route: /organiser/:slug
