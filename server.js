@@ -32,13 +32,18 @@ if (!fs.existsSync(indexPath)) {
 }
 
 // Dedicated Sitemap & Robots endpoints with proper content types
-app.get('/sitemap.xml', (_req, res) => {
+app.get('/sitemap.xml', (req, res) => {
   const distSitemap = path.join(distPath, 'sitemap.xml');
   const publicSitemap = path.join(__dirname, 'public', 'sitemap.xml');
   const target = fs.existsSync(distSitemap) ? distSitemap : publicSitemap;
   if (fs.existsSync(target)) {
+    let content = fs.readFileSync(target, 'utf8');
+    const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').toLowerCase();
+    if (host.includes('evencify.com') && !host.includes('www.')) {
+      content = content.replaceAll('https://www.evencify.com', 'https://evencify.com');
+    }
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    return res.sendFile(target);
+    return res.send(content);
   }
   res.status(404).send('Sitemap not found');
 });

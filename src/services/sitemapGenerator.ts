@@ -10,8 +10,8 @@ export interface SitemapUrlEntry {
   section?: string;
 }
 
-export function generateAllSitemapEntries(events: EventItem[]): SitemapUrlEntry[] {
-  const BASE_URL = 'https://evencify.com';
+export function generateAllSitemapEntries(events: EventItem[], baseUrl: string = 'https://www.evencify.com'): SitemapUrlEntry[] {
+  const BASE_URL = baseUrl.replace(/\/+$/, '');
   const today = new Date().toISOString().split('T')[0];
 
   const entries: SitemapUrlEntry[] = [];

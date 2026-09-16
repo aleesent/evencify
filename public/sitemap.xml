@@ -1,919 +1,919 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://evencify.com/</loc>
+    <loc>https://www.evencify.com/</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events</loc>
+    <loc>https://www.evencify.com/events</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/near-me</loc>
+    <loc>https://www.evencify.com/events/near-me</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/today</loc>
+    <loc>https://www.evencify.com/events/today</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/tomorrow</loc>
+    <loc>https://www.evencify.com/events/tomorrow</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/this-weekend</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://evencify.com/events/this-month</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://evencify.com/events/surat</loc>
+    <loc>https://www.evencify.com/events/this-weekend</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/ahmedabad</loc>
+    <loc>https://www.evencify.com/events/this-month</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.evencify.com/events/surat</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/vadodara</loc>
+    <loc>https://www.evencify.com/events/ahmedabad</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/rajkot</loc>
+    <loc>https://www.evencify.com/events/vadodara</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/gandhinagar</loc>
+    <loc>https://www.evencify.com/events/rajkot</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/mumbai</loc>
+    <loc>https://www.evencify.com/events/gandhinagar</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/pune</loc>
+    <loc>https://www.evencify.com/events/mumbai</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/delhi</loc>
+    <loc>https://www.evencify.com/events/pune</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/bengaluru</loc>
+    <loc>https://www.evencify.com/events/delhi</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/hyderabad</loc>
+    <loc>https://www.evencify.com/events/bengaluru</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/chennai</loc>
+    <loc>https://www.evencify.com/events/hyderabad</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/kolkata</loc>
+    <loc>https://www.evencify.com/events/chennai</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/jaipur</loc>
+    <loc>https://www.evencify.com/events/kolkata</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/lucknow</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://evencify.com/events/indore</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://evencify.com/events/chandigarh</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://evencify.com/events/noida</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://evencify.com/events/gurugram</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://evencify.com/events/kochi</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://evencify.com/events/coimbatore</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://evencify.com/events/goa</loc>
+    <loc>https://www.evencify.com/events/jaipur</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/concerts</loc>
+    <loc>https://www.evencify.com/events/lucknow</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/workshops</loc>
+    <loc>https://www.evencify.com/events/indore</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/conferences</loc>
+    <loc>https://www.evencify.com/events/chandigarh</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/exhibitions</loc>
+    <loc>https://www.evencify.com/events/noida</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/festivals</loc>
+    <loc>https://www.evencify.com/events/gurugram</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/business</loc>
+    <loc>https://www.evencify.com/events/kochi</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/networking</loc>
+    <loc>https://www.evencify.com/events/coimbatore</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/corporate</loc>
+    <loc>https://www.evencify.com/events/goa</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.evencify.com/events/concerts</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.evencify.com/events/workshops</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.evencify.com/events/conferences</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.evencify.com/events/exhibitions</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.evencify.com/events/festivals</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.evencify.com/events/business</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.evencify.com/events/networking</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.evencify.com/events/corporate</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/sports</loc>
+    <loc>https://www.evencify.com/events/sports</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/technology</loc>
+    <loc>https://www.evencify.com/events/technology</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/entertainment</loc>
+    <loc>https://www.evencify.com/events/entertainment</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/cultural</loc>
+    <loc>https://www.evencify.com/events/cultural</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/college</loc>
+    <loc>https://www.evencify.com/events/college</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/surat/concerts</loc>
+    <loc>https://www.evencify.com/events/surat/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/surat/workshops</loc>
+    <loc>https://www.evencify.com/events/surat/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/surat/conferences</loc>
+    <loc>https://www.evencify.com/events/surat/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/surat/exhibitions</loc>
+    <loc>https://www.evencify.com/events/surat/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/surat/festivals</loc>
+    <loc>https://www.evencify.com/events/surat/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/surat/business</loc>
+    <loc>https://www.evencify.com/events/surat/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/ahmedabad/concerts</loc>
+    <loc>https://www.evencify.com/events/ahmedabad/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/ahmedabad/workshops</loc>
+    <loc>https://www.evencify.com/events/ahmedabad/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/ahmedabad/conferences</loc>
+    <loc>https://www.evencify.com/events/ahmedabad/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/ahmedabad/exhibitions</loc>
+    <loc>https://www.evencify.com/events/ahmedabad/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/ahmedabad/festivals</loc>
+    <loc>https://www.evencify.com/events/ahmedabad/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/ahmedabad/business</loc>
+    <loc>https://www.evencify.com/events/ahmedabad/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/vadodara/concerts</loc>
+    <loc>https://www.evencify.com/events/vadodara/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/vadodara/workshops</loc>
+    <loc>https://www.evencify.com/events/vadodara/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/vadodara/conferences</loc>
+    <loc>https://www.evencify.com/events/vadodara/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/vadodara/exhibitions</loc>
+    <loc>https://www.evencify.com/events/vadodara/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/vadodara/festivals</loc>
+    <loc>https://www.evencify.com/events/vadodara/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/vadodara/business</loc>
+    <loc>https://www.evencify.com/events/vadodara/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/rajkot/concerts</loc>
+    <loc>https://www.evencify.com/events/rajkot/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/rajkot/workshops</loc>
+    <loc>https://www.evencify.com/events/rajkot/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/rajkot/conferences</loc>
+    <loc>https://www.evencify.com/events/rajkot/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/rajkot/exhibitions</loc>
+    <loc>https://www.evencify.com/events/rajkot/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/rajkot/festivals</loc>
+    <loc>https://www.evencify.com/events/rajkot/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/rajkot/business</loc>
+    <loc>https://www.evencify.com/events/rajkot/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/gandhinagar/concerts</loc>
+    <loc>https://www.evencify.com/events/gandhinagar/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/gandhinagar/workshops</loc>
+    <loc>https://www.evencify.com/events/gandhinagar/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/gandhinagar/conferences</loc>
+    <loc>https://www.evencify.com/events/gandhinagar/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/gandhinagar/exhibitions</loc>
+    <loc>https://www.evencify.com/events/gandhinagar/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/gandhinagar/festivals</loc>
+    <loc>https://www.evencify.com/events/gandhinagar/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/gandhinagar/business</loc>
+    <loc>https://www.evencify.com/events/gandhinagar/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/mumbai/concerts</loc>
+    <loc>https://www.evencify.com/events/mumbai/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/mumbai/workshops</loc>
+    <loc>https://www.evencify.com/events/mumbai/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/mumbai/conferences</loc>
+    <loc>https://www.evencify.com/events/mumbai/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/mumbai/exhibitions</loc>
+    <loc>https://www.evencify.com/events/mumbai/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/mumbai/festivals</loc>
+    <loc>https://www.evencify.com/events/mumbai/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/mumbai/business</loc>
+    <loc>https://www.evencify.com/events/mumbai/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/pune/concerts</loc>
+    <loc>https://www.evencify.com/events/pune/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/pune/workshops</loc>
+    <loc>https://www.evencify.com/events/pune/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/pune/conferences</loc>
+    <loc>https://www.evencify.com/events/pune/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/pune/exhibitions</loc>
+    <loc>https://www.evencify.com/events/pune/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/pune/festivals</loc>
+    <loc>https://www.evencify.com/events/pune/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/pune/business</loc>
+    <loc>https://www.evencify.com/events/pune/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/delhi/concerts</loc>
+    <loc>https://www.evencify.com/events/delhi/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/delhi/workshops</loc>
+    <loc>https://www.evencify.com/events/delhi/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/delhi/conferences</loc>
+    <loc>https://www.evencify.com/events/delhi/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/delhi/exhibitions</loc>
+    <loc>https://www.evencify.com/events/delhi/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/delhi/festivals</loc>
+    <loc>https://www.evencify.com/events/delhi/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/delhi/business</loc>
+    <loc>https://www.evencify.com/events/delhi/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/bengaluru/concerts</loc>
+    <loc>https://www.evencify.com/events/bengaluru/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/bengaluru/workshops</loc>
+    <loc>https://www.evencify.com/events/bengaluru/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/bengaluru/conferences</loc>
+    <loc>https://www.evencify.com/events/bengaluru/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/bengaluru/exhibitions</loc>
+    <loc>https://www.evencify.com/events/bengaluru/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/bengaluru/festivals</loc>
+    <loc>https://www.evencify.com/events/bengaluru/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/bengaluru/business</loc>
+    <loc>https://www.evencify.com/events/bengaluru/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/hyderabad/concerts</loc>
+    <loc>https://www.evencify.com/events/hyderabad/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/hyderabad/workshops</loc>
+    <loc>https://www.evencify.com/events/hyderabad/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/hyderabad/conferences</loc>
+    <loc>https://www.evencify.com/events/hyderabad/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/hyderabad/exhibitions</loc>
+    <loc>https://www.evencify.com/events/hyderabad/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/hyderabad/festivals</loc>
+    <loc>https://www.evencify.com/events/hyderabad/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/hyderabad/business</loc>
+    <loc>https://www.evencify.com/events/hyderabad/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/chennai/concerts</loc>
+    <loc>https://www.evencify.com/events/chennai/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/chennai/workshops</loc>
+    <loc>https://www.evencify.com/events/chennai/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/chennai/conferences</loc>
+    <loc>https://www.evencify.com/events/chennai/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/chennai/exhibitions</loc>
+    <loc>https://www.evencify.com/events/chennai/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/chennai/festivals</loc>
+    <loc>https://www.evencify.com/events/chennai/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/chennai/business</loc>
+    <loc>https://www.evencify.com/events/chennai/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/kolkata/concerts</loc>
+    <loc>https://www.evencify.com/events/kolkata/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/kolkata/workshops</loc>
+    <loc>https://www.evencify.com/events/kolkata/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/kolkata/conferences</loc>
+    <loc>https://www.evencify.com/events/kolkata/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/kolkata/exhibitions</loc>
+    <loc>https://www.evencify.com/events/kolkata/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/kolkata/festivals</loc>
+    <loc>https://www.evencify.com/events/kolkata/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/kolkata/business</loc>
+    <loc>https://www.evencify.com/events/kolkata/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/jaipur/concerts</loc>
+    <loc>https://www.evencify.com/events/jaipur/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/jaipur/workshops</loc>
+    <loc>https://www.evencify.com/events/jaipur/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/jaipur/conferences</loc>
+    <loc>https://www.evencify.com/events/jaipur/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/jaipur/exhibitions</loc>
+    <loc>https://www.evencify.com/events/jaipur/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/jaipur/festivals</loc>
+    <loc>https://www.evencify.com/events/jaipur/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/jaipur/business</loc>
+    <loc>https://www.evencify.com/events/jaipur/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/goa/concerts</loc>
+    <loc>https://www.evencify.com/events/goa/concerts</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/goa/workshops</loc>
+    <loc>https://www.evencify.com/events/goa/workshops</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/goa/conferences</loc>
+    <loc>https://www.evencify.com/events/goa/conferences</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/goa/exhibitions</loc>
+    <loc>https://www.evencify.com/events/goa/exhibitions</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/goa/festivals</loc>
+    <loc>https://www.evencify.com/events/goa/festivals</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/goa/business</loc>
+    <loc>https://www.evencify.com/events/goa/business</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/gujarat</loc>
+    <loc>https://www.evencify.com/events/gujarat</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/maharashtra</loc>
+    <loc>https://www.evencify.com/events/maharashtra</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/karnataka</loc>
+    <loc>https://www.evencify.com/events/karnataka</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/delhi</loc>
+    <loc>https://www.evencify.com/events/delhi</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/rajasthan</loc>
+    <loc>https://www.evencify.com/events/rajasthan</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/tamil-nadu</loc>
+    <loc>https://www.evencify.com/events/tamil-nadu</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/telangana</loc>
+    <loc>https://www.evencify.com/events/telangana</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/west-bengal</loc>
+    <loc>https://www.evencify.com/events/west-bengal</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/uttar-pradesh</loc>
+    <loc>https://www.evencify.com/events/uttar-pradesh</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/madhya-pradesh</loc>
+    <loc>https://www.evencify.com/events/madhya-pradesh</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/kerala</loc>
+    <loc>https://www.evencify.com/events/kerala</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/punjab</loc>
+    <loc>https://www.evencify.com/events/punjab</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/haryana</loc>
+    <loc>https://www.evencify.com/events/haryana</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/goa</loc>
+    <loc>https://www.evencify.com/events/goa</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/mumbai/sunburn-arena-mumbai-2026</loc>
+    <loc>https://www.evencify.com/events/mumbai/sunburn-arena-mumbai-2026</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/bengaluru/india-tech-expo-bengaluru</loc>
+    <loc>https://www.evencify.com/events/bengaluru/india-tech-expo-bengaluru</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/delhi/delhi-nightlife-gala</loc>
+    <loc>https://www.evencify.com/events/delhi/delhi-nightlife-gala</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/surat/surat-diamond-city-fest</loc>
+    <loc>https://www.evencify.com/events/surat/surat-diamond-city-fest</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/events/goa/goa-beach-music-festival</loc>
+    <loc>https://www.evencify.com/events/goa/goa-beach-music-festival</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/crew-jobs</loc>
+    <loc>https://www.evencify.com/crew-jobs</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/event-staffing</loc>
+    <loc>https://www.evencify.com/event-staffing</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/organise-event</loc>
+    <loc>https://www.evencify.com/organise-event</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/event-management</loc>
+    <loc>https://www.evencify.com/event-management</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://evencify.com/about</loc>
+    <loc>https://www.evencify.com/about</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://evencify.com/contact</loc>
+    <loc>https://www.evencify.com/contact</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://evencify.com/faq</loc>
+    <loc>https://www.evencify.com/faq</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://evencify.com/privacy</loc>
+    <loc>https://www.evencify.com/privacy</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://evencify.com/terms</loc>
+    <loc>https://www.evencify.com/terms</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>

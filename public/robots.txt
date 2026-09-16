@@ -21,5 +21,6 @@ Disallow: /*?*sort=
 Disallow: /*?*filter=
 Disallow: /*?*session=
 
-# Sitemap directive
+# Sitemap directives
+Sitemap: https://www.evencify.com/sitemap.xml
 Sitemap: https://evencify.com/sitemap.xml

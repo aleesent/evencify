@@ -72,7 +72,7 @@ export const SitemapPage: React.FC<SitemapPageProps> = ({ events, rawXml = false
 
   const handleLinkClick = (e: React.MouseEvent, url: string) => {
     e.preventDefault();
-    const path = url.replace('https://evencify.com', '');
+    const path = url.replace(/^https?:\/\/(www\.)?evencify\.com/, '');
     navigateTo(path || '/');
   };
 
@@ -156,7 +156,7 @@ export const SitemapPage: React.FC<SitemapPageProps> = ({ events, rawXml = false
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {secEntries.map((item) => {
-                      const path = item.loc.replace('https://evencify.com', '') || '/';
+                      const path = item.loc.replace(/^https?:\/\/(www\.)?evencify\.com/, '') || '/';
                       return (
                         <a
                           key={item.loc}
