@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   UserRole,
   EventItem,
@@ -20,6 +20,8 @@ import {
   INITIAL_NOTIFICATIONS,
   INITIAL_EVENT_GROUPS,
 } from './mockData';
+import { EvencifyApi } from './services/api';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
 
 // SEO Metadata
 import { getSEOData } from './services/seoData';
@@ -115,6 +117,115 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
+  // Live Supabase auto-sync & real-time updates
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+
+    let isMounted = true;
+    const fetchSupabaseData = async () => {
+      try {
+        const [dbEvents, dbCrew, dbApps, dbGroups, dbUsers, dbNotifs] = await Promise.allSettled([
+          EvencifyApi.getEvents(),
+          EvencifyApi.getCrewProfiles(),
+          EvencifyApi.getApplications(),
+          EvencifyApi.getCoordinationGroups(),
+          EvencifyApi.getUsers(),
+          EvencifyApi.getNotifications(),
+        ]);
+
+        if (!isMounted) return;
+
+        if (dbEvents.status === 'fulfilled' && dbEvents.value.length > 0) {
+          setEvents(dbEvents.value);
+        }
+        if (dbCrew.status === 'fulfilled' && dbCrew.value.length > 0) {
+          setCrewList(dbCrew.value);
+          setCurrentCrewProfile(dbCrew.value[0]);
+        }
+        if (dbApps.status === 'fulfilled' && dbApps.value.length > 0) {
+          setApplications(dbApps.value);
+        }
+        if (dbGroups.status === 'fulfilled' && dbGroups.value.length > 0) {
+          setEventGroups(dbGroups.value);
+        }
+        if (dbUsers.status === 'fulfilled' && dbUsers.value.length > 0) {
+          setUsers(dbUsers.value);
+        }
+        if (dbNotifs.status === 'fulfilled' && dbNotifs.value.length > 0) {
+          setNotifications(dbNotifs.value);
+        }
+      } catch (err) {
+        console.error('Initial Supabase load error:', err);
+      }
+    };
+
+    fetchSupabaseData();
+
+    // Setup Postgres realtime listeners
+    const channel = supabase
+      .channel('evencify-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, async () => {
+        const freshEvents = await EvencifyApi.getEvents();
+        if (freshEvents.length > 0 && isMounted) setEvents(freshEvents);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'applications' }, async () => {
+        const freshApps = await EvencifyApi.getApplications();
+        if (freshApps.length > 0 && isMounted) setApplications(freshApps);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'coordination_messages' }, async () => {
+        const freshGroups = await EvencifyApi.getCoordinationGroups();
+        if (freshGroups.length > 0 && isMounted) {
+          setEventGroups(freshGroups);
+          setActiveChatGroup((prev) => {
+            if (!prev) return null;
+            return freshGroups.find((g) => g.id === prev.id) || prev;
+          });
+        }
+      })
+      .subscribe();
+
+    // Check for active Supabase Auth session (such as returning from OAuth redirect)
+    supabase.auth.getSession().then(({ data }) => {
+      if (data?.session?.user && isMounted) {
+        const u = data.session.user;
+        const userRole = (u.user_metadata?.role as UserRole) || 'crew';
+        const userEmail = u.email || '';
+        const userName =
+          u.user_metadata?.full_name ||
+          u.user_metadata?.name ||
+          userEmail.split('@')[0];
+
+        setActiveUserEmail(userEmail);
+        setActiveUserName(userName);
+        setAuthenticatedRole(userRole);
+        setCurrentRole(userRole);
+      }
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user && isMounted) {
+        const u = session.user;
+        const userRole = (u.user_metadata?.role as UserRole) || 'crew';
+        const userEmail = u.email || '';
+        const userName =
+          u.user_metadata?.full_name ||
+          u.user_metadata?.name ||
+          userEmail.split('@')[0];
+
+        setActiveUserEmail(userEmail);
+        setActiveUserName(userName);
+        setAuthenticatedRole(userRole);
+        setCurrentRole(userRole);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+      authListener?.subscription?.unsubscribe();
+    };
+  }, []);
+
   // Role switching
   const handleSelectRole = (role: UserRole) => {
     if (role === 'visitor') {
@@ -167,11 +278,12 @@ export default function App() {
     showToast(`Superadmin session active: ${email}`);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setCurrentRole('visitor');
     setActiveUserEmail('');
     setActiveUserName('');
     setAuthenticatedRole('visitor');
+    await EvencifyApi.signOut();
     showToast('Signed out successfully.');
   };
 
@@ -211,6 +323,21 @@ export default function App() {
     setApplications([newApp, ...applications]);
     showToast(`Application submitted for ${event.name}!`);
 
+    // Auto store to Supabase
+    EvencifyApi.applyForEvent(eventId, note, currentCrewProfile.categories[0] || event.requiredCategory, {
+      crewId: currentCrewProfile.id,
+      crewName: currentCrewProfile.name,
+      crewEmail: currentCrewProfile.email,
+      crewPhone: currentCrewProfile.phone,
+      crewPhoto: currentCrewProfile.photoUrl,
+      crewCategory: currentCrewProfile.categories[0] || event.requiredCategory,
+      experienceYears: currentCrewProfile.experienceYears,
+      systemRating: currentCrewProfile.systemRating,
+      city: currentCrewProfile.city,
+      eventName: event.name,
+      eventDate: event.date,
+    }).catch((err) => console.error('Supabase apply error:', err));
+
     // Add notification
     const newNotif: AppNotification = {
       id: `notif-${Date.now()}`,
@@ -228,6 +355,11 @@ export default function App() {
     setEvents([newEvent, ...events]);
     showToast(`Event "${newEvent.name}" published!`);
 
+    // Auto store to Supabase
+    EvencifyApi.createEvent(newEvent, newEvent.requirements).catch((err) =>
+      console.error('Supabase createEvent error:', err)
+    );
+
     const newNotif: AppNotification = {
       id: `notif-${Date.now()}`,
       title: 'New Event Live',
@@ -244,16 +376,31 @@ export default function App() {
       applications.map((a) => (a.id === appId ? { ...a, status } : a))
     );
     showToast(`Applicant marked as ${status}.`);
+
+    // Auto update in Supabase
+    EvencifyApi.updateApplicationStatus(appId, status).catch((err) =>
+      console.error('Supabase updateApplicationStatus error:', err)
+    );
   };
 
   const handleUpdateEventStatus = (eventId: string, status: EventItem['status']) => {
     setEvents(events.map((e) => (e.id === eventId ? { ...e, status } : e)));
     showToast(`Event status set to ${status}.`);
+
+    // Auto update status in Supabase
+    EvencifyApi.updateEvent(eventId, { status }).catch((err) =>
+      console.error('Supabase updateEvent status error:', err)
+    );
   };
 
   const handleDeleteEvent = (eventId: string) => {
     setEvents(events.filter((e) => e.id !== eventId));
     showToast('Event removed.');
+
+    // Auto delete from Supabase
+    EvencifyApi.deleteEvent(eventId).catch((err) =>
+      console.error('Supabase deleteEvent error:', err)
+    );
   };
 
   // Admin user status toggle
@@ -412,12 +559,22 @@ export default function App() {
       prev.map((e) => (e.id === updatedEvent.id ? updatedEvent : e))
     );
     showToast(`Event "${updatedEvent.name}" updated.`);
+
+    // Auto store to Supabase
+    EvencifyApi.updateEvent(updatedEvent.id, updatedEvent).catch((err) =>
+      console.error('Supabase updateEvent error:', err)
+    );
   };
 
   // Admin: Delete application
   const handleDeleteApplication = (appId: string) => {
     setApplications((prev) => prev.filter((a) => a.id !== appId));
     showToast('Application deleted.');
+
+    // Auto remove from Supabase
+    supabase.from('applications').delete().eq('id', appId).then(({ error }) => {
+      if (error) console.error('Supabase delete application error:', error);
+    });
   };
 
   // Admin user role update
@@ -426,6 +583,10 @@ export default function App() {
       prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
     );
     showToast(`User role updated to ${newRole}`);
+
+    supabase.from('profiles').update({ role: newRole }).eq('id', userId).then(({ error }) => {
+      if (error) console.error('Supabase update user role error:', error);
+    });
   };
 
   // Admin user delete
@@ -433,6 +594,10 @@ export default function App() {
     setUsers((prev) => prev.filter((u) => u.id !== userId));
     setCrewList((prev) => prev.filter((c) => c.id !== userId));
     showToast('User account permanently deleted.');
+
+    supabase.from('profiles').delete().eq('id', userId).then(({ error }) => {
+      if (error) console.error('Supabase delete user error:', error);
+    });
   };
 
   // Admin: Create official event coordination group (Admin-only feature when crew staffing requirements are met)
@@ -494,6 +659,11 @@ export default function App() {
     setEventGroups((prev) => [newGroup, ...prev]);
     setActiveChatGroup(newGroup);
     showToast(`Official Shift Coordination Group created for "${event.name}"!`);
+
+    // Auto store to Supabase
+    EvencifyApi.createCoordinationGroup(newGroup).catch((err) =>
+      console.error('Supabase createCoordinationGroup error:', err)
+    );
   };
 
   // Send message in an event coordination group
@@ -543,6 +713,17 @@ export default function App() {
       }
       return prev;
     });
+
+    // Auto store message in Supabase
+    EvencifyApi.sendCoordinationMessage({
+      id: newMessage.id,
+      groupId: newMessage.groupId,
+      senderId: newMessage.senderId,
+      senderName: newMessage.senderName,
+      senderRole: newMessage.senderRole,
+      content: newMessage.content,
+      timestamp: newMessage.timestamp,
+    }).catch((err) => console.error('Supabase sendCoordinationMessage error:', err));
   };
 
   const handleScrollToSection = (sectionId: string) => {

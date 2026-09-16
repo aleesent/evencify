@@ -517,6 +517,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                           )}
                         </button>
 
+                        <div className="flex items-center justify-between rounded-xl px-3 py-1.5 text-xs text-neutral-600 bg-emerald-50/60 border border-emerald-200/50">
+                          <div className="flex items-center gap-2">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            <span className="font-semibold text-emerald-900 text-[11px]">Supabase DB Linked</span>
+                          </div>
+                          <span className="text-[10px] text-emerald-700 font-mono">Live</span>
+                        </div>
+
                         <div className="my-1 border-t border-neutral-100" />
 
                         <button

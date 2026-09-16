@@ -1,23 +1,38 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const getEnvUrl = (): string | undefined => {
-  const envVal = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
-  if (envVal && envVal.trim() !== '' && envVal.startsWith('https://')) return envVal.trim();
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('evencify_supabase_url');
-    if (saved && saved.trim() !== '' && saved.startsWith('https://')) return saved.trim();
-  }
-  return undefined;
+const DEFAULT_SUPABASE_URL = 'https://tutspdayygbrrqtuepao.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_gn9U1OxaMNUwGMroOA_Rew_k4F9fMPH';
+
+const cleanUrl = (rawUrl?: string): string | undefined => {
+  if (!rawUrl || typeof rawUrl !== 'string') return undefined;
+  const trimmed = rawUrl.trim();
+  if (!trimmed.startsWith('https://') && !trimmed.startsWith('http://')) return undefined;
+  // Strip trailing /rest/v1 or /rest/v1/ or trailing slashes
+  return trimmed.replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
 };
 
-const getEnvKey = (): string | undefined => {
+const getEnvUrl = (): string => {
+  const envVal = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
+  const cleanedEnv = cleanUrl(envVal);
+  if (cleanedEnv) return cleanedEnv;
+
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('evencify_supabase_url');
+    const cleanedSaved = cleanUrl(saved || undefined);
+    if (cleanedSaved) return cleanedSaved;
+  }
+  return DEFAULT_SUPABASE_URL;
+};
+
+const getEnvKey = (): string => {
   const envVal = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY as string | undefined;
   if (envVal && envVal.trim() !== '') return envVal.trim();
+
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem('evencify_supabase_key');
     if (saved && saved.trim() !== '') return saved.trim();
   }
-  return undefined;
+  return DEFAULT_SUPABASE_ANON_KEY;
 };
 
 export const getSupabaseConfig = () => ({
@@ -27,12 +42,13 @@ export const getSupabaseConfig = () => ({
 
 export const isSupabaseConfigured = (): boolean => {
   const { url, key } = getSupabaseConfig();
-  return Boolean(url && key);
+  return Boolean(url && key && url.startsWith('http'));
 };
 
 export const setSupabaseConfig = (url: string, key: string) => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('evencify_supabase_url', url.trim());
+    const cleaned = cleanUrl(url) || url.trim();
+    localStorage.setItem('evencify_supabase_url', cleaned);
     localStorage.setItem('evencify_supabase_key', key.trim());
     window.location.reload();
   }
@@ -48,23 +64,17 @@ export const clearSupabaseConfig = () => {
 
 const config = getSupabaseConfig();
 
-// Initialize the real client if configured, or a placeholder instance that reports unconfigured
-export const supabase: SupabaseClient = isSupabaseConfigured()
-  ? createClient(config.url!, config.key!, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    })
-  : createClient(
-      'https://placeholder-project.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder',
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-        },
-      }
-    );
+export const supabase: SupabaseClient = createClient(config.url, config.key, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
+});
+
 

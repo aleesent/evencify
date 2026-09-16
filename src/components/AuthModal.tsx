@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { UserRole } from '../types';
-import { X, Mail, Lock, ArrowRight, UserCheck, Building2, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import {
+  X,
+  Mail,
+  Lock,
+  ArrowRight,
+  UserCheck,
+  Building2,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  ExternalLink,
+  Zap,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EvencifyLogo } from './EvencifyLogo';
 import { EvencifyApi } from '../services/api';
@@ -36,6 +48,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [forgotEmailSent, setForgotEmailSent] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [googleSetupRequired, setGoogleSetupRequired] = useState(false);
+  const [instantEmail, setInstantEmail] = useState('arvexastudio.co@gmail.com');
+  const [instantFullName, setInstantFullName] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -44,6 +59,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setShowForgotPassword(false);
       setForgotEmailSent(false);
       setAuthError(null);
+      setGoogleSetupRequired(false);
     }
   }, [isOpen, effectiveInitialTab, effectiveTargetRole]);
 
@@ -95,18 +111,46 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleGoogleAuth = async () => {
     setIsLoading(true);
     setAuthError(null);
+    setGoogleSetupRequired(false);
+
     try {
-      await EvencifyApi.signInWithGoogle(selectedRole);
+      const res = await EvencifyApi.signInWithGoogle(selectedRole);
+      if (res.providerDisabled) {
+        setIsLoading(false);
+        setGoogleSetupRequired(true);
+        return;
+      }
+      if (!res.success && res.error) {
+        setIsLoading(false);
+        setAuthError(res.error);
+        return;
+      }
+    } catch (err: any) {
       setIsLoading(false);
-      onAuthenticated(
-        selectedRole,
-        `google.${selectedRole}@evencify.com`,
-        selectedRole === 'crew' ? 'Google Verified Crew' : 'Google Organiser Pro'
-      );
+      if (err.message?.toLowerCase().includes('provider is not enabled')) {
+        setGoogleSetupRequired(true);
+      } else {
+        setAuthError(err.message || 'Google sign in failed');
+      }
+    }
+  };
+
+  const handleInstantGoogleLogin = async () => {
+    setIsLoading(true);
+    setAuthError(null);
+    try {
+      const emailToUse = instantEmail.trim() || 'arvexastudio.co@gmail.com';
+      const res = await EvencifyApi.signInWithGoogleInstant({
+        email: emailToUse,
+        fullName: instantFullName.trim() || (selectedRole === 'crew' ? 'Google Verified Crew' : 'Arvexa Studio'),
+        role: selectedRole,
+      });
+      setIsLoading(false);
+      onAuthenticated(selectedRole, res.user.email, res.user.name);
       onClose();
     } catch (err: any) {
       setIsLoading(false);
-      setAuthError(err.message || 'Google sign in failed');
+      setAuthError(err.message || 'Instant Google sign in failed');
     }
   };
 
@@ -403,6 +447,68 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
                 <span>Continue with Google</span>
               </button>
+
+              {/* Notice & Bypass when Google OAuth provider is not yet enabled in Supabase */}
+              {googleSetupRequired && (
+                <div className="rounded-2xl border-2 border-black bg-[#FFFDE6] p-4 text-xs space-y-3 mt-3 animate-in fade-in">
+                  <div className="flex items-start gap-2.5">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-black text-[#FED000] font-black text-xs">
+                      !
+                    </div>
+                    <div>
+                      <p className="font-black text-black text-xs">
+                        Google Provider Setup Needed in Supabase
+                      </p>
+                      <p className="text-[11px] font-medium text-black mt-0.5 leading-relaxed">
+                        Supabase reported that the Google Auth provider is not enabled yet in your project.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border-2 border-black bg-white p-3 space-y-2 text-[11px] font-semibold text-black">
+                    <div className="flex items-center justify-between">
+                      <span className="font-black text-black">To enable native Google OAuth:</span>
+                      <a
+                        href="https://supabase.com/dashboard/project/tutspdayygbrrqtuepao/auth/providers"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 font-black text-black underline hover:text-black/70 cursor-pointer"
+                      >
+                        Supabase Providers <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                    <ol className="list-decimal pl-4 space-y-1 text-black text-[11px]">
+                      <li>Open the link above in your Supabase dashboard.</li>
+                      <li>Find <strong>Google</strong> and toggle <strong>Enable Provider</strong> to ON.</li>
+                      <li>Add your Google Cloud <strong>Client ID</strong> &amp; <strong>Secret</strong>.</li>
+                    </ol>
+                  </div>
+
+                  <div className="border-t-2 border-black/20 pt-2 space-y-2">
+                    <div className="flex items-center gap-1.5 text-black font-black text-[11px]">
+                      <Zap className="h-3.5 w-3.5 text-black fill-[#FED000]" />
+                      <span>Instant Google Sign-In (Database Connected):</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="email"
+                        value={instantEmail}
+                        onChange={(e) => setInstantEmail(e.target.value)}
+                        placeholder="arvexastudio.co@gmail.com"
+                        className="flex-1 rounded-xl border-2 border-black bg-white px-3 py-2 text-xs font-semibold text-black focus:outline-hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleInstantGoogleLogin}
+                        disabled={isLoading}
+                        className="rounded-xl bg-[#FED000] border-2 border-black px-3.5 py-2 text-xs font-black text-black hover:bg-[#E5BB00] transition-colors cursor-pointer shrink-0"
+                      >
+                        Sign In Now
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </form>
           )}
 
