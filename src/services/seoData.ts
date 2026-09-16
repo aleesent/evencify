@@ -49,6 +49,23 @@ export const CITY_ALIASES: Record<string, string> = {
   mysore: 'mysuru',
   'surat-gujarat': 'surat',
   'ahmedabad-gujarat': 'ahmedabad',
+  'vadodara-gujarat': 'vadodara',
+  'rajkot-gujarat': 'rajkot',
+  'gandhinagar-gujarat': 'gandhinagar',
+  'bharuch-gujarat': 'bharuch',
+  'bhavnagar-gujarat': 'bhavnagar',
+  'jamnagar-gujarat': 'jamnagar',
+  'anand-gujarat': 'anand',
+  'navsari-gujarat': 'navsari',
+  'vapi-gujarat': 'vapi',
+  'valsad-gujarat': 'valsad',
+  'mehsana-gujarat': 'mehsana',
+  'morbi-gujarat': 'morbi',
+  'junagadh-gujarat': 'junagadh',
+  'bhuj-gujarat': 'bhuj',
+  'kutch': 'bhuj',
+  'somnath-gujarat': 'somnath',
+  veraval: 'somnath',
   'mumbai-maharashtra': 'mumbai',
   'delhi-ncr': 'delhi',
   newdelhi: 'delhi',
@@ -412,6 +429,250 @@ export const CITIES_DATABASE: Record<string, CityData> = {
     areas: ['Panaji', 'Candolim', 'Vagator', 'Calangute', 'Bambolim', 'Margao'],
     popularVenues: ['Dr. Shyama Prasad Mukherjee Stadium', 'Vagator Hilltop Arena', 'Kala Academy, Panaji'],
   },
+  bharuch: {
+    slug: 'bharuch',
+    name: 'Bharuch',
+    state: 'Gujarat',
+    stateSlug: 'gujarat',
+    tier: 2,
+    priority: true,
+    lat: 21.7051,
+    lng: 72.9959,
+    description:
+      'Ancient port city and chemical-industrial nerve centre on the Narmada River in Gujarat, hosting trade summits, industrial exhibitions, and corporate conclaves.',
+    areas: ['Zadeshwar Road', 'Link Road', 'Station Road', 'Dahej Industrial Corridor', 'Ankleshwar GIDC'],
+    popularVenues: ['Pandit Omkarnath Natyagruh', 'Matariya Talav Cultural Amphitheatre', 'BAPS Sanskrutik Hall'],
+    faqs: [
+      {
+        q: 'What events are happening in Bharuch?',
+        a: 'Bharuch hosts industrial engineering expos, chemical & manufacturing summits in the Dahej/Ankleshwar belt, cultural festival nights, and corporate conferences.',
+      },
+      {
+        q: 'Where can I find upcoming events in Bharuch?',
+        a: 'Discover verified events in Bharuch and Ankleshwar on Evencify with venue details, ticket information, and crew staffing positions.',
+      },
+    ],
+  },
+  bhavnagar: {
+    slug: 'bhavnagar',
+    name: 'Bhavnagar',
+    state: 'Gujarat',
+    stateSlug: 'gujarat',
+    tier: 2,
+    priority: true,
+    lat: 21.7645,
+    lng: 72.1519,
+    description:
+      'Cultural and maritime capital of Saurashtra, Gujarat, celebrated for theatrical arts, industrial trade meets, and vibrant coastal cultural festivals.',
+    areas: ['Waghawadi Road', 'Kaliabid', 'Ghogha Circle', 'Takhteshwar', 'Subhashnagar'],
+    popularVenues: ['Yashwantrai Natyagruh', 'Nilambag Palace Banquets', 'MKBU University Convention Ground'],
+    faqs: [
+      {
+        q: 'What events take place in Bhavnagar?',
+        a: 'Bhavnagar hosts trade fairs, Gujarati theatrical plays at Yashwantrai Natyagruh, academic summits, and large-scale Navratri mahotsavs.',
+      },
+    ],
+  },
+  jamnagar: {
+    slug: 'jamnagar',
+    name: 'Jamnagar',
+    state: 'Gujarat',
+    stateSlug: 'gujarat',
+    tier: 2,
+    priority: true,
+    lat: 22.4707,
+    lng: 70.0577,
+    description:
+      'The Jewel of Kathiawar and industrial petroleum capital in Gujarat, renowned for brass manufacturing expos, grand destination celebrations, and Ayurveda summits.',
+    areas: ['Bedeshwar', 'Patel Colony', 'Digjam Plot', 'Panchvati', 'Khambhalia Road'],
+    popularVenues: ['Town Hall Jamnagar', 'Oshwal Centre', 'Reliance Greens Convention Arena'],
+    faqs: [
+      {
+        q: 'What kind of events are hosted in Jamnagar?',
+        a: 'Jamnagar hosts international industrial summits, brass & engineering trade fairs, destination weddings, and cultural folk celebrations.',
+      },
+    ],
+  },
+  anand: {
+    slug: 'anand',
+    name: 'Anand',
+    state: 'Gujarat',
+    stateSlug: 'gujarat',
+    tier: 2,
+    priority: true,
+    lat: 22.5645,
+    lng: 72.9289,
+    description:
+      'The Milk Capital of India and leading educational hub in Gujarat, hosting international dairy & agri-tech summits, collegiate youth festivals, and academic conferences.',
+    areas: ['Vidyanagar Road', 'Amul Dairy Road', 'Vallabh Vidyanagar', 'Bakrol', 'Bhaikaka Marg'],
+    popularVenues: ['Shastri Maidan', 'Amul Diamond Jubilee Hall', 'Bhaikaka Hall, VV Nagar'],
+    faqs: [
+      {
+        q: 'What events happen in Anand & Vallabh Vidyanagar?',
+        a: 'Anand hosts agri-business conferences, collegiate fests and hackathons across Vallabh Vidyanagar campuses, and dairy technology expositions.',
+      },
+    ],
+  },
+  navsari: {
+    slug: 'navsari',
+    name: 'Navsari',
+    state: 'Gujarat',
+    stateSlug: 'gujarat',
+    tier: 2,
+    priority: true,
+    lat: 20.9467,
+    lng: 72.9520,
+    description:
+      'Historic Twin City of Surat in South Gujarat, known for diamond polishing, heritage Parsi culture, agricultural festivals, and arts conclaves.',
+    areas: ['Lunsikui', 'Station Road', 'Chhapra Road', 'Vijalpore', 'Dandi Road'],
+    popularVenues: ['Tata Memorial Hall', 'Sayaji Vaibhav Library Grounds', 'Navsari Club & Banquets'],
+    faqs: [
+      {
+        q: 'What events are organized in Navsari?',
+        a: 'Navsari hosts cultural festivals, horticulture expos, youth talent meets, and diamond industry gatherings in South Gujarat.',
+      },
+    ],
+  },
+  vapi: {
+    slug: 'vapi',
+    name: 'Vapi',
+    state: 'Gujarat',
+    stateSlug: 'gujarat',
+    tier: 2,
+    priority: true,
+    lat: 20.3893,
+    lng: 72.9106,
+    description:
+      'Major industrial and commercial powerhouse in South Gujarat, hosting national manufacturing expos, chemical conclaves, and high-footfall business fairs.',
+    areas: ['Chala', 'GIDC', 'Gunjan', 'Daman Road', 'Koparli Road'],
+    popularVenues: ['VIA Convention Center', 'Morarji Desai Auditorium', 'Fortune Park Galaxy Banquets'],
+    faqs: [
+      {
+        q: 'What business and cultural events take place in Vapi?',
+        a: 'Vapi hosts the VIA Industrial Expo, chemical & paper manufacturing conferences, corporate seminars, and grand festival celebrations.',
+      },
+    ],
+  },
+  valsad: {
+    slug: 'valsad',
+    name: 'Valsad',
+    state: 'Gujarat',
+    stateSlug: 'gujarat',
+    tier: 2,
+    priority: true,
+    lat: 20.5992,
+    lng: 72.9342,
+    description:
+      'Picturesque coastal district in South Gujarat celebrated for Tithal beach festivals, mango trade expos, destination weddings, and cultural celebrations.',
+    areas: ['Tithal Road', 'Dharampur Road', 'Koliwad', 'Mograwadi', 'Abrama'],
+    popularVenues: ['Tithal Beach Promenade Arena', 'Valsad District Sports Complex', 'Avabai High School Grounds'],
+    faqs: [
+      {
+        q: 'What events happen in Valsad?',
+        a: 'Valsad hosts annual Tithal Beach Festival gatherings, coastal sports tournaments, music concerts, and agro-business exhibitions.',
+      },
+    ],
+  },
+  mehsana: {
+    slug: 'mehsana',
+    name: 'Mehsana',
+    state: 'Gujarat',
+    stateSlug: 'gujarat',
+    tier: 2,
+    priority: true,
+    lat: 23.5880,
+    lng: 72.3693,
+    description:
+      'North Gujarat’s commercial and cultural epicentre, famous for Modhera Sun Temple dance festivals, oil & gas industrial meets, and dairy expositions.',
+    areas: ['Radhanpur Road', 'Modhera Road', 'Nagalpur', 'Panchot', 'Highway Road'],
+    popularVenues: ['Town Hall Mehsana', 'Modhera Cultural Arena', 'Shanku Resort Grounds'],
+    faqs: [
+      {
+        q: 'What events are organized in Mehsana?',
+        a: 'Mehsana hosts the historic Uttarardh Mahotsav classical dance festival at Modhera Sun Temple, dairy farming exhibitions, and trade expos.',
+      },
+    ],
+  },
+  morbi: {
+    slug: 'morbi',
+    name: 'Morbi',
+    state: 'Gujarat',
+    stateSlug: 'gujarat',
+    tier: 2,
+    priority: true,
+    lat: 22.8173,
+    lng: 70.8377,
+    description:
+      'Ceramic Capital of the World located in Gujarat, hosting international ceramic expos, tile machinery summits, clock & export conferences.',
+    areas: ['Sanala Road', 'Lakhdhirpur Road', 'Kandla Highway', 'Trajpar', 'Navlakhi Road'],
+    popularVenues: ['Ceramic Association Exhibition Centre', 'Morbi Royal Palace Grounds', 'Town Hall Morbi'],
+    faqs: [
+      {
+        q: 'What international events happen in Morbi?',
+        a: 'Morbi hosts the mega Vibrant Ceramics Expo, global buyer-seller meets, and tile manufacturing symposiums with international delegates.',
+      },
+    ],
+  },
+  junagadh: {
+    slug: 'junagadh',
+    name: 'Junagadh',
+    state: 'Gujarat',
+    stateSlug: 'gujarat',
+    tier: 2,
+    priority: true,
+    lat: 21.5222,
+    lng: 70.4579,
+    description:
+      'Historic city at the foothills of Mount Girnar in Gujarat, world-renowned for the sacred Bhavnath Fair, Girnar mountaineering competitions, and heritage arts festivals.',
+    areas: ['Zanzarda Road', 'Motibaug', 'Kalwa Chowk', 'Talav Gate', 'Bhavnath Taleti'],
+    popularVenues: ['Bhavnath Fair Grounds', 'Girnar Convention Hall', 'Shamaldas Gandhi Town Hall'],
+    faqs: [
+      {
+        q: 'What major festivals and events happen in Junagadh?',
+        a: 'Junagadh hosts the Maha Shivratri Bhavnath Fair, Girnar Parikrama, state mountaineering competitions, and Saurashtra folk heritage meets.',
+      },
+    ],
+  },
+  bhuj: {
+    slug: 'bhuj',
+    name: 'Bhuj',
+    state: 'Gujarat',
+    stateSlug: 'gujarat',
+    tier: 2,
+    priority: true,
+    lat: 23.2420,
+    lng: 69.6669,
+    description:
+      'Gateway to the Great Rann of Kutch in Gujarat, world-famous for Rann Utsav cultural carnivals, handicraft exhibitions, and international desert tourism summits.',
+    areas: ['Mirzapar Highway', 'Mundra Road', 'Hospital Road', 'Jubilee Ground', 'Madhapar'],
+    popularVenues: ['Rann Utsav Gateway Grounds', 'Kutch Cultural Hall', 'Town Hall Bhuj'],
+    faqs: [
+      {
+        q: 'What world-class events are held in Bhuj & Kutch?',
+        a: 'Bhuj is the epicenter of the 4-month international Rann Utsav festival, Kutch handicrafts expos, white desert music concerts, and kite flying championships.',
+      },
+    ],
+  },
+  somnath: {
+    slug: 'somnath',
+    name: 'Somnath',
+    state: 'Gujarat',
+    stateSlug: 'gujarat',
+    tier: 2,
+    priority: true,
+    lat: 20.8880,
+    lng: 70.4013,
+    description:
+      'Sacred pilgrimage and coastal heritage hub in Gujarat, hosting divine temple light-and-sound spectacles, classical music festivals, and maritime conclaves.',
+    areas: ['Veraval Bypass', 'Prabhas Patan', 'Somnath Beach Road', 'Rajendra Bhuvan Road'],
+    popularVenues: ['Somnath Trust Auditorium', 'Prabhas Patan Cultural Grounds', 'Veraval Town Hall'],
+    faqs: [
+      {
+        q: 'What events take place in Somnath & Veraval?',
+        a: 'Somnath hosts Kartik Purnima fair celebrations, coastal cultural concerts, maritime fisheries summits in Veraval, and classical spiritual arts recitals.',
+      },
+    ],
+  },
 };
 
 // ----------------------------------------------------
@@ -424,7 +685,25 @@ export const STATES_DATABASE: Record<string, StateData> = {
     capital: 'Gandhinagar',
     description:
       'Gujarat is India’s industrial powerhouse on the western coast, famed for Vibrant Gujarat global summits, colossal Navratri celebrations, international diamond trade exhibitions, and opulent cultural festivals.',
-    priorityCities: ['Surat', 'Ahmedabad', 'Vadodara', 'Rajkot', 'Gandhinagar', 'Bhavnagar', 'Jamnagar', 'Anand', 'Bharuch', 'Vapi', 'Navsari', 'Valsad'],
+    priorityCities: [
+      'Surat',
+      'Ahmedabad',
+      'Vadodara',
+      'Rajkot',
+      'Gandhinagar',
+      'Bharuch',
+      'Bhavnagar',
+      'Jamnagar',
+      'Anand',
+      'Navsari',
+      'Vapi',
+      'Valsad',
+      'Mehsana',
+      'Morbi',
+      'Junagadh',
+      'Bhuj',
+      'Somnath',
+    ],
   },
   maharashtra: {
     slug: 'maharashtra',
@@ -666,7 +945,45 @@ export const CATEGORIES_DATABASE: Record<string, CategoryData> = {
     keywords: ['college festivals near me', 'campus techfests India', 'cultural college fests', 'university carnivals', 'student hackathons'],
     relatedCategorySlugs: ['festivals', 'technology', 'sports'],
   },
+  startup: {
+    slug: 'startup',
+    name: 'Startup',
+    iconName: 'Sparkles',
+    headline: 'Startup Pitch Days, Founder Mixers & Investor Demo Days',
+    description:
+      'Connect with venture capitalists, angel networks, incubators, and fellow founders at premier startup events, accelerator demo days, and pitch battles.',
+    keywords: ['startup events near me', 'pitch competitions India', 'investor demo day', 'founder meetups', 'venture capital events'],
+    relatedCategorySlugs: ['business', 'networking', 'technology'],
+  },
 };
+
+// ----------------------------------------------------
+// Canonical Category Aliases
+// ----------------------------------------------------
+export const CATEGORY_ALIASES: Record<string, string> = {
+  'business-events': 'business',
+  'networking-events': 'networking',
+  'technology-events': 'technology',
+  'tech-events': 'technology',
+  tech: 'technology',
+  'startup-events': 'startup',
+  startups: 'startup',
+  'college-events': 'college',
+  'campus-events': 'college',
+  concert: 'concerts',
+  music: 'concerts',
+  workshop: 'workshops',
+  conference: 'conferences',
+  festival: 'festivals',
+  exhibition: 'exhibitions',
+  expo: 'exhibitions',
+  expos: 'exhibitions',
+};
+
+export function normalizeCategorySlug(rawSlug: string): string {
+  const cleaned = slugify(rawSlug);
+  return CATEGORY_ALIASES[cleaned] || cleaned;
+}
 
 // ----------------------------------------------------
 // Slug Generation and Normalization Utilities
@@ -731,6 +1048,7 @@ export function getSEOData(params: {
     | 'state'
     | 'category'
     | 'city-category'
+    | 'state-category'
     | 'event'
     | 'organiser'
     | 'crew-jobs'
@@ -758,9 +1076,9 @@ export function getSEOData(params: {
 
   switch (params.type) {
     case 'homepage': {
-      const title = 'Evencify – Discover Events Near You Across India';
+      const title = 'Evencify | Event Made Easy – Discover Events in Surat & Gujarat';
       const description =
-        'Discover upcoming events near you with Evencify. Find concerts, workshops, conferences, exhibitions, festivals, business events and more across Surat, Gujarat and cities throughout India.';
+        'Discover upcoming events in Surat and Gujarat with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more.';
       const canonicalUrl = 'https://evencify.com';
       const h1 = 'Discover Events Near You';
 
@@ -940,23 +1258,38 @@ export function getSEOData(params: {
     case 'city': {
       const city = params.city || CITIES_DATABASE.surat;
       const isSurat = city.slug === 'surat';
+      const isGujaratCity = city.stateSlug === 'gujarat';
       const title = isSurat
         ? 'Events in Surat | Upcoming Events & Things to Do | Evencify'
-        : `Events in ${city.name} | Upcoming Events & Things to Do | Evencify`;
+        : `Events in ${city.name} | Upcoming Events | Evencify`;
       const description = isSurat
-        ? 'Discover upcoming events in Surat, Gujarat on Evencify. Find concerts, workshops, exhibitions, conferences, festivals, business events, networking events and more.'
-        : `Discover upcoming events in ${city.name}, ${city.state} on Evencify. Find concerts, workshops, exhibitions, conferences, festivals, and business events with venue details.`;
+        ? 'Discover upcoming events in Surat and Gujarat with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more.'
+        : `Discover upcoming events in ${city.name}, ${city.state} with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more.`;
       const canonicalUrl = `https://evencify.com/events/${city.slug}`;
-      const h1 = `Upcoming Events in ${city.name}`;
+      const h1 = isSurat ? 'Events in Surat' : `Upcoming Events in ${city.name}`;
+
+      const breadcrumbItems = isGujaratCity
+        ? [
+            { name: 'Home', url: 'https://evencify.com' },
+            { name: 'Events', url: 'https://evencify.com/events' },
+            { name: 'Gujarat', url: 'https://evencify.com/events/gujarat' },
+            { name: city.name, url: canonicalUrl },
+          ]
+        : [
+            { name: 'Home', url: 'https://evencify.com' },
+            { name: 'Events', url: 'https://evencify.com/events' },
+            { name: city.name, url: canonicalUrl },
+          ];
 
       const breadcrumbSchema = {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com' },
-          { '@type': 'ListItem', position: 2, name: 'Events', item: 'https://evencify.com/events' },
-          { '@type': 'ListItem', position: 3, name: city.name, item: canonicalUrl },
-        ],
+        itemListElement: breadcrumbItems.map((item, idx) => ({
+          '@type': 'ListItem',
+          position: idx + 1,
+          name: item.name,
+          item: item.url,
+        })),
       };
 
       const structuredData: Record<string, unknown>[] = [breadcrumbSchema];
@@ -991,11 +1324,7 @@ export function getSEOData(params: {
         twitterImage: fallbackImage,
         h1,
         structuredData,
-        breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
-          { name: 'Events', url: 'https://evencify.com/events' },
-          { name: city.name, url: canonicalUrl },
-        ],
+        breadcrumbItems,
       };
     }
 
@@ -1003,22 +1332,29 @@ export function getSEOData(params: {
       const state = params.state || STATES_DATABASE.gujarat;
       const isGujarat = state.slug === 'gujarat';
       const title = isGujarat
-        ? 'Events in Gujarat | Upcoming Events Across Gujarat | Evencify'
+        ? 'Events in Gujarat | Upcoming Events & Things to Do | Evencify'
         : `Events in ${state.name} | Upcoming Events Across ${state.name} | Evencify`;
       const description = isGujarat
-        ? 'Discover upcoming events in Gujarat on Evencify. Find concerts, trade fairs, exhibitions, festivals, business conferences across Surat, Ahmedabad, Vadodara, and Rajkot.'
+        ? 'Discover upcoming events in Gujarat with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more across Surat, Ahmedabad, Vadodara, Rajkot and more.'
         : `Discover concerts, workshops, conferences, exhibitions, festivals and business events happening across ${state.name} with verified venue and ticket information.`;
       const canonicalUrl = `https://evencify.com/events/${state.slug}`;
       const h1 = `Upcoming Events in ${state.name}`;
 
+      const breadcrumbItems = [
+        { name: 'Home', url: 'https://evencify.com' },
+        { name: 'Events', url: 'https://evencify.com/events' },
+        { name: state.name, url: canonicalUrl },
+      ];
+
       const breadcrumbSchema = {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com' },
-          { '@type': 'ListItem', position: 2, name: 'Events', item: 'https://evencify.com/events' },
-          { '@type': 'ListItem', position: 3, name: state.name, item: canonicalUrl },
-        ],
+        itemListElement: breadcrumbItems.map((item, idx) => ({
+          '@type': 'ListItem',
+          position: idx + 1,
+          name: item.name,
+          item: item.url,
+        })),
       };
 
       return {
@@ -1087,20 +1423,36 @@ export function getSEOData(params: {
     case 'city-category': {
       const city = params.city || CITIES_DATABASE.surat;
       const cat = params.category || CATEGORIES_DATABASE.concerts;
-      const title = `${cat.name} in ${city.name} | Upcoming Live Events | Evencify`;
-      const description = `Discover upcoming ${cat.name.toLowerCase()} in ${city.name}, ${city.state}. View verified dates, venue addresses, performer line-ups, and tickets on Evencify.`;
+      const isGujaratCity = city.stateSlug === 'gujarat';
+      const title = `${cat.name} Events in ${city.name} | Evencify`;
+      const description = `Discover upcoming ${cat.name.toLowerCase()} in ${city.name} with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more with verified venue and ticket details.`;
       const canonicalUrl = `https://evencify.com/events/${city.slug}/${cat.slug}`;
-      const h1 = `Upcoming ${cat.name} in ${city.name}`;
+      const h1 = `${cat.name} Events in ${city.name}`;
+
+      const breadcrumbItems = isGujaratCity
+        ? [
+            { name: 'Home', url: 'https://evencify.com' },
+            { name: 'Events', url: 'https://evencify.com/events' },
+            { name: 'Gujarat', url: 'https://evencify.com/events/gujarat' },
+            { name: city.name, url: `https://evencify.com/events/${city.slug}` },
+            { name: cat.name, url: canonicalUrl },
+          ]
+        : [
+            { name: 'Home', url: 'https://evencify.com' },
+            { name: 'Events', url: 'https://evencify.com/events' },
+            { name: city.name, url: `https://evencify.com/events/${city.slug}` },
+            { name: cat.name, url: canonicalUrl },
+          ];
 
       const breadcrumbSchema = {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com' },
-          { '@type': 'ListItem', position: 2, name: 'Events', item: 'https://evencify.com/events' },
-          { '@type': 'ListItem', position: 3, name: city.name, item: `https://evencify.com/events/${city.slug}` },
-          { '@type': 'ListItem', position: 4, name: cat.name, item: canonicalUrl },
-        ],
+        itemListElement: breadcrumbItems.map((item, idx) => ({
+          '@type': 'ListItem',
+          position: idx + 1,
+          name: item.name,
+          item: item.url,
+        })),
       };
 
       return {
@@ -1118,12 +1470,52 @@ export function getSEOData(params: {
         twitterImage: fallbackImage,
         h1,
         structuredData: [breadcrumbSchema],
-        breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
-          { name: 'Events', url: 'https://evencify.com/events' },
-          { name: city.name, url: `https://evencify.com/events/${city.slug}` },
-          { name: cat.name, url: canonicalUrl },
-        ],
+        breadcrumbItems,
+      };
+    }
+
+    case 'state-category': {
+      const state = params.state || STATES_DATABASE.gujarat;
+      const cat = params.category || CATEGORIES_DATABASE.concerts;
+      const title = `${cat.name} Events in ${state.name} | Evencify`;
+      const description = `Discover upcoming ${cat.name.toLowerCase()} in ${state.name} with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more across ${state.name}.`;
+      const canonicalUrl = `https://evencify.com/events/${state.slug}/${cat.slug}`;
+      const h1 = `${cat.name} Events in ${state.name}`;
+
+      const breadcrumbItems = [
+        { name: 'Home', url: 'https://evencify.com' },
+        { name: 'Events', url: 'https://evencify.com/events' },
+        { name: state.name, url: `https://evencify.com/events/${state.slug}` },
+        { name: cat.name, url: canonicalUrl },
+      ];
+
+      const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbItems.map((item, idx) => ({
+          '@type': 'ListItem',
+          position: idx + 1,
+          name: item.name,
+          item: item.url,
+        })),
+      };
+
+      return {
+        title,
+        description,
+        canonicalUrl,
+        robots: 'index, follow',
+        ogTitle: title,
+        ogDescription: description,
+        ogImage: fallbackImage,
+        ogType: 'website',
+        twitterCard: 'summary_large_image',
+        twitterTitle: title,
+        twitterDescription: description,
+        twitterImage: fallbackImage,
+        h1,
+        structuredData: [breadcrumbSchema],
+        breadcrumbItems,
       };
     }
 
@@ -1135,7 +1527,12 @@ export function getSEOData(params: {
 
       const citySlug = slugify(evt.city || 'india');
       const eventSlug = getEventSlug(evt);
-      const title = `${evt.name} in ${evt.city} | Tickets & Event Details | Evencify`;
+      const isGujaratCity =
+        STATES_DATABASE.gujarat.priorityCities.some(
+          (c) => c.toLowerCase() === (evt.city || '').toLowerCase()
+        ) || evt.city?.toLowerCase() === 'surat';
+
+      const title = `${evt.name} in ${evt.city} | Date, Venue & Details | Evencify`;
       const description = `Discover ${evt.name} in ${evt.city} on Evencify. View event details, date (${evt.date}), venue (${evt.venue}), organiser (${evt.organiserName}) and other upcoming events.`;
       const canonicalUrl = `https://evencify.com/events/${citySlug}/${eventSlug}`;
       const h1 = evt.name;
@@ -1157,7 +1554,7 @@ export function getSEOData(params: {
             '@type': 'PostalAddress',
             streetAddress: evt.fullAddress || evt.venue,
             addressLocality: evt.city,
-            addressRegion: evt.city === 'Surat' || evt.city === 'Ahmedabad' ? 'Gujarat' : 'India',
+            addressRegion: isGujaratCity ? 'Gujarat' : 'India',
             addressCountry: 'IN',
           },
         },
@@ -1177,15 +1574,30 @@ export function getSEOData(params: {
         },
       };
 
+      const breadcrumbItems = isGujaratCity
+        ? [
+            { name: 'Home', url: 'https://evencify.com' },
+            { name: 'Events', url: 'https://evencify.com/events' },
+            { name: 'Gujarat', url: 'https://evencify.com/events/gujarat' },
+            { name: evt.city, url: `https://evencify.com/events/${citySlug}` },
+            { name: evt.name, url: canonicalUrl },
+          ]
+        : [
+            { name: 'Home', url: 'https://evencify.com' },
+            { name: 'Events', url: 'https://evencify.com/events' },
+            { name: evt.city, url: `https://evencify.com/events/${citySlug}` },
+            { name: evt.name, url: canonicalUrl },
+          ];
+
       const breadcrumbSchema = {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com' },
-          { '@type': 'ListItem', position: 2, name: 'Events', item: 'https://evencify.com/events' },
-          { '@type': 'ListItem', position: 3, name: evt.city, item: `https://evencify.com/events/${citySlug}` },
-          { '@type': 'ListItem', position: 4, name: evt.name, item: canonicalUrl },
-        ],
+        itemListElement: breadcrumbItems.map((item, idx) => ({
+          '@type': 'ListItem',
+          position: idx + 1,
+          name: item.name,
+          item: item.url,
+        })),
       };
 
       return {
@@ -1203,12 +1615,7 @@ export function getSEOData(params: {
         twitterImage: fallbackImage,
         h1,
         structuredData: [eventSchema, breadcrumbSchema],
-        breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
-          { name: 'Events', url: 'https://evencify.com/events' },
-          { name: evt.city, url: `https://evencify.com/events/${citySlug}` },
-          { name: evt.name, url: canonicalUrl },
-        ],
+        breadcrumbItems,
       };
     }
 
@@ -1652,6 +2059,16 @@ export function getSEODataFromRoute(
       return getSEOData({
         type: 'city-category',
         city: cityData,
+        category: categoryData,
+        eventCount: events.length,
+      });
+    }
+    case 'state-category': {
+      const stateData = route.stateSlug ? STATES_DATABASE[route.stateSlug] : undefined;
+      const categoryData = route.categorySlug ? CATEGORIES_DATABASE[route.categorySlug] : undefined;
+      return getSEOData({
+        type: 'state-category',
+        state: stateData,
         category: categoryData,
         eventCount: events.length,
       });

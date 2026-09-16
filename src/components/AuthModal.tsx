@@ -116,9 +116,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         }
 
         setIsLoading(false);
-        const userRole =
-          res.user.role === 'organiser' ? 'organiser' : 'crew';
-        onAuthenticated(userRole, res.user.email, res.user.name);
+        if (res.user.role === 'admin') {
+          onAuthenticated('admin' as any, res.user.email, res.user.name);
+        } else {
+          const userRole =
+            res.user.role === 'organiser' ? 'organiser' : 'crew';
+          onAuthenticated(userRole, res.user.email, res.user.name);
+        }
         onClose();
       }
     } catch (err: any) {

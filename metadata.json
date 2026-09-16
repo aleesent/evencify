@@ -1,6 +1,6 @@
 {
   "name": "Evencify",
-  "description": "Events Made Easy — India's private event workforce operating system connecting verified event crew and event organisers.",
+  "description": "Discover upcoming events in Surat and Gujarat with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

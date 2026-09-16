@@ -5,6 +5,7 @@ import {
   CATEGORIES_DATABASE,
   CITY_ALIASES,
   normalizeCitySlug,
+  normalizeCategorySlug,
   slugify,
 } from './seoData';
 
@@ -17,6 +18,7 @@ export type RouteType =
   | 'state'
   | 'category'
   | 'city-category'
+  | 'state-category'
   | 'event'
   | 'organiser'
   | 'crew-jobs'
@@ -132,12 +134,13 @@ export function parseRoute(pathname: string): ParsedRoute {
 
     // Single segment: /events/:segment
     if (parts.length === 1) {
-      const seg = parts[0];
+      const seg = parts[0].toLowerCase();
+      const normalizedCat = normalizeCategorySlug(seg);
       const normalizedCity = normalizeCitySlug(seg);
 
-      // 1. Is it a known Category? (e.g. /events/concerts)
-      if (CATEGORIES_DATABASE[seg]) {
-        return { type: 'category', path: clean, categorySlug: seg };
+      // 1. Is it a known Category? (e.g. /events/concerts, /events/business)
+      if (CATEGORIES_DATABASE[normalizedCat]) {
+        return { type: 'category', path: clean, categorySlug: normalizedCat };
       }
 
       // 2. Is it a known State? (e.g. /events/gujarat)
@@ -156,25 +159,39 @@ export function parseRoute(pathname: string): ParsedRoute {
 
     // Two segments: /events/:part1/:part2
     if (parts.length === 2) {
-      const seg1 = normalizeCitySlug(parts[0]);
-      const seg2 = parts[1];
+      const rawSeg1 = parts[0].toLowerCase();
+      const normalizedCity = normalizeCitySlug(rawSeg1);
+      const rawSeg2 = parts[1].toLowerCase();
+      const normalizedCat = normalizeCategorySlug(rawSeg2);
 
-      // Is seg2 a category? (e.g. /events/surat/concerts)
-      if (CATEGORIES_DATABASE[seg2]) {
+      // 1. Check if seg1 is a State (e.g. /events/gujarat/[category])
+      if (STATES_DATABASE[rawSeg1]) {
+        if (CATEGORIES_DATABASE[normalizedCat]) {
+          return {
+            type: 'state-category',
+            path: clean,
+            stateSlug: rawSeg1,
+            categorySlug: normalizedCat,
+          };
+        }
+      }
+
+      // 2. Check if seg2 is a category (e.g. /events/surat/concerts, /events/ahmedabad/business)
+      if (CATEGORIES_DATABASE[normalizedCat]) {
         return {
           type: 'city-category',
           path: clean,
-          citySlug: seg1,
-          categorySlug: seg2,
+          citySlug: normalizedCity,
+          categorySlug: normalizedCat,
         };
       }
 
-      // Otherwise, assume it's an individual event: /events/:city/:eventSlug
+      // 3. Otherwise, assume it's an individual event: /events/:city/:eventSlug
       return {
         type: 'event',
         path: clean,
-        citySlug: seg1,
-        eventSlug: seg2,
+        citySlug: normalizedCity,
+        eventSlug: parts[1],
       };
     }
   }
