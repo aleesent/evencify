@@ -188,13 +188,24 @@ export const SitemapPage: React.FC<SitemapPageProps> = ({ events, rawXml = false
                 <FileCode className="h-4 w-4 text-[#FED000]" />
                 <span>XML Schema standard compliant (sitemaps.org 0.9)</span>
               </div>
-              <button
-                onClick={handleCopyXml}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-neutral-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-black transition-colors cursor-pointer"
-              >
-                {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-                <span>{copied ? 'Copied XML' : 'Copy Sitemap XML'}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <a
+                  href="/sitemap.xml"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-2 text-xs font-bold text-neutral-800 hover:bg-neutral-100 transition-colors cursor-pointer"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  <span>Open File</span>
+                </a>
+                <button
+                  onClick={handleCopyXml}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-neutral-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-black transition-colors cursor-pointer"
+                >
+                  {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                  <span>{copied ? 'Copied XML' : 'Copy Sitemap XML'}</span>
+                </button>
+              </div>
             </div>
             <pre className="p-4 rounded-xl bg-neutral-950 text-neutral-200 text-xs font-mono overflow-x-auto max-h-[600px] scrollbar-thin">
               {xmlString}

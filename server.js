@@ -31,6 +31,29 @@ if (!fs.existsSync(indexPath)) {
   }
 }
 
+// Dedicated Sitemap & Robots endpoints with proper content types
+app.get('/sitemap.xml', (_req, res) => {
+  const distSitemap = path.join(distPath, 'sitemap.xml');
+  const publicSitemap = path.join(__dirname, 'public', 'sitemap.xml');
+  const target = fs.existsSync(distSitemap) ? distSitemap : publicSitemap;
+  if (fs.existsSync(target)) {
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    return res.sendFile(target);
+  }
+  res.status(404).send('Sitemap not found');
+});
+
+app.get('/robots.txt', (_req, res) => {
+  const distRobots = path.join(distPath, 'robots.txt');
+  const publicRobots = path.join(__dirname, 'public', 'robots.txt');
+  const target = fs.existsSync(distRobots) ? distRobots : publicRobots;
+  if (fs.existsSync(target)) {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    return res.sendFile(target);
+  }
+  res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://evencify.com/sitemap.xml');
+});
+
 // Serve static assets from the compiled Vite dist directory
 app.use(express.static(distPath));
 
