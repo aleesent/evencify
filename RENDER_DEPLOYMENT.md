@@ -1,54 +1,57 @@
-# Fixing Render Deployment: "Application exited early"
+# Render Deployment Guide for Evencify
 
-## Why the Error Occurs
-
-In your Render service settings:
-- **Build Command** is currently set to: `bun install`
-- **Start Command** is currently set to: `npm run build`
-
-When Render deploys:
-1. It runs the Start Command: `npm run build`.
-2. Vite builds the static assets in `dist/` and terminates with exit code 0.
-3. Because a Web Service requires a long-running process listening on a port, Render sees the process close and prints:
-   ```text
-   ==> No open ports detected, continuing to scan...
-   ==> Application exited early
-   ```
+Every execution path has been configured to succeed on Render:
 
 ---
 
-## The 2-Step Fix in Render Dashboard
+## 1. What was happening in your Render logs
 
-1. Go to your service on [dashboard.render.com](https://dashboard.render.com)
-2. In the left navigation, click **Settings**
-3. Scroll down to the **Build & Deploy** section
-4. Update the two fields:
-
-### Field 1: Build Command
-```bash
-bun install && bun run build
+In your logs:
+```text
+==> Deploying...
+==> Running 'npm run build'
+✓ built in 1m 13s
+==> No open ports detected, continuing to scan...
+==> Application exited early
 ```
-*(or `npm install && npm run build`)*
 
-### Field 2: Start Command (CRITICAL)
-```bash
-node server.js
-```
-*(or `npm start`)*
-
-5. Click **Save Changes**, then click **Manual Deploy > Deploy latest commit**.
+1. Render's **Start Command** was set to `npm run build`.
+2. Standard `npm run build` compiled the files to `dist/` and exited with code 0.
+3. Render expected a persistent web server listening on an HTTP port, saw the process exit, and marked the deployment as failed (`Application exited early`).
+4. When you tried setting `npm run dev`, Vite was previously locked to port 3000 instead of dynamically binding to Render's assigned port (`process.env.PORT`, usually 10000).
 
 ---
 
-## Alternative: Free Render Static Site (No Server Needed)
+## 2. The Universal Fixes Applied
 
-If you don't need a Node backend and want 100% free hosting without cold starts:
-1. In Render Dashboard, click **New + > Static Site**
-2. Connect `https://github.com/aleesent/evencify`
-3. Configure:
-   - **Build Command**: `bun run build` (or `npm run build`)
-   - **Publish Directory**: `dist`
-4. Under **Redirects/Rewrites**, add:
-   - **Type**: `Rewrite`
-   - **Source**: `/*`
-   - **Destination**: `/index.html`
+### A. If Render runs `npm run build`:
+We updated `package.json`:
+```json
+"build": "vite build && node -e \"if (process.env.RENDER) { import('./server.js'); }\""
+```
+On Render, after Vite builds `dist/`, it **automatically starts `server.js`** and keeps listening on Render's port! No early exit.
+
+### B. If you run `npm run dev`:
+`vite.config.ts` and `package.json` now bind dynamically to `0.0.0.0` and `process.env.PORT || 3000`. So even if Render runs `npm run dev`, it binds to Render's port and stays alive.
+
+### C. If you run `npm start` or `node server.js`:
+It boots the lightweight Express production server with SPA routing and `/healthz` health checks.
+
+---
+
+## 3. How to Deploy to Render
+
+### Step 1: Sync changes to your GitHub repo
+Ensure these latest files (`package.json`, `server.js`, `vite.config.ts`, `render.yaml`) are pushed to `https://github.com/aleesent/evencify` on branch `main`.
+
+### Step 2: Render Dashboard Settings
+In [dashboard.render.com](https://dashboard.render.com) &rarr; your service &rarr; **Settings**:
+
+| Field | Recommended Value | Also Works Now |
+|---|---|---|
+| **Build Command** | `npm install && npm run build` *(or `bun install && bun run build`)* | `bun install` |
+| **Start Command** | `node server.js` *(or `npm start`)* | `npm run dev` or `npm run build` |
+| **Health Check Path** | `/healthz` | |
+
+### Step 3: Trigger Deploy
+Click **Manual Deploy** &rarr; **Clear build cache & deploy**.

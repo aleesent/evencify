@@ -24,7 +24,7 @@ const indexPath = path.join(distPath, 'index.html');
 if (!fs.existsSync(indexPath)) {
   console.log('Notice: dist/ not found. Running build automatically...');
   try {
-    execSync('npm run build', { stdio: 'inherit' });
+    execSync('npx vite build', { stdio: 'inherit' });
     console.log('Automatic build finished successfully.');
   } catch (err) {
     console.error('Failed to compile static assets:', err);
