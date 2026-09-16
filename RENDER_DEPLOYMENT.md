@@ -1,38 +1,54 @@
-# Deploying Evencify on Render
+# Fixing Render Deployment: "Application exited early"
 
-You can deploy this project to Render in either of two ways:
+## Why the Error Occurs
 
----
+In your Render service settings:
+- **Build Command** is currently set to: `bun install`
+- **Start Command** is currently set to: `npm run build`
 
-## Method 1: Render Web Service (Recommended with server.js)
-
-When creating or updating your **Web Service** on Render:
-
-| Field | Value |
-|---|---|
-| **Runtime / Environment** | `Node` |
-| **Build Command** | `npm install && npm run build` |
-| **Start Command** | `node server.js` (or `npm start`) |
-| **Health Check Path** | `/healthz` |
-
-> **Crucial note:** In your Render Web Service dashboard, make sure **Start Command** is **NOT** set to `npm run build`. `npm run build` is only a build command; running it as a start command causes Render to say *"No open ports detected / Application exited early"*.
+When Render deploys:
+1. It runs the Start Command: `npm run build`.
+2. Vite builds the static assets in `dist/` and terminates with exit code 0.
+3. Because a Web Service requires a long-running process listening on a port, Render sees the process close and prints:
+   ```text
+   ==> No open ports detected, continuing to scan...
+   ==> Application exited early
+   ```
 
 ---
 
-## Method 2: Render Static Site (Free Tier)
+## The 2-Step Fix in Render Dashboard
 
-Because this application is a Vite React Single Page Application (SPA), you can also host it on Render as a **Static Site**:
+1. Go to your service on [dashboard.render.com](https://dashboard.render.com)
+2. In the left navigation, click **Settings**
+3. Scroll down to the **Build & Deploy** section
+4. Update the two fields:
 
-| Field | Value |
-|---|---|
-| **Type** | `Static Site` |
-| **Build Command** | `npm run build` |
-| **Publish Directory** | `dist` |
+### Field 1: Build Command
+```bash
+bun install && bun run build
+```
+*(or `npm install && npm run build`)*
 
-### SPA Routing Rule (Rewrites)
-To prevent 404s when refreshing subpages:
-1. In your Render Dashboard, go to **Redirects / Rewrites**.
-2. Add a rule:
+### Field 2: Start Command (CRITICAL)
+```bash
+node server.js
+```
+*(or `npm start`)*
+
+5. Click **Save Changes**, then click **Manual Deploy > Deploy latest commit**.
+
+---
+
+## Alternative: Free Render Static Site (No Server Needed)
+
+If you don't need a Node backend and want 100% free hosting without cold starts:
+1. In Render Dashboard, click **New + > Static Site**
+2. Connect `https://github.com/aleesent/evencify`
+3. Configure:
+   - **Build Command**: `bun run build` (or `npm run build`)
+   - **Publish Directory**: `dist`
+4. Under **Redirects/Rewrites**, add:
    - **Type**: `Rewrite`
    - **Source**: `/*`
    - **Destination**: `/index.html`

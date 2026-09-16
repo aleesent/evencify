@@ -1,5 +1,7 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
+import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,13 +17,30 @@ app.get('/healthz', (_req, res) => {
   res.status(200).send('OK');
 });
 
-// Serve static assets from the compiled Vite dist directory
 const distPath = path.join(__dirname, 'dist');
+const indexPath = path.join(distPath, 'index.html');
+
+// Fallback safeguard: If dist/ has not been built yet during deploy, build it automatically
+if (!fs.existsSync(indexPath)) {
+  console.log('Notice: dist/ not found. Running build automatically...');
+  try {
+    execSync('npm run build', { stdio: 'inherit' });
+    console.log('Automatic build finished successfully.');
+  } catch (err) {
+    console.error('Failed to compile static assets:', err);
+  }
+}
+
+// Serve static assets from the compiled Vite dist directory
 app.use(express.static(distPath));
 
-// Single Page Application (SPA) fallback: serve index.html for client routes
+// Single Page Application (SPA) fallback: serve index.html for all client routes
 app.get('*', (_req, res) => {
-  res.sendFile(path.join(distPath, 'index.html'));
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(503).send('Building application assets. Please reload in a moment.');
+  }
 });
 
 // Host must be 0.0.0.0 for containerized platforms like Render to route ingress traffic
