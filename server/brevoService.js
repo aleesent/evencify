@@ -7,6 +7,9 @@ dotenv.config();
 // In-memory verification storage with TTL (10 minutes)
 const verificationStore = new Map();
 
+// Track if Brevo direct SMTP is blocked due to cloud IP restrictions (525 Unauthorized IP address)
+let smtpIpRestricted = false;
+
 // Helper to sanitize and normalize email
 export const normalizeEmail = (email) => {
   return String(email || '').trim().toLowerCase();
@@ -25,12 +28,21 @@ export const getBrevoConfig = (customOverrides = {}) => {
   const port = Number(customOverrides.port || process.env.BREVO_SMTP_PORT || 587);
   const user = customOverrides.user || process.env.BREVO_SMTP_USER || process.env.BREVO_USER || '';
   const smtpKey = customOverrides.smtpKey || customOverrides.key || process.env.BREVO_SMTP_KEY || process.env.BREVO_KEY || '';
-  const apiKey = customOverrides.apiKey || process.env.BREVO_API_KEY || '';
+  
+  // Brevo API Key: Check custom, env, or if the provided smtpKey starts with xkeysib- (Brevo API key format)
+  let apiKey = customOverrides.apiKey || process.env.BREVO_API_KEY || '';
+  if (!apiKey && smtpKey && smtpKey.startsWith('xkeysib-')) {
+    apiKey = smtpKey;
+  }
+
   const senderEmail = customOverrides.senderEmail || process.env.BREVO_SENDER_EMAIL || user || 'verify@evencify.com';
   const senderName = customOverrides.senderName || process.env.BREVO_SENDER_NAME || 'Evencify Verification';
 
   const isSmtpConfigured = Boolean(user && smtpKey && host);
   const isApiConfigured = Boolean(apiKey);
+  
+  // Prefer REST API v3 in cloud containers because direct SMTP frequently blocks dynamic cloud IPs (525 5.7.1)
+  const preferredMethod = isApiConfigured ? 'api' : isSmtpConfigured ? 'smtp' : 'sandbox';
 
   return {
     host,
@@ -43,20 +55,27 @@ export const getBrevoConfig = (customOverrides = {}) => {
     isSmtpConfigured,
     isApiConfigured,
     isConfigured: isSmtpConfigured || isApiConfigured,
+    preferredMethod,
+    smtpIpRestricted,
   };
 };
 
 /**
- * Builds HTML email template matching Evencify's modern styling
+ * Builds HTML email template matching Evencify's modern styling with the exact brand logo
  */
-export const buildVerificationHtml = ({ code, name, role, purpose = 'signup' }) => {
+export const buildVerificationHtml = ({ code, name, role, purpose = 'signup', origin = '' }) => {
   const isReset = purpose === 'reset-password';
   const title = isReset ? 'Reset Your Evencify Password' : 'Verify Your Evencify Account';
   const roleLabel = role === 'organiser' ? 'Event Organiser' : role === 'crew' ? 'Crew Member' : 'Member';
   
   const leadText = isReset
     ? `We received a request to reset your password for your <strong>${roleLabel}</strong> account on Evencify.`
-    : `Welcome to Evencify! To activate and verify your <strong>${roleLabel}</strong> account, please use the 6-digit verification code below.`;
+    : `Welcome to Evencify! To activate and securely verify your <strong>${roleLabel}</strong> account, please enter the 6-digit verification code below.`;
+
+  // Public URL for the exact brand logo asset
+  const defaultHost = 'https://ais-pre-dkx2fxartaixivref46poq-198335895817.asia-southeast1.run.app';
+  const appBase = (origin || process.env.APP_URL || defaultHost).replace(/\/$/, '');
+  const logoUrl = `${appBase}/evencify.logo.png`;
 
   return `
 <!DOCTYPE html>
@@ -66,27 +85,39 @@ export const buildVerificationHtml = ({ code, name, role, purpose = 'signup' }) 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #171717;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f5f5f5; padding: 32px 16px;">
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #111827; -webkit-font-smoothing: antialiased;">
+  <!-- Preview text -->
+  <div style="display: none; font-size: 1px; color: #f3f4f6; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">
+    Your 6-digit Evencify verification code is ${code}. Valid for 10 minutes.
+  </div>
+
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f3f4f6; padding: 40px 16px;">
     <tr>
       <td align="center">
         <!-- Main Card Container -->
-        <table role="presentation" width="100%" style="max-width: 540px; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e5e5e5;" cellspacing="0" cellpadding="0" border="0">
+        <table role="presentation" width="100%" style="max-width: 560px; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 12px 36px -4px rgba(0,0,0,0.08), 0 4px 16px -2px rgba(0,0,0,0.03); border: 1px solid #e5e7eb;" cellspacing="0" cellpadding="0" border="0">
           
-          <!-- Brand Header -->
+          <!-- Brand Header with Exact Logo -->
           <tr>
-            <td style="background-color: #121212; padding: 28px 32px; text-align: left;">
+            <td style="background-color: #0F1014; padding: 28px 36px; border-bottom: 3px solid #FED000;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td>
-                    <span style="display: inline-block; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">
-                      EVENCIFY<span style="color: #FED000;">.</span>
-                    </span>
+                  <td align="left" style="vertical-align: middle;">
+                    <a href="${appBase}" target="_blank" style="text-decoration: none; display: inline-block;">
+                      <!-- Exact Logo Image -->
+                      <img src="${logoUrl}" alt="Evencify — Events Made Easy" width="180" style="display: block; max-width: 180px; height: auto; border: 0; outline: none;" />
+                    </a>
                   </td>
-                  <td align="right">
-                    <span style="background-color: #FED000; color: #121212; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px;">
-                      SMTP Verified
-                    </span>
+                  <td align="right" style="vertical-align: middle;">
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="background-color: rgba(254, 208, 0, 0.12); border: 1px solid rgba(254, 208, 0, 0.35); border-radius: 9999px;">
+                      <tr>
+                        <td style="padding: 5px 12px;">
+                          <span style="color: #FED000; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+                            ● SECURE OTP
+                          </span>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
               </table>
@@ -95,44 +126,68 @@ export const buildVerificationHtml = ({ code, name, role, purpose = 'signup' }) 
 
           <!-- Content Body -->
           <tr>
-            <td style="padding: 36px 32px 28px 32px;">
-              <h1 style="font-size: 22px; font-weight: 700; color: #171717; margin: 0 0 14px 0; line-height: 1.3;">
+            <td style="padding: 40px 36px 32px 36px;">
+              <!-- User Role Pill -->
+              <div style="margin-bottom: 16px;">
+                <span style="display: inline-block; background-color: #f4f4f5; border: 1px solid #e4e4e7; border-radius: 8px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: #3f3f46;">
+                  ${roleLabel} Verification
+                </span>
+              </div>
+
+              <h1 style="font-size: 24px; font-weight: 800; color: #0F1014; margin: 0 0 14px 0; line-height: 1.25; letter-spacing: -0.4px;">
                 ${title}
               </h1>
 
-              <p style="font-size: 14px; line-height: 1.6; color: #525252; margin: 0 0 24px 0;">
-                Hello ${name ? name : 'there'},<br><br>
+              <p style="font-size: 15px; line-height: 1.6; color: #4b5563; margin: 0 0 26px 0;">
+                Hello <strong>${name ? name : 'there'}</strong>,<br>
                 ${leadText}
               </p>
 
-              <!-- OTP Code Display Box -->
-              <div style="background-color: #f9fafb; border: 1.5px dashed #d1d5db; border-radius: 14px; padding: 24px 16px; text-align: center; margin: 24px 0;">
-                <div style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
-                  Your 6-Digit Verification Code
-                </div>
-                <div style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #111827; font-family: 'Courier New', Courier, monospace;">
-                  ${code}
-                </div>
-                <div style="font-size: 12px; color: #9ca3af; margin-top: 8px;">
-                  Valid for 10 minutes • Do not share this code with anyone
-                </div>
-              </div>
+              <!-- Luxury OTP Code Display Card -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background: linear-gradient(180deg, #FFFDF0 0%, #FFFBE6 100%); border: 1.5px dashed #FED000; border-radius: 18px; margin: 28px 0;">
+                <tr>
+                  <td style="padding: 28px 20px; text-align: center;">
+                    <div style="font-size: 11px; font-weight: 800; color: #854d0e; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;">
+                      Official 6-Digit Verification Code
+                    </div>
+                    
+                    <div style="font-size: 40px; font-weight: 900; letter-spacing: 12px; color: #0F1014; font-family: 'SF Mono', Consolas, Monaco, 'Courier New', monospace; padding: 6px 0; text-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                      ${code}
+                    </div>
+
+                    <div style="margin-top: 12px;">
+                      <span style="display: inline-block; background-color: rgba(15, 16, 20, 0.06); border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: #713f12;">
+                        ⏱ Valid for 10 minutes • Single-use code
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              </table>
 
               <!-- Security Information -->
-              <p style="font-size: 13px; line-height: 1.5; color: #737373; margin: 24px 0 0 0;">
-                If you did not initiate this request on Evencify, you can safely disregard this email. Your account remains secure.
-              </p>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f9fafb; border: 1px solid #f3f4f6; border-radius: 14px; margin-top: 24px;">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <p style="font-size: 12.5px; line-height: 1.6; color: #6b7280; margin: 0;">
+                      🔒 <strong>Security Tip:</strong> Never share your verification code with anyone. Evencify team members will never ask for your code via phone, email, or social media.
+                    </p>
+                    <p style="font-size: 12px; line-height: 1.5; color: #9ca3af; margin: 8px 0 0 0;">
+                      If you did not make this request on Evencify, you can safely ignore this email. Your account remains completely secure.
+                    </p>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
           <!-- Brand Footer -->
           <tr>
-            <td style="background-color: #fafafa; border-top: 1px solid #f0f0f0; padding: 20px 32px; text-align: center;">
-              <p style="font-size: 12px; color: #a3a3a3; margin: 0 0 6px 0;">
-                Delivered securely via Brevo SMTP Relay • Evencify India
+            <td style="background-color: #fafafa; border-top: 1px solid #f0f0f0; padding: 24px 36px; text-align: center;">
+              <p style="font-size: 12px; font-weight: 500; color: #71717a; margin: 0 0 6px 0;">
+                Delivered securely via Brevo Transactional Service • <strong>Evencify India</strong>
               </p>
-              <p style="font-size: 11px; color: #c4c4c4; margin: 0;">
-                © ${new Date().getFullYear()} Evencify Technologies. All rights reserved.
+              <p style="font-size: 11px; color: #a1a1aa; margin: 0;">
+                © ${new Date().getFullYear()} Evencify Technologies Pvt. Ltd. Events Made Easy. All rights reserved.
               </p>
             </td>
           </tr>
@@ -220,6 +275,7 @@ export const sendVerificationEmail = async ({
   name,
   role,
   purpose = 'signup',
+  origin = '',
   customConfig = {},
 }) => {
   const cleanEmail = normalizeEmail(email);
@@ -254,41 +310,82 @@ export const sendVerificationEmail = async ({
     ? `${code} is your Evencify password reset code`
     : `${code} is your Evencify verification code`;
 
-  const htmlContent = buildVerificationHtml({ code, name, role, purpose });
+  const htmlContent = buildVerificationHtml({ code, name, role, purpose, origin });
 
   // If Brevo SMTP or API credentials are provided, send real email!
   if (config.isConfigured) {
     try {
       let deliveryResult;
-      // Try SMTP first if SMTP key is provided, or API if configured
-      if (config.isSmtpConfigured) {
+
+      // 1. Prioritize Brevo REST API v3 when apiKey is available.
+      // In cloud container environments (Cloud Run, Render, Vercel), direct SMTP connections
+      // to smtp-relay.brevo.com:587 are frequently blocked by Brevo IP authorization (525 5.7.1).
+      // The HTTPS REST API v3 is specifically designed for cloud apps and works seamlessly.
+      if (config.isApiConfigured) {
+        try {
+          deliveryResult = await sendViaBrevoApi({ config, toEmail: cleanEmail, toName: name, subject, htmlContent });
+        } catch (apiErr) {
+          // If REST API fails and SMTP is configured (and not known to be IP-restricted), try SMTP as backup
+          if (config.isSmtpConfigured && !smtpIpRestricted) {
+            try {
+              deliveryResult = await sendViaBrevoSmtp({ config, toEmail: cleanEmail, toName: name, subject, htmlContent });
+            } catch (smtpErr) {
+              if (smtpErr.message?.includes('525') || smtpErr.message?.includes('Unauthorized IP')) {
+                smtpIpRestricted = true;
+              }
+              throw apiErr;
+            }
+          } else {
+            throw apiErr;
+          }
+        }
+      } else if (config.isSmtpConfigured) {
+        // 2. If only SMTP is configured:
+        if (smtpIpRestricted) {
+          // SMTP is already known to be IP-restricted in this container session
+          return {
+            success: true,
+            simulated: true,
+            previewCode: code,
+            message: `Brevo SMTP relay returned 525 Unauthorized IP address. In sandbox mode, your verification code is ${code}.`,
+            deliveryMethod: 'sandbox_ip_restricted',
+            expiresAt,
+          };
+        }
+
         try {
           deliveryResult = await sendViaBrevoSmtp({ config, toEmail: cleanEmail, toName: name, subject, htmlContent });
         } catch (smtpErr) {
-          console.warn('Brevo SMTP relay failed, attempting Brevo REST API fallback:', smtpErr.message);
-          if (config.apiKey || config.smtpKey) {
-            deliveryResult = await sendViaBrevoApi({ config, toEmail: cleanEmail, toName: name, subject, htmlContent });
-          } else {
-            throw smtpErr;
+          const isIpBlock = smtpErr.message?.includes('525') || smtpErr.message?.includes('Unauthorized IP');
+          if (isIpBlock) {
+            smtpIpRestricted = true;
+            console.log(`[Brevo Notice] Direct SMTP relay blocked by Brevo IP authorization policy (525 Unauthorized IP address). To send real emails from cloud hosting, set BREVO_API_KEY (xkeysib-...). Sandbox verification code for ${cleanEmail}: ${code}`);
+            return {
+              success: true,
+              simulated: true,
+              previewCode: code,
+              message: `Brevo SMTP returned 525 Unauthorized IP address. In sandbox mode, your verification code is ${code}.`,
+              deliveryMethod: 'sandbox_ip_restricted',
+              expiresAt,
+            };
           }
+          throw smtpErr;
         }
-      } else {
-        deliveryResult = await sendViaBrevoApi({ config, toEmail: cleanEmail, toName: name, subject, htmlContent });
       }
 
+      const methodLabel = deliveryResult.method === 'brevo_api' ? 'Brevo REST API' : 'Brevo SMTP relay';
       return {
         success: true,
         simulated: false,
-        message: `Verification code sent to ${cleanEmail} via Brevo SMTP relay.`,
+        message: `Verification code sent to ${cleanEmail} via ${methodLabel}.`,
         deliveryMethod: deliveryResult.method,
         expiresAt,
       };
     } catch (sendError) {
-      console.error('Brevo transmission error:', sendError);
-      // If delivery failed, return error or fallback in non-production
+      console.error('Brevo transmission error:', sendError.message || sendError);
       return {
         success: false,
-        error: `Brevo SMTP delivery failed: ${sendError.message}. Check your Brevo credentials and sender verification.`,
+        error: `Brevo delivery failed: ${sendError.message}. Please verify your Brevo credentials and sender verification.`,
         previewCode: code,
         expiresAt,
       };
@@ -369,7 +466,7 @@ export const verifyOtpCode = async ({ email, code }) => {
 };
 
 /**
- * Diagnostic tool: Test Brevo SMTP relay connection
+ * Diagnostic tool: Test Brevo connection (REST API or SMTP relay)
  */
 export const testBrevoConnection = async (customConfig = {}) => {
   const config = getBrevoConfig(customConfig);
@@ -378,7 +475,7 @@ export const testBrevoConnection = async (customConfig = {}) => {
     return {
       success: false,
       configured: false,
-      message: 'Brevo credentials are not configured. Please supply BREVO_SMTP_USER and BREVO_SMTP_KEY.',
+      message: 'Brevo credentials are not configured. Please supply BREVO_API_KEY or BREVO_SMTP_USER and BREVO_SMTP_KEY.',
     };
   }
 
@@ -387,33 +484,14 @@ export const testBrevoConnection = async (customConfig = {}) => {
     port: config.port,
     user: config.user ? `${config.user.substring(0, 3)}***@***` : 'None',
     sender: config.senderEmail,
-    mode: config.isSmtpConfigured ? 'SMTP Relay' : 'REST API v3',
+    mode: config.preferredMethod === 'api' ? 'HTTPS REST API v3' : 'SMTP Relay',
+    apiKeyPresent: Boolean(config.apiKey),
+    smtpKeyPresent: Boolean(config.smtpKey),
   };
 
-  try {
-    if (config.isSmtpConfigured) {
-      const transporter = nodemailer.createTransport({
-        host: config.host,
-        port: config.port,
-        secure: config.port === 465,
-        auth: {
-          user: config.user,
-          pass: config.smtpKey || config.apiKey,
-        },
-        tls: {
-          rejectUnauthorized: false,
-        },
-      });
-
-      await transporter.verify();
-      return {
-        success: true,
-        configured: true,
-        diagnostics,
-        message: 'Brevo SMTP connection verified successfully! Server is ready to relay transactional emails.',
-      };
-    } else {
-      // Test via Brevo account endpoint
+  // 1. If Brevo API is configured, test via Brevo account endpoint (recommended for cloud deployments)
+  if (config.isApiConfigured) {
+    try {
       const response = await fetch('https://api.brevo.com/v3/account', {
         headers: {
           'api-key': config.apiKey,
@@ -422,23 +500,71 @@ export const testBrevoConnection = async (customConfig = {}) => {
       });
       if (response.ok) {
         const account = await response.json();
+        const planType = account.plan?.[0]?.type || 'Active';
+        const credits = account.plan?.[0]?.credits;
         return {
           success: true,
           configured: true,
-          diagnostics: { ...diagnostics, plan: account.plan?.[0]?.type, email: account.email },
-          message: `Brevo API connection successful (Account: ${account.email}).`,
+          deliveryMethod: 'brevo_api',
+          diagnostics: {
+            ...diagnostics,
+            plan: planType,
+            email: account.email,
+            credits: credits !== undefined ? credits : 'Active',
+            company: account.companyName,
+          },
+          message: `Brevo REST API verified successfully! Account: ${account.email} (${planType} plan, ${credits !== undefined ? credits + ' credits' : 'active'}). Transactional emails are operational.`,
         };
       } else {
         const err = await response.text();
         return { success: false, configured: true, message: `Brevo API rejected key: ${err}` };
       }
+    } catch (apiErr) {
+      return {
+        success: false,
+        configured: true,
+        diagnostics,
+        message: `Brevo API verification failed: ${apiErr.message}`,
+      };
     }
+  }
+
+  // 2. Otherwise test via direct SMTP (Nodemailer)
+  try {
+    const transporter = nodemailer.createTransport({
+      host: config.host,
+      port: config.port,
+      secure: config.port === 465,
+      auth: {
+        user: config.user,
+        pass: config.smtpKey || config.apiKey,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    await transporter.verify();
+    return {
+      success: true,
+      configured: true,
+      deliveryMethod: 'brevo_smtp',
+      diagnostics,
+      message: 'Brevo SMTP connection verified successfully! Server is ready to relay transactional emails.',
+    };
   } catch (err) {
+    const isIpBlocked = err.message?.includes('525') || err.message?.includes('Unauthorized IP');
+    if (isIpBlocked) {
+      smtpIpRestricted = true;
+    }
     return {
       success: false,
       configured: true,
       diagnostics,
-      message: `Brevo connection failed: ${err.message}`,
+      ipRestricted: isIpBlocked,
+      message: isIpBlocked
+        ? `Brevo SMTP Relay rejected connection (525 Unauthorized IP address). Direct SMTP requires IP whitelisting in Brevo. To resolve for cloud servers, configure BREVO_API_KEY (xkeysib-...) to use Brevo's HTTPS REST API v3.`
+        : `Brevo connection failed: ${err.message}`,
     };
   }
 };

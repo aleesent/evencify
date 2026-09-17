@@ -98,11 +98,17 @@ export const BrevoSmtpModal: React.FC<BrevoSmtpModalProps> = ({ isOpen, onClose 
                         : 'bg-amber-50 text-amber-700 border border-amber-200'
                     }`}
                   >
-                    {status?.configured ? 'Active Relay' : 'Sandbox Fallback'}
+                    {status?.configured
+                      ? status.isApiConfigured
+                        ? 'Active • REST API v3'
+                        : 'Active • SMTP Relay'
+                      : 'Sandbox Fallback'}
                   </span>
                 </h3>
                 <p className="text-xs text-neutral-500">
-                  Transactional SMTP delivery engine for user signup and security OTPs
+                  {status?.isApiConfigured
+                    ? 'HTTPS REST API v3 transactional engine (bypasses cloud SMTP IP restrictions)'
+                    : 'Transactional delivery engine for user signup and security OTPs'}
                 </p>
               </div>
             </div>
@@ -119,16 +125,16 @@ export const BrevoSmtpModal: React.FC<BrevoSmtpModalProps> = ({ isOpen, onClose 
             {/* Status Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <div className="rounded-xl border border-neutral-200/80 bg-neutral-50 p-3">
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">Host</div>
-                <div className="text-xs font-bold text-neutral-900 mt-0.5 truncate font-mono">
-                  {status?.host || 'smtp-relay.brevo.com'}
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">Transport</div>
+                <div className="text-xs font-bold text-neutral-900 mt-0.5 truncate">
+                  {status?.isApiConfigured ? 'REST API v3' : status?.isSmtpConfigured ? 'SMTP Relay' : 'Sandbox'}
                 </div>
               </div>
 
               <div className="rounded-xl border border-neutral-200/80 bg-neutral-50 p-3">
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">Port</div>
-                <div className="text-xs font-bold text-neutral-900 mt-0.5 font-mono">
-                  {status?.port || 587} (TLS)
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">Host / Endpoint</div>
+                <div className="text-xs font-bold text-neutral-900 mt-0.5 truncate font-mono">
+                  {status?.isApiConfigured ? 'api.brevo.com' : status?.host || 'smtp-relay.brevo.com'}
                 </div>
               </div>
 
@@ -142,7 +148,7 @@ export const BrevoSmtpModal: React.FC<BrevoSmtpModalProps> = ({ isOpen, onClose 
               <div className="rounded-xl border border-neutral-200/80 bg-neutral-50 p-3">
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">Account</div>
                 <div className="text-xs font-bold text-neutral-900 mt-0.5 truncate">
-                  {status?.user || 'Environment Config'}
+                  {status?.user || 'Brevo Account'}
                 </div>
               </div>
             </div>

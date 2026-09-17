@@ -30,6 +30,8 @@ export interface BrevoStatus {
   configured: boolean;
   isSmtpConfigured: boolean;
   isApiConfigured: boolean;
+  preferredMethod?: 'api' | 'smtp' | 'sandbox';
+  mode?: string;
   host: string;
   port: number;
   user: string | null;
