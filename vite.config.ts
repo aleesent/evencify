@@ -15,6 +15,36 @@ export default defineConfig(() => {
             const url = req.url || '';
             if (url.startsWith('/api')) {
               try {
+                const decorateReqRes = (r: any, s: any) => {
+                  if (typeof r.get !== 'function') {
+                    r.get = function (headerName: string) {
+                      if (!headerName || !this.headers) return undefined;
+                      const lc = headerName.toLowerCase();
+                      if (lc === 'referer' || lc === 'referrer') {
+                        return this.headers['referrer'] || this.headers['referer'];
+                      }
+                      return this.headers[lc];
+                    };
+                  }
+                  if (!r.protocol) {
+                    const proto = r.headers?.['x-forwarded-proto'];
+                    r.protocol = proto === 'https' ? 'https' : 'http';
+                  }
+                  if (!s.status) {
+                    s.status = function (code: number) {
+                      this.statusCode = code;
+                      return this;
+                    };
+                  }
+                  if (!s.json) {
+                    s.json = function (data: any) {
+                      this.setHeader('Content-Type', 'application/json');
+                      this.end(JSON.stringify(data));
+                      return this;
+                    };
+                  }
+                };
+
                 if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
                   const chunks: any[] = [];
                   req.on('data', (chunk) => chunks.push(chunk));
@@ -25,6 +55,7 @@ export default defineConfig(() => {
                     } catch {
                       (req as any).body = {};
                     }
+                    decorateReqRes(req, res);
                     const { apiRouter } = await import('./server/apiRouter.js');
                     const origUrl = req.url;
                     req.url = req.url?.replace(/^\/api/, '') || '/';
@@ -35,6 +66,7 @@ export default defineConfig(() => {
                   });
                   return;
                 } else {
+                  decorateReqRes(req, res);
                   const { apiRouter } = await import('./server/apiRouter.js');
                   const origUrl = req.url;
                   req.url = req.url?.replace(/^\/api/, '') || '/';

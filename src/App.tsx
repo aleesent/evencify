@@ -137,8 +137,18 @@ export default function App() {
         setCrewList(dbCrew.value);
         setCurrentCrewProfile((prev) => {
           const match = dbCrew.value.find((c) => c.email === activeUserEmail || c.id === prev.id);
-          return match || dbCrew.value[0];
+          return match || prev;
         });
+      }
+      if (activeUserEmail) {
+        try {
+          const dbOrg = await EvencifyApi.getOrganiserProfile(activeUserEmail);
+          if (dbOrg) setCurrentOrganiserProfile(dbOrg);
+          const dbCrewProf = await EvencifyApi.getCrewProfile(activeUserEmail);
+          if (dbCrewProf) setCurrentCrewProfile(dbCrewProf);
+        } catch {
+          // ignore profile sync error
+        }
       }
       if (dbApps.status === 'fulfilled' && dbApps.value.length > 0) {
         setApplications(dbApps.value);
@@ -262,6 +272,18 @@ export default function App() {
         setActiveUserName(userName);
         setAuthenticatedRole(userRole);
         setCurrentRole(userRole);
+
+        if (userEmail) {
+          if (userRole === 'organiser') {
+            EvencifyApi.getOrganiserProfile(userEmail).then((org) => {
+              if (org && isMounted) setCurrentOrganiserProfile(org);
+            });
+          } else if (userRole === 'crew') {
+            EvencifyApi.getCrewProfile(userEmail).then((cr) => {
+              if (cr && isMounted) setCurrentCrewProfile(cr);
+            });
+          }
+        }
       }
     });
 
@@ -279,6 +301,18 @@ export default function App() {
         setActiveUserName(userName);
         setAuthenticatedRole(userRole);
         setCurrentRole(userRole);
+
+        if (userEmail) {
+          if (userRole === 'organiser') {
+            EvencifyApi.getOrganiserProfile(userEmail).then((org) => {
+              if (org && isMounted) setCurrentOrganiserProfile(org);
+            });
+          } else if (userRole === 'crew') {
+            EvencifyApi.getCrewProfile(userEmail).then((cr) => {
+              if (cr && isMounted) setCurrentCrewProfile(cr);
+            });
+          }
+        }
       }
     });
 
@@ -339,11 +373,17 @@ export default function App() {
           email: email,
         }));
       }
+      EvencifyApi.getCrewProfile(email).then((cr) => {
+        if (cr) setCurrentCrewProfile(cr);
+      });
       showToast(`Welcome! Signed in as ${finalName} (Crew)`);
     } else if (role === 'organiser') {
       const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.role === 'organiser');
       const finalName = name || existing?.name || currentOrganiserProfile.companyName || defaultName;
       setActiveUserName(finalName);
+      EvencifyApi.getOrganiserProfile(email).then((org) => {
+        if (org) setCurrentOrganiserProfile(org);
+      });
       showToast(`Welcome! Signed in as ${finalName} (Organiser)`);
     } else if (role === 'admin') {
       setActiveUserName(currentAdminProfile.name);
@@ -494,46 +534,62 @@ export default function App() {
       )
     );
     showToast('User account status updated.');
+
+    // Persist to Supabase
+    EvencifyApi.toggleUserStatus(userId).catch((err) => {
+      console.error('Supabase toggleUserStatus error:', err);
+      showToast(err instanceof Error ? err.message : 'Failed to update user status in DB');
+    });
   };
 
   // Admin: Toggle user verification status
   const handleToggleUserVerification = (userId: string) => {
     let nowVerified = false;
     let userName = '';
+    let targetRole: string = 'crew';
+    let chosenBadge = '';
+
     setUsers((prev) =>
       prev.map((u) => {
         if (u.id === userId) {
           nowVerified = !u.isVerified;
           userName = u.name;
+          targetRole = u.role;
           const defaultBadge =
             u.role === 'organiser'
               ? 'Business Verified'
               : u.role === 'admin'
               ? 'Platform Superadmin'
               : 'Verified Pro';
+          chosenBadge = nowVerified
+            ? u.verificationBadge && u.verificationBadge !== 'Unverified' && u.verificationBadge !== 'Pending Verification'
+              ? u.verificationBadge
+              : defaultBadge
+            : 'Unverified';
+
           return {
             ...u,
             isVerified: nowVerified,
-            verificationBadge: nowVerified
-              ? u.verificationBadge && u.verificationBadge !== 'Unverified' && u.verificationBadge !== 'Pending Verification'
-                ? u.verificationBadge
-                : defaultBadge
-              : 'Unverified',
+            verificationBadge: chosenBadge,
           };
         }
         return u;
       })
     );
 
-    const target = users.find((u) => u.id === userId);
-    if (target?.role === 'organiser') {
+    if (targetRole === 'organiser') {
       setCurrentOrganiserProfile((prev) => ({
         ...prev,
-        hasUdyam: !target.isVerified,
+        hasUdyam: nowVerified,
       }));
     }
 
     showToast(`${userName || 'User'} marked as ${nowVerified ? 'Verified' : 'Unverified'}.`);
+
+    // Persist to Supabase
+    EvencifyApi.updateUserVerification(userId, nowVerified, chosenBadge).catch((err) => {
+      console.error('Supabase updateUserVerification error:', err);
+    });
   };
 
   // Admin: Edit full user profile (ID, password, role, badges, credentials)
@@ -603,6 +659,11 @@ export default function App() {
     }
 
     showToast(`User account "${updatedData.name}" (${updatedData.id}) updated.`);
+
+    // Persist to Supabase
+    EvencifyApi.updateUserAccount(originalUserId, updatedData).catch((err) => {
+      console.error('Supabase updateUserAccount error:', err);
+    });
   };
 
   // Admin: Create new user
@@ -632,6 +693,11 @@ export default function App() {
     }
 
     showToast(`New user profile provisioned for ${newUser.name}.`);
+
+    // Persist to Supabase
+    EvencifyApi.createUserAccount(newUser).catch((err) => {
+      console.error('Supabase createUserAccount error:', err);
+    });
   };
 
   // Admin: Edit event
@@ -653,8 +719,8 @@ export default function App() {
     showToast('Application deleted.');
 
     // Auto remove from Supabase
-    supabase.from('applications').delete().eq('id', appId).then(({ error }) => {
-      if (error) console.error('Supabase delete application error:', error);
+    EvencifyApi.deleteApplication(appId).catch((err) => {
+      console.error('Supabase delete application error:', err);
     });
   };
 
@@ -665,8 +731,9 @@ export default function App() {
     );
     showToast(`User role updated to ${newRole}`);
 
-    supabase.from('profiles').update({ role: newRole }).eq('id', userId).then(({ error }) => {
-      if (error) console.error('Supabase update user role error:', error);
+    EvencifyApi.updateUserRole(userId, newRole).catch((err) => {
+      console.error('Supabase update user role error:', err);
+      showToast(err instanceof Error ? err.message : 'Role update failed');
     });
   };
 
@@ -676,8 +743,9 @@ export default function App() {
     setCrewList((prev) => prev.filter((c) => c.id !== userId));
     showToast('User account permanently deleted.');
 
-    supabase.from('profiles').delete().eq('id', userId).then(({ error }) => {
-      if (error) console.error('Supabase delete user error:', error);
+    EvencifyApi.deleteUser(userId).catch((err) => {
+      console.error('Supabase delete user error:', err);
+      showToast(err instanceof Error ? err.message : 'Delete failed');
     });
   };
 
@@ -1037,10 +1105,17 @@ export default function App() {
         onClose={() => setCrewOnboardingOpen(false)}
         initialProfile={currentCrewProfile}
         onSaveProfile={(updated) => {
-          setCurrentCrewProfile({ ...currentCrewProfile, ...updated });
+          const merged = { ...currentCrewProfile, ...updated };
+          setCurrentCrewProfile(merged);
           if (updated.name) setActiveUserName(updated.name);
           if (updated.email) setActiveUserEmail(updated.email);
-          showToast('Crew profile updated successfully!');
+          // Persist directly to Supabase
+          EvencifyApi.updateCrewProfile(currentCrewProfile.id, updated).then(() => {
+            showToast('Crew profile saved to database!');
+          }).catch((err) => {
+            console.error('Failed to save crew profile to Supabase:', err);
+            showToast('Crew profile updated.');
+          });
         }}
       />
 
@@ -1050,11 +1125,18 @@ export default function App() {
         onClose={() => setOrganiserOnboardingOpen(false)}
         initialProfile={currentOrganiserProfile}
         onSaveProfile={(updated) => {
-          setCurrentOrganiserProfile({ ...currentOrganiserProfile, ...updated });
+          const merged = { ...currentOrganiserProfile, ...updated };
+          setCurrentOrganiserProfile(merged);
           if (updated.companyName) setActiveUserName(updated.companyName);
           else if (updated.name) setActiveUserName(updated.name);
           if (updated.email) setActiveUserEmail(updated.email);
-          showToast('Organiser company profile updated successfully!');
+          // Persist directly to Supabase
+          EvencifyApi.updateOrganiserProfile(currentOrganiserProfile.id, updated).then(() => {
+            showToast('Organiser profile saved to database!');
+          }).catch((err) => {
+            console.error('Failed to save organiser profile to Supabase:', err);
+            showToast('Organiser profile updated.');
+          });
         }}
       />
 
@@ -1064,6 +1146,7 @@ export default function App() {
         onClose={() => setCreateEventModalOpen(false)}
         onEventCreated={handleEventCreated}
         organiserName={currentOrganiserProfile.companyName}
+        organiserId={currentOrganiserProfile.id}
       />
 
       {/* Crew Profile Inspector Modal */}

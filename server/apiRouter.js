@@ -8,8 +8,22 @@ import {
 
 export const apiRouter = Router();
 
-// Ensure response helper compatibility across both Express and Connect (Vite)
+// Ensure request & response helper compatibility across Express, Vite, and Connect
 apiRouter.use((req, res, next) => {
+  if (typeof req.get !== 'function') {
+    req.get = function (headerName) {
+      if (!headerName || !this.headers) return undefined;
+      const lc = headerName.toLowerCase();
+      if (lc === 'referer' || lc === 'referrer') {
+        return this.headers['referrer'] || this.headers['referer'];
+      }
+      return this.headers[lc];
+    };
+  }
+  if (!req.protocol) {
+    const proto = (typeof req.get === 'function' ? req.get('x-forwarded-proto') : req.headers?.['x-forwarded-proto']);
+    req.protocol = proto === 'https' ? 'https' : 'http';
+  }
   if (!res.status) {
     res.status = function (code) {
       this.statusCode = code;
@@ -26,6 +40,23 @@ apiRouter.use((req, res, next) => {
   next();
 });
 
+// Helper for safe header resolution
+const getReqHeader = (req, headerName) => {
+  if (typeof req?.get === 'function') {
+    try {
+      return req.get(headerName);
+    } catch (_) {}
+  }
+  if (req?.headers && typeof req.headers === 'object') {
+    const lc = headerName.toLowerCase();
+    if (lc === 'referer' || lc === 'referrer') {
+      return req.headers['referrer'] || req.headers['referer'];
+    }
+    return req.headers[lc];
+  }
+  return undefined;
+};
+
 // 1. Send Email Verification Code via Brevo
 apiRouter.post('/auth/send-verification', async (req, res) => {
   try {
@@ -34,11 +65,17 @@ apiRouter.post('/auth/send-verification', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Email address is required.' });
     }
 
+    const host = getReqHeader(req, 'host') || 'localhost:3000';
+    const protoHeader = getReqHeader(req, 'x-forwarded-proto');
+    const protocol = req.protocol === 'https' || protoHeader === 'https' ? 'https' : 'http';
+    const origin = getReqHeader(req, 'origin') || `${protocol}://${host}`;
+
     const result = await sendVerificationEmail({
       email,
       name,
       role: role || 'crew',
       purpose: purpose || 'signup',
+      origin,
     });
 
     return res.json(result);

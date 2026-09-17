@@ -153,7 +153,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         }
 
         // Set state for OTP step
-        setPreviewCode(sendResult.simulated && sendResult.previewCode ? sendResult.previewCode : null);
+        setPreviewCode(sendResult.previewCode || null);
         setDeliveryMethod(sendResult.deliveryMethod || 'brevo_smtp');
         setResendTimer(45);
         setOtpDigits(['', '', '', '', '', '']);
@@ -278,7 +278,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
 
       setResendTimer(45);
-      setPreviewCode(sendResult.simulated && sendResult.previewCode ? sendResult.previewCode : null);
+      setPreviewCode(sendResult.previewCode || null);
       setAuthSuccess('Fresh 6-digit verification code sent via Brevo!');
       setTimeout(() => setAuthSuccess(null), 3000);
     } catch (err: any) {
@@ -360,7 +360,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         return;
       }
 
-      setPreviewCode(res.simulated && res.previewCode ? res.previewCode : null);
+      setPreviewCode(res.previewCode || null);
       setResendTimer(45);
       setOtpDigits(['', '', '', '', '', '']);
       setIsLoading(false);
@@ -791,7 +791,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         )}
 
         {/* ======================================================== */}
-        {/* STEP 3: BREVO SMTP EMAIL VERIFICATION (6-DIGIT OTP)      */}
+        {/* STEP 3: BREVO EMAIL VERIFICATION (6-DIGIT OTP)          */}
         {/* ======================================================== */}
         {step === 'verify-email' && (
           <motion.div
@@ -802,8 +802,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             transition={{ duration: 0.18, ease: 'easeOut' }}
             className="relative w-full max-w-md overflow-hidden rounded-2xl sm:rounded-3xl border border-neutral-200/80 bg-white p-6 sm:p-8 shadow-2xl z-10 my-auto text-center"
           >
-            {/* Top Bar */}
-            <div className="flex items-center justify-between mb-4">
+            {/* Top Navigation Bar */}
+            <div className="flex items-center justify-between mb-3">
               <button
                 type="button"
                 onClick={() => {
@@ -825,50 +825,64 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
 
-            {/* Icon & Brevo Badge */}
-            <div className="flex justify-center mb-3">
-              <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral-900 text-[#FED000] shadow-md">
-                <Mail className="h-7 w-7" />
-                <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white ring-2 ring-white">
-                  <ShieldCheck className="h-3 w-3" />
-                </span>
+            {/* Brand Anchor: Exact Evencify Logo with Tagline */}
+            <div className="flex flex-col items-center justify-center pt-1 pb-1">
+              <div className="p-2.5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 shadow-xs mb-3 inline-flex items-center justify-center">
+                <EvencifyLogo size="md" showTagline={true} />
+              </div>
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200/90 bg-neutral-100/90 px-3 py-1 text-[11px] font-semibold text-neutral-700 shadow-2xs">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                <span>Secure 2-Step Verification</span>
               </div>
             </div>
 
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-600 mb-2">
-              <Sparkles className="h-3 w-3 text-amber-500" />
-              <span>Brevo SMTP Verification</span>
-            </div>
-
-            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900">
-              Verify Your Email
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 mt-2">
+              Verify Your Account
             </h3>
             <p className="mt-1.5 text-xs sm:text-sm text-neutral-500 leading-relaxed max-w-sm mx-auto">
-              We've dispatched a 6-digit verification code to
+              We've dispatched an official 6-digit confirmation code to your email
             </p>
 
             {/* Recipient Pill with Edit button */}
-            <div className="mt-1 flex items-center justify-center gap-1.5">
-              <span className="font-semibold text-neutral-900 text-xs sm:text-sm bg-neutral-50 border border-neutral-200/80 px-2.5 py-1 rounded-lg">
-                {email}
-              </span>
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <div className="inline-flex items-center gap-2 rounded-xl border border-neutral-200/90 bg-neutral-50 px-3.5 py-1.5 text-xs text-neutral-700 shadow-2xs">
+                <Mail className="h-3.5 w-3.5 text-neutral-400" />
+                <span className="font-semibold text-neutral-900">{email}</span>
+                <span className="text-[10px] text-neutral-400 font-medium capitalize">
+                  ({selectedRole})
+                </span>
+              </div>
               <button
                 type="button"
-                onClick={() => setStep('auth')}
-                className="text-neutral-400 hover:text-neutral-700 p-1 cursor-pointer transition-colors"
+                onClick={() => {
+                  setStep('auth');
+                  setAuthError(null);
+                }}
+                className="rounded-lg p-1.5 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer"
                 title="Edit email address"
               >
                 <Edit2 className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            {/* Sandbox / Preview Code Hint (for Developer / Demo convenience when live SMTP key not set) */}
+            {/* Delivery Alert & Spam Folder Tip */}
+            <div className="mt-3.5 rounded-xl border border-blue-200/90 bg-blue-50/70 p-2.5 text-xs text-blue-900 text-left flex items-start gap-2">
+              <span className="text-base shrink-0">📬</span>
+              <div className="leading-snug">
+                <span className="font-semibold">Check Spam / Junk Folder:</span> If the email isn't in your Primary inbox, please check your Spam/Junk folder or Promotions tab (Google often filters new transactional senders).
+              </div>
+            </div>
+
+            {/* Instant Code / Auto-Fill Option */}
             {previewCode && (
-              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/90 p-3 text-left">
+              <div className="mt-2.5 rounded-xl border border-amber-300 bg-amber-50/95 p-3 text-left shadow-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wide">
-                    Sandbox Dev Code
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wide">
+                      Instant Verification Helper
+                    </span>
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
@@ -876,13 +890,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       setOtpDigits(digits);
                       handleVerifyOtpCode(previewCode);
                     }}
-                    className="text-[11px] font-bold text-amber-800 underline hover:text-amber-950 cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-900 text-[#FED000] text-[11px] font-bold hover:bg-neutral-800 transition-colors cursor-pointer shadow-2xs"
                   >
-                    Auto-fill
+                    <span>Auto-fill Code</span>
                   </button>
                 </div>
-                <div className="text-xs text-amber-800 mt-0.5">
-                  Code: <strong className="font-mono tracking-widest text-sm text-neutral-900">{previewCode}</strong>
+                <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-amber-200/70 text-xs text-amber-900">
+                  <span className="text-amber-800">Your 6-digit OTP:</span>
+                  <span className="font-mono font-black tracking-widest text-base text-neutral-950 bg-white px-2.5 py-0.5 rounded border border-amber-200">
+                    {previewCode}
+                  </span>
                 </div>
               </div>
             )}
@@ -902,7 +919,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
             )}
 
-            {/* 6-Digit OTP Boxes */}
+            {/* 6-Digit OTP Boxes with Precision Styling */}
             <div className="mt-6 flex justify-center gap-2 sm:gap-2.5">
               {otpDigits.map((digit, index) => (
                 <input
@@ -912,22 +929,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   }}
                   type="text"
                   inputMode="numeric"
+                  autoComplete="one-time-code"
                   maxLength={1}
                   value={digit}
                   onChange={(e) => handleDigitChange(index, e.target.value)}
                   onKeyDown={(e) => handleDigitKeyDown(index, e)}
                   onPaste={index === 0 ? handlePasteOtp : undefined}
-                  className="h-12 w-10 sm:h-13 sm:w-11 text-center font-mono text-xl sm:text-2xl font-bold rounded-xl border border-neutral-300 bg-neutral-50 text-neutral-900 focus:bg-white focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10 focus:outline-none transition-all shadow-xs"
+                  className={`h-12 w-10 sm:h-14 sm:w-12 text-center font-mono text-xl sm:text-2xl font-black rounded-xl sm:rounded-2xl border transition-all duration-150 shadow-xs focus:outline-none ${
+                    digit
+                      ? 'border-neutral-900 bg-white text-neutral-950 ring-2 ring-neutral-900/10'
+                      : 'border-neutral-200 bg-neutral-50/80 text-neutral-900 focus:border-neutral-900 focus:bg-white focus:ring-2 focus:ring-[#FED000]'
+                  }`}
                 />
               ))}
             </div>
 
-            {/* Primary Action Button */}
+            {/* Primary Action Button with Evencify Luxury Branding */}
             <button
               type="button"
               onClick={() => handleVerifyOtpCode()}
               disabled={isLoading || otpDigits.some((d) => !d)}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-[#FED000] py-3 text-sm font-semibold transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer shadow-xs"
+              className="mt-6 flex w-full items-center justify-center gap-2.5 rounded-xl sm:rounded-2xl bg-[#0F1014] hover:bg-neutral-900 text-[#FED000] py-3.5 text-sm font-bold tracking-wide transition-all active:scale-[0.99] disabled:opacity-40 cursor-pointer shadow-md"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
@@ -946,7 +968,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div className="mt-5 text-xs text-neutral-500">
               {resendTimer > 0 ? (
                 <p>
-                  Didn't receive email? Resend code in{' '}
+                  Didn't receive email? Resend in{' '}
                   <span className="font-semibold text-neutral-900 font-mono">{resendTimer}s</span>
                 </p>
               ) : (
@@ -954,22 +976,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="button"
                   onClick={handleResendCode}
                   disabled={isResending}
-                  className="font-semibold text-neutral-900 hover:underline cursor-pointer inline-flex items-center gap-1.5"
+                  className="font-semibold text-neutral-900 hover:text-black underline underline-offset-4 cursor-pointer inline-flex items-center gap-1.5"
                 >
                   {isResending && <RefreshCw className="h-3 w-3 animate-spin" />}
-                  <span>Resend code via Brevo</span>
+                  <span>Resend verification code</span>
                 </button>
               )}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-neutral-100 text-[11px] text-neutral-400">
-              Emails sent using Brevo SMTP relay • Code valid for 10 minutes
+            <div className="mt-5 pt-3.5 border-t border-neutral-100 flex items-center justify-center gap-2 text-[11px] text-neutral-400">
+              <Lock className="h-3 w-3 text-neutral-400" />
+              <span>Codes expire in 10 minutes • 256-bit TLS Encrypted</span>
             </div>
           </motion.div>
         )}
 
         {/* ======================================================== */}
-        {/* STEP 4: RESET PASSWORD VERIFICATION WITH BREVO           */}
+        {/* STEP 4: RESET PASSWORD VERIFICATION                      */}
         {/* ======================================================== */}
         {step === 'reset-password-verify' && (
           <motion.div
@@ -981,7 +1004,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             className="relative w-full max-w-md overflow-hidden rounded-2xl sm:rounded-3xl border border-neutral-200/80 bg-white p-6 sm:p-8 shadow-2xl z-10 my-auto text-center"
           >
             {/* Top Bar */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3">
               <button
                 type="button"
                 onClick={() => {
@@ -1003,16 +1026,51 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
 
+            {/* Brand Anchor: Exact Evencify Logo */}
+            <div className="flex flex-col items-center justify-center mb-2">
+              <div className="p-2.5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 shadow-xs mb-2 inline-flex items-center justify-center">
+                <EvencifyLogo size="md" showTagline={true} />
+              </div>
+            </div>
+
             <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900">
               Reset Your Password
             </h3>
             <p className="mt-1 text-xs sm:text-sm text-neutral-500">
-              Enter the 6-digit Brevo code sent to <strong className="text-neutral-900">{email}</strong>
+              Enter the 6-digit code sent to <strong className="text-neutral-900">{email}</strong>
             </p>
 
+            {/* Delivery Alert & Spam Folder Tip */}
+            <div className="mt-3 rounded-xl border border-blue-200/90 bg-blue-50/70 p-2.5 text-xs text-blue-900 text-left flex items-start gap-2">
+              <span className="text-base shrink-0">📬</span>
+              <div className="leading-snug">
+                <span className="font-semibold">Check Spam / Junk Folder:</span> If the reset email doesn't appear in your Primary inbox, please check your Spam/Junk folder or Promotions tab.
+              </div>
+            </div>
+
             {previewCode && (
-              <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800 text-left">
-                Sandbox code: <strong className="font-mono text-neutral-900">{previewCode}</strong>
+              <div className="mt-2.5 rounded-xl border border-amber-300 bg-amber-50/95 p-3 text-left shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wide">
+                    Instant Reset Helper
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const digits = previewCode.split('');
+                      setOtpDigits(digits);
+                    }}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-900 text-[#FED000] text-[11px] font-bold hover:bg-neutral-800 transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <span>Auto-fill Code</span>
+                  </button>
+                </div>
+                <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-amber-200/70 text-xs text-amber-900">
+                  <span className="text-amber-800">Your 6-digit OTP:</span>
+                  <span className="font-mono font-black tracking-widest text-base text-neutral-950 bg-white px-2.5 py-0.5 rounded border border-amber-200">
+                    {previewCode}
+                  </span>
+                </div>
               </div>
             )}
 
@@ -1033,8 +1091,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <form onSubmit={handleCompletePasswordReset} className="mt-5 space-y-4 text-left">
               {/* 6-Digit OTP */}
               <div>
-                <label className="block text-xs font-medium text-neutral-700 mb-1.5">
-                  Verification Code
+                <label className="block text-xs font-medium text-neutral-700 mb-1.5 text-center">
+                  6-Digit Verification Code
                 </label>
                 <div className="flex justify-center gap-2">
                   {otpDigits.map((digit, index) => (
@@ -1050,7 +1108,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       onChange={(e) => handleDigitChange(index, e.target.value)}
                       onKeyDown={(e) => handleDigitKeyDown(index, e)}
                       onPaste={index === 0 ? handlePasteOtp : undefined}
-                      className="h-11 w-9 sm:h-12 sm:w-10 text-center font-mono text-lg font-bold rounded-xl border border-neutral-300 bg-neutral-50 text-neutral-900 focus:bg-white focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-none transition-all"
+                      className={`h-11 w-9 sm:h-12 sm:w-10 text-center font-mono text-lg font-bold rounded-xl border transition-all ${
+                        digit
+                          ? 'border-neutral-900 bg-white text-neutral-950'
+                          : 'border-neutral-300 bg-neutral-50 text-neutral-900 focus:bg-white focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900'
+                      }`}
                     />
                   ))}
                 </div>
@@ -1085,7 +1147,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <button
                 type="submit"
                 disabled={isLoading || otpDigits.some((d) => !d) || resetNewPassword.length < 6}
-                className="w-full rounded-xl bg-neutral-900 hover:bg-neutral-800 text-[#FED000] py-2.5 text-sm font-semibold transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                className="w-full rounded-xl bg-[#0F1014] hover:bg-neutral-900 text-[#FED000] py-3 text-sm font-bold tracking-wide transition-all cursor-pointer shadow-xs disabled:opacity-50"
               >
                 {isLoading ? 'Updating Password...' : 'Save New Password & Log In'}
               </button>
@@ -1097,7 +1159,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <button
                     type="button"
                     onClick={handleResendCode}
-                    className="text-neutral-900 font-semibold underline cursor-pointer"
+                    className="text-neutral-900 font-semibold underline underline-offset-4 cursor-pointer"
                   >
                     Resend verification code
                   </button>

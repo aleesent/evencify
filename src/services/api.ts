@@ -729,8 +729,21 @@ export const EvencifyApi = {
     if (updates.fullAddress !== undefined) dbPayload.full_address = updates.fullAddress;
     if (updates.city !== undefined) dbPayload.city = updates.city;
     if (updates.crewPositionsTotal !== undefined) dbPayload.total_crew_required = updates.crewPositionsTotal;
+    if (updates.crewPositionsAvailable !== undefined) dbPayload.crew_positions_available = updates.crewPositionsAvailable;
+    if (updates.requiredCategory !== undefined) dbPayload.required_category = updates.requiredCategory;
+    if (updates.genderRequirement !== undefined) dbPayload.gender_requirement = updates.genderRequirement;
+    if (updates.ageRequirement !== undefined) dbPayload.age_requirement = updates.ageRequirement;
+    if (updates.experienceRequirement !== undefined) dbPayload.experience_requirement = updates.experienceRequirement;
     if (updates.dressCode !== undefined) dbPayload.dress_code = updates.dressCode;
     if (updates.specialRequirements !== undefined) dbPayload.special_requirements = updates.specialRequirements;
+    if (updates.expectedAttendance !== undefined) dbPayload.expected_attendance = updates.expectedAttendance;
+    if (updates.payAmount !== undefined) dbPayload.pay_amount = updates.payAmount;
+    if (updates.payBasis !== undefined) dbPayload.payment_basis = updates.payBasis;
+    if (updates.paymentMethod !== undefined) dbPayload.payment_method = updates.paymentMethod;
+    if (updates.paymentTimeline !== undefined) dbPayload.payment_timeline = updates.paymentTimeline;
+    if (updates.advanceRequired !== undefined) dbPayload.advance_required = updates.advanceRequired;
+    if ((updates as any).advanceAmount !== undefined) dbPayload.advance_amount = (updates as any).advanceAmount;
+    if (updates.organiserName !== undefined) dbPayload.organiser_name = updates.organiserName;
     if (updates.status !== undefined) {
       dbPayload.status = updates.status === 'Open' ? 'published' : updates.status.toLowerCase();
     }
@@ -972,9 +985,84 @@ export const EvencifyApi = {
     return true;
   },
 
+  /**
+   * Delete application record from database
+   */
+  async deleteApplication(appId: string): Promise<boolean> {
+    if (!isSupabaseConfigured()) return true;
+    const { error } = await supabase.from('applications').delete().eq('id', appId);
+    if (error) {
+      throw new Error(`Failed to delete application: ${error.message}`);
+    }
+    return true;
+  },
+
   // ==========================================================================
   // CREW PROFILES
   // ==========================================================================
+
+  /**
+   * Fetch single crew profile by ID or email
+   */
+  async getCrewProfile(userIdOrEmail?: string): Promise<CrewProfile | null> {
+    if (!isSupabaseConfigured()) return null;
+
+    try {
+      let targetId = userIdOrEmail;
+      if (!targetId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        targetId = user?.id;
+      }
+      if (!targetId) return null;
+
+      let profileData: any = null;
+      if (targetId.includes('@')) {
+        const { data } = await supabase.from('profiles').select('*').eq('email', targetId.toLowerCase()).maybeSingle();
+        profileData = data;
+        if (data) targetId = data.id;
+      } else {
+        const { data } = await supabase.from('profiles').select('*').eq('id', targetId).maybeSingle();
+        profileData = data;
+      }
+
+      if (!targetId) return null;
+
+      const { data: crewData } = await supabase
+        .from('crew_profiles')
+        .select('*')
+        .eq('user_id', targetId)
+        .maybeSingle();
+
+      const d = crewData || {};
+      const pr = profileData || {};
+
+      return {
+        id: targetId,
+        name: pr.full_name || d.name || 'Verified Crew Member',
+        email: pr.email || d.email || '',
+        phone: pr.phone || d.phone || '+91 98000 00000',
+        experienceYears: d.experience_years || (d.experience === 'Veteran' ? 6 : d.experience === 'Experienced' ? 3 : 1),
+        experienceLevel: (d.experience || 'Experienced') as 'Fresher' | 'Experienced' | 'Veteran',
+        categories: (d.categories && d.categories.length > 0 ? d.categories : ['Event Helper']) as CrewCategory[],
+        age: d.age || 23,
+        gender: d.gender || 'Other',
+        city: pr.city || d.city || 'Surat',
+        address: pr.address || d.address || 'City Center',
+        pinCode: pr.pincode || d.pincode || '395007',
+        photoUrl: d.profile_photo_url || pr.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80',
+        systemRating: Number(d.rating || 4.9),
+        reviewsCount: d.total_reviews || 0,
+        completedEventsCount: d.completed_events || 0,
+        availability: d.availability_status || 'Available for Shifts',
+        expectedPay: d.expected_pay || '₹1,500 / shift',
+        bio: d.bio || 'Professional event crew member registered on Evencify.',
+        profileCompletionPercentage: 90,
+      };
+    } catch (err) {
+      console.error('getCrewProfile failure:', err);
+      return null;
+    }
+  },
 
   /**
    * Fetch all crew profiles from database
@@ -1035,7 +1123,7 @@ export const EvencifyApi = {
   },
 
   /**
-   * Update crew profile
+   * Update crew profile (persists to profiles and crew_profiles with upsert)
    */
   async updateCrewProfile(userId: string, data: Partial<CrewProfile>): Promise<boolean> {
     if (!isSupabaseConfigured()) {
@@ -1053,9 +1141,13 @@ export const EvencifyApi = {
 
     await supabase.from('profiles').update(profileUpdates).eq('id', userId);
 
-    // Update crew_profiles table
-    const crewUpdates: any = { updated_at: new Date().toISOString() };
+    // Update crew_profiles table with upsert
+    const crewUpdates: any = {
+      user_id: userId,
+      updated_at: new Date().toISOString(),
+    };
     if (data.experienceLevel !== undefined) crewUpdates.experience = data.experienceLevel;
+    if (data.experienceYears !== undefined) crewUpdates.experience_years = data.experienceYears;
     if (data.categories !== undefined) crewUpdates.categories = data.categories;
     if (data.age !== undefined) crewUpdates.age = data.age;
     if (data.gender !== undefined) crewUpdates.gender = data.gender;
@@ -1063,8 +1155,13 @@ export const EvencifyApi = {
     if (data.expectedPay !== undefined) crewUpdates.expected_pay = data.expectedPay;
     if (data.bio !== undefined) crewUpdates.bio = data.bio;
     if (data.availability !== undefined) crewUpdates.availability_status = data.availability;
+    if (data.name !== undefined) crewUpdates.name = data.name;
+    if (data.phone !== undefined) crewUpdates.phone = data.phone;
+    if (data.city !== undefined) crewUpdates.city = data.city;
+    if (data.address !== undefined) crewUpdates.address = data.address;
+    if (data.pinCode || data.pincode) crewUpdates.pincode = data.pinCode || data.pincode;
 
-    const { error } = await supabase.from('crew_profiles').update(crewUpdates).eq('user_id', userId);
+    const { error } = await supabase.from('crew_profiles').upsert(crewUpdates, { onConflict: 'user_id' });
     if (error) {
       throw new Error(`Failed to update crew profile: ${error.message}`);
     }
@@ -1077,15 +1174,15 @@ export const EvencifyApi = {
   // ==========================================================================
 
   /**
-   * Fetch organiser profile for user
+   * Fetch organiser profile for user (by ID or Email)
    */
-  async getOrganiserProfile(userId?: string): Promise<OrganiserProfile | null> {
+  async getOrganiserProfile(userIdOrEmail?: string): Promise<OrganiserProfile | null> {
     if (!isSupabaseConfigured()) {
       return null;
     }
 
     try {
-      let targetId = userId;
+      let targetId = userIdOrEmail;
       if (!targetId) {
         const { data: { user } } = await supabase.auth.getUser();
         targetId = user?.id;
@@ -1093,26 +1190,37 @@ export const EvencifyApi = {
 
       if (!targetId) return null;
 
-      const [orgRes, profileRes] = await Promise.all([
-        supabase.from('organiser_profiles').select('*').eq('user_id', targetId).maybeSingle(),
-        supabase.from('profiles').select('*').eq('id', targetId).maybeSingle(),
-      ]);
+      let profileData: any = null;
+      if (targetId.includes('@')) {
+        const { data } = await supabase.from('profiles').select('*').eq('email', targetId.toLowerCase()).maybeSingle();
+        profileData = data;
+        if (data) targetId = data.id;
+      } else {
+        const { data } = await supabase.from('profiles').select('*').eq('id', targetId).maybeSingle();
+        profileData = data;
+      }
 
-      if (orgRes.error || !orgRes.data) return null;
+      if (!targetId) return null;
 
-      const data = orgRes.data;
-      const profile = profileRes.data || {};
+      const { data: orgData } = await supabase
+        .from('organiser_profiles')
+        .select('*')
+        .eq('user_id', targetId)
+        .maybeSingle();
+
+      const data = orgData || {};
+      const profile = profileData || {};
 
       return {
-        id: data.user_id,
-        name: profile.full_name || 'Event Organiser',
-        companyName: data.company_name || 'Organiser Productions',
+        id: targetId,
+        name: profile.full_name || data.name || 'Event Organiser',
+        companyName: data.company_name || `${profile.full_name || 'Organiser'} Events`,
         hasUdyam: Boolean(data.udyam_registered),
-        udyamNumber: data.udyam_number,
+        udyamNumber: data.udyam_number || '',
         address: data.address || profile.address || '',
         city: data.city || profile.city || 'Surat',
         pinCode: data.pincode || profile.pincode || '',
-        email: profile.email || '',
+        email: profile.email || data.email || '',
         phone: data.phone || profile.phone || '',
       };
     } catch (err) {
@@ -1122,7 +1230,7 @@ export const EvencifyApi = {
   },
 
   /**
-   * Update organiser profile
+   * Update organiser profile (persists to profiles and organiser_profiles with upsert)
    */
   async updateOrganiserProfile(userId: string, data: Partial<OrganiserProfile>): Promise<boolean> {
     if (!isSupabaseConfigured()) {
@@ -1139,8 +1247,12 @@ export const EvencifyApi = {
 
     await supabase.from('profiles').update(profileUpdates).eq('id', userId);
 
-    // Update organiser_profiles
-    const orgUpdates: any = { updated_at: new Date().toISOString() };
+    // Update organiser_profiles with upsert
+    const orgUpdates: any = {
+      user_id: userId,
+      updated_at: new Date().toISOString(),
+    };
+    if (data.name !== undefined) orgUpdates.name = data.name;
     if (data.companyName !== undefined) orgUpdates.company_name = data.companyName;
     if (data.hasUdyam !== undefined) orgUpdates.udyam_registered = data.hasUdyam;
     if (data.udyamNumber !== undefined) orgUpdates.udyam_number = data.udyamNumber;
@@ -1149,7 +1261,7 @@ export const EvencifyApi = {
     if (data.pinCode || data.pincode) orgUpdates.pincode = data.pinCode || data.pincode;
     if (data.phone !== undefined) orgUpdates.phone = data.phone;
 
-    const { error } = await supabase.from('organiser_profiles').update(orgUpdates).eq('user_id', userId);
+    const { error } = await supabase.from('organiser_profiles').upsert(orgUpdates, { onConflict: 'user_id' });
     if (error) {
       throw new Error(`Failed to update organiser profile: ${error.message}`);
     }
@@ -1162,7 +1274,7 @@ export const EvencifyApi = {
   // ==========================================================================
 
   /**
-   * Get all registered users for administration
+   * Get all registered users for administration (merged with role metadata)
    */
   async getUsers(): Promise<UserAccount[]> {
     if (!isSupabaseConfigured()) {
@@ -1170,31 +1282,251 @@ export const EvencifyApi = {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const [profilesRes, crewRes, orgRes] = await Promise.all([
+        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+        supabase.from('crew_profiles').select('*'),
+        supabase.from('organiser_profiles').select('*'),
+      ]);
 
-      if (error || !data) {
-        console.error('Error fetching users:', error);
+      if (profilesRes.error || !profilesRes.data) {
+        console.error('Error fetching users:', profilesRes.error);
         return [];
       }
 
-      return data.map((p: any) => ({
-        id: p.id,
-        name: p.full_name || 'User',
-        email: p.email || '',
-        phone: p.phone,
-        role: p.role as 'crew' | 'organiser' | 'admin',
-        status: p.is_active ? 'Active' : 'Suspended',
-        city: p.city || 'Surat',
-        createdAt: new Date(p.created_at).toISOString().split('T')[0],
-        verificationBadge: p.role === 'admin' ? 'Superadmin' : p.role === 'organiser' ? 'Verified Organiser' : 'Verified Crew',
-      }));
+      const crewMap: Record<string, any> = {};
+      (crewRes.data || []).forEach((c: any) => {
+        crewMap[c.user_id] = c;
+      });
+
+      const orgMap: Record<string, any> = {};
+      (orgRes.data || []).forEach((o: any) => {
+        orgMap[o.user_id] = o;
+      });
+
+      return profilesRes.data.map((p: any) => {
+        const crew = crewMap[p.id];
+        const org = orgMap[p.id];
+        const isVer = Boolean(p.is_verified);
+
+        const defaultBadge = p.role === 'admin'
+          ? 'Platform Superadmin'
+          : p.role === 'organiser'
+          ? 'Business Verified'
+          : 'Verified Pro';
+
+        const user: UserAccount = {
+          id: p.id,
+          name: p.full_name || 'User',
+          email: p.email || '',
+          phone: p.phone || crew?.phone || org?.phone || '+91 98000 00000',
+          role: p.role as 'crew' | 'organiser' | 'admin',
+          status: p.is_active ? 'Active' : 'Suspended',
+          city: p.city || crew?.city || org?.city || 'Surat',
+          address: p.address || org?.address || '',
+          createdAt: new Date(p.created_at).toISOString().split('T')[0],
+          isVerified: isVer,
+          verificationBadge: p.verification_badge || (isVer ? defaultBadge : 'Unverified'),
+        };
+
+        if (p.role === 'crew') {
+          user.categories = (crew?.categories && crew.categories.length > 0 ? crew.categories : ['Event Helper']) as CrewCategory[];
+          user.systemRating = Number(crew?.rating || 4.9);
+          user.completedEventsCount = crew?.completed_events || 0;
+          user.expectedPay = crew?.expected_pay || '₹1,500 / shift';
+        } else if (p.role === 'organiser') {
+          user.companyName = org?.company_name || `${p.full_name || 'Organiser'} Events`;
+          user.hasUdyam = Boolean(org?.udyam_registered ?? isVer);
+          user.udyamNumber = org?.udyam_number || '';
+        }
+
+        return user;
+      });
     } catch (err) {
       console.error('getUsers failure:', err);
       return [];
     }
+  },
+
+  /**
+   * Admin: Create a new user account across profiles and role tables in Supabase
+   */
+  async createUserAccount(newUser: UserAccount): Promise<UserAccount> {
+    if (!isSupabaseConfigured()) {
+      return newUser;
+    }
+
+    const userId = newUser.id || `usr-${Date.now()}`;
+    const cleanEmail = newUser.email.trim().toLowerCase();
+    const isVer = Boolean(newUser.isVerified);
+    const defaultBadge = newUser.role === 'admin'
+      ? 'Platform Superadmin'
+      : newUser.role === 'organiser'
+      ? 'Business Verified'
+      : 'Verified Pro';
+
+    const finalBadge = newUser.verificationBadge || (isVer ? defaultBadge : 'Unverified');
+
+    // 1. Insert into profiles
+    const { error: pErr } = await supabase.from('profiles').upsert({
+      id: userId,
+      role: newUser.role,
+      full_name: newUser.name,
+      email: cleanEmail,
+      phone: newUser.phone || null,
+      city: newUser.city || 'Surat',
+      address: newUser.address || null,
+      pincode: (newUser as any).pincode || null,
+      is_active: newUser.status !== 'Suspended',
+      is_verified: isVer,
+      verification_badge: finalBadge,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'email' });
+
+    if (pErr) {
+      console.error('Error creating profile in Supabase:', pErr);
+      throw new Error(`Failed to create user profile: ${pErr.message}`);
+    }
+
+    // 2. Insert into role-specific table
+    if (newUser.role === 'crew') {
+      await supabase.from('crew_profiles').upsert({
+        user_id: userId,
+        name: newUser.name,
+        email: cleanEmail,
+        phone: newUser.phone || null,
+        city: newUser.city || 'Surat',
+        rating: newUser.systemRating || 4.9,
+        completed_events: newUser.completedEventsCount || 0,
+        expected_pay: newUser.expectedPay || '₹1,500 / shift',
+        categories: newUser.categories && newUser.categories.length > 0 ? newUser.categories : ['Event Helper'],
+        availability_status: 'Available for Shifts',
+      }, { onConflict: 'user_id' });
+    } else if (newUser.role === 'organiser') {
+      await supabase.from('organiser_profiles').upsert({
+        user_id: userId,
+        name: newUser.name,
+        company_name: newUser.companyName || `${newUser.name} Events`,
+        email: cleanEmail,
+        phone: newUser.phone || null,
+        city: newUser.city || 'Surat',
+        address: newUser.address || null,
+        udyam_registered: Boolean(newUser.hasUdyam ?? isVer),
+        udyam_number: newUser.udyamNumber || null,
+      }, { onConflict: 'user_id' });
+    }
+
+    return {
+      ...newUser,
+      id: userId,
+      verificationBadge: finalBadge,
+    };
+  },
+
+  /**
+   * Admin: Update an existing user account across profiles and role tables
+   */
+  async updateUserAccount(originalUserId: string, updated: UserAccount): Promise<boolean> {
+    if (!isSupabaseConfigured()) {
+      return true;
+    }
+
+    const isVer = Boolean(updated.isVerified);
+    const defaultBadge = updated.role === 'admin'
+      ? 'Platform Superadmin'
+      : updated.role === 'organiser'
+      ? 'Business Verified'
+      : 'Verified Pro';
+
+    const finalBadge = updated.verificationBadge || (isVer ? defaultBadge : 'Unverified');
+
+    // 1. Update profiles
+    const profileUpdates: any = {
+      full_name: updated.name,
+      email: updated.email.trim().toLowerCase(),
+      phone: updated.phone || null,
+      city: updated.city || 'Surat',
+      address: updated.address || null,
+      role: updated.role,
+      is_active: updated.status !== 'Suspended',
+      is_verified: isVer,
+      verification_badge: finalBadge,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error: pErr } = await supabase
+      .from('profiles')
+      .update(profileUpdates)
+      .eq('id', originalUserId);
+
+    if (pErr) {
+      console.error('Error updating profile in Supabase:', pErr);
+      throw new Error(`Failed to update profile: ${pErr.message}`);
+    }
+
+    // 2. Update role tables
+    if (updated.role === 'crew') {
+      await supabase.from('crew_profiles').upsert({
+        user_id: originalUserId,
+        name: updated.name,
+        email: updated.email.trim().toLowerCase(),
+        phone: updated.phone || null,
+        city: updated.city || 'Surat',
+        rating: updated.systemRating || 4.9,
+        completed_events: updated.completedEventsCount || 0,
+        expected_pay: updated.expectedPay || '₹1,500 / shift',
+        categories: updated.categories || ['Event Helper'],
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+    } else if (updated.role === 'organiser') {
+      await supabase.from('organiser_profiles').upsert({
+        user_id: originalUserId,
+        name: updated.name,
+        company_name: updated.companyName || `${updated.name} Events`,
+        email: updated.email.trim().toLowerCase(),
+        phone: updated.phone || null,
+        city: updated.city || 'Surat',
+        address: updated.address || null,
+        udyam_registered: Boolean(updated.hasUdyam ?? isVer),
+        udyam_number: updated.udyamNumber || null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+    }
+
+    return true;
+  },
+
+  /**
+   * Admin: Toggle user verification status and badges
+   */
+  async updateUserVerification(userId: string, isVerified: boolean, badge?: string): Promise<boolean> {
+    if (!isSupabaseConfigured()) {
+      return true;
+    }
+
+    const { data: profile } = await supabase.from('profiles').select('role, full_name').eq('id', userId).single();
+    const role = profile?.role || 'crew';
+    const defaultBadge = role === 'admin'
+      ? 'Platform Superadmin'
+      : role === 'organiser'
+      ? 'Business Verified'
+      : 'Verified Pro';
+
+    const finalBadge = isVerified ? (badge || defaultBadge) : 'Unverified';
+
+    await supabase.from('profiles').update({
+      is_verified: isVerified,
+      verification_badge: finalBadge,
+      updated_at: new Date().toISOString(),
+    }).eq('id', userId);
+
+    if (role === 'organiser') {
+      await supabase.from('organiser_profiles').update({
+        udyam_registered: isVerified,
+        updated_at: new Date().toISOString(),
+      }).eq('user_id', userId);
+    }
+
+    return true;
   },
 
   /**
@@ -1404,35 +1736,63 @@ export const EvencifyApi = {
   // ==========================================================================
 
   /**
-   * Upload user avatar to Supabase Storage 'avatars' bucket
+   * Upload user avatar to Supabase Storage 'avatars' bucket (with fallback base64 encoding)
    */
-  async uploadAvatar(file: File): Promise<string> {
-    if (!isSupabaseConfigured()) {
-      throw new Error('Database connection required to upload files.');
+  async uploadAvatar(file: File, explicitUserId?: string): Promise<string> {
+    let targetUserId = explicitUserId;
+    if (!targetUserId && isSupabaseConfigured()) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        targetUserId = user?.id;
+      } catch (err) {
+        console.warn('Could not get auth user for avatar upload:', err);
+      }
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('Authentication required.');
+    if (!targetUserId) {
+      targetUserId = 'user-avatar';
     }
 
-    const fileExt = file.name.split('.').pop() || 'png';
-    const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+    // Attempt Supabase Storage upload
+    if (isSupabaseConfigured()) {
+      try {
+        const fileExt = file.name.split('.').pop() || 'png';
+        const filePath = `${targetUserId}/${Date.now()}.${fileExt}`;
 
-    const { error: uploadErr } = await supabase.storage.from('avatars').upload(filePath, file, {
-      upsert: true,
+        const { error: uploadErr } = await supabase.storage.from('avatars').upload(filePath, file, {
+          upsert: true,
+        });
+
+        if (!uploadErr) {
+          const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+          if (targetUserId && targetUserId !== 'user-avatar') {
+            await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', targetUserId);
+          }
+          return publicUrl;
+        }
+        console.warn('Supabase storage upload error, falling back to base64 encoding:', uploadErr.message);
+      } catch (storageErr) {
+        console.warn('Storage upload exception, falling back to base64 encoding:', storageErr);
+      }
+    }
+
+    // Graceful reliable fallback: Base64 data URL so user image is never lost
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64Url = reader.result as string;
+        if (targetUserId && targetUserId !== 'user-avatar' && isSupabaseConfigured()) {
+          try {
+            await supabase.from('profiles').update({ avatar_url: base64Url }).eq('id', targetUserId);
+          } catch (e) {
+            console.error('Failed to save base64 avatar to profiles:', e);
+          }
+        }
+        resolve(base64Url);
+      };
+      reader.onerror = () => reject(new Error('Failed to read image file.'));
+      reader.readAsDataURL(file);
     });
-
-    if (uploadErr) {
-      throw new Error(`Avatar upload failed: ${uploadErr.message}`);
-    }
-
-    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
-
-    // Update avatar_url in profiles
-    await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
-
-    return publicUrl;
   },
 
   // ==========================================================================
