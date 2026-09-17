@@ -112,9 +112,67 @@ export default function App() {
   // Toast banner for feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Database auto-sync & live status state
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date>(new Date());
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  // Dedicated automatic & manual database synchronizer
+  const syncDatabase = async (silent = false) => {
+    if (!isSupabaseConfigured()) return;
+    if (!silent) setIsSyncing(true);
+    try {
+      const [dbEvents, dbCrew, dbApps, dbGroups, dbUsers, dbNotifs] = await Promise.allSettled([
+        EvencifyApi.getEvents(),
+        EvencifyApi.getCrewProfiles(),
+        EvencifyApi.getApplications(),
+        EvencifyApi.getCoordinationGroups(),
+        EvencifyApi.getUsers(),
+        EvencifyApi.getNotifications(),
+      ]);
+
+      if (dbEvents.status === 'fulfilled' && dbEvents.value.length > 0) {
+        setEvents(dbEvents.value);
+      }
+      if (dbCrew.status === 'fulfilled' && dbCrew.value.length > 0) {
+        setCrewList(dbCrew.value);
+        setCurrentCrewProfile((prev) => {
+          const match = dbCrew.value.find((c) => c.email === activeUserEmail || c.id === prev.id);
+          return match || dbCrew.value[0];
+        });
+      }
+      if (dbApps.status === 'fulfilled' && dbApps.value.length > 0) {
+        setApplications(dbApps.value);
+      }
+      if (dbGroups.status === 'fulfilled' && dbGroups.value.length > 0) {
+        setEventGroups(dbGroups.value);
+        setActiveChatGroup((prev) => {
+          if (!prev) return null;
+          return dbGroups.value.find((g) => g.id === prev.id) || prev;
+        });
+      }
+      if (dbUsers.status === 'fulfilled' && dbUsers.value.length > 0) {
+        setUsers(dbUsers.value);
+      }
+      if (dbNotifs.status === 'fulfilled' && dbNotifs.value.length > 0) {
+        setNotifications(dbNotifs.value);
+      }
+      setLastSyncedAt(new Date());
+      if (!silent) {
+        showToast('Database synchronized with live Supabase!');
+      }
+    } catch (err) {
+      console.error('Supabase sync error:', err);
+      if (!silent) {
+        showToast('Database synchronization error. Please check network.');
+      }
+    } finally {
+      if (!silent) setIsSyncing(false);
+    }
   };
 
   // Secure Admin Access: via /admin or /admin-login URL or discrete shortcut (Ctrl+Shift+A / Cmd+Shift+A)
@@ -145,51 +203,14 @@ export default function App() {
     };
   }, []);
 
-  // Live Supabase auto-sync & real-time updates
+  // Live Supabase auto-sync, polling timer, focus sync, & real-time Postgres updates
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
 
     let isMounted = true;
-    const fetchSupabaseData = async () => {
-      try {
-        const [dbEvents, dbCrew, dbApps, dbGroups, dbUsers, dbNotifs] = await Promise.allSettled([
-          EvencifyApi.getEvents(),
-          EvencifyApi.getCrewProfiles(),
-          EvencifyApi.getApplications(),
-          EvencifyApi.getCoordinationGroups(),
-          EvencifyApi.getUsers(),
-          EvencifyApi.getNotifications(),
-        ]);
+    syncDatabase(true);
 
-        if (!isMounted) return;
-
-        if (dbEvents.status === 'fulfilled' && dbEvents.value.length > 0) {
-          setEvents(dbEvents.value);
-        }
-        if (dbCrew.status === 'fulfilled' && dbCrew.value.length > 0) {
-          setCrewList(dbCrew.value);
-          setCurrentCrewProfile(dbCrew.value[0]);
-        }
-        if (dbApps.status === 'fulfilled' && dbApps.value.length > 0) {
-          setApplications(dbApps.value);
-        }
-        if (dbGroups.status === 'fulfilled' && dbGroups.value.length > 0) {
-          setEventGroups(dbGroups.value);
-        }
-        if (dbUsers.status === 'fulfilled' && dbUsers.value.length > 0) {
-          setUsers(dbUsers.value);
-        }
-        if (dbNotifs.status === 'fulfilled' && dbNotifs.value.length > 0) {
-          setNotifications(dbNotifs.value);
-        }
-      } catch (err) {
-        console.error('Initial Supabase load error:', err);
-      }
-    };
-
-    fetchSupabaseData();
-
-    // Setup Postgres realtime listeners
+    // Setup Postgres realtime listeners across all live public tables
     const channel = supabase
       .channel('evencify-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, async () => {
@@ -210,7 +231,35 @@ export default function App() {
           });
         }
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, async () => {
+        const freshUsers = await EvencifyApi.getUsers();
+        if (freshUsers.length > 0 && isMounted) setUsers(freshUsers);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'crew_profiles' }, async () => {
+        const freshCrew = await EvencifyApi.getCrewProfiles();
+        if (freshCrew.length > 0 && isMounted) setCrewList(freshCrew);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, async () => {
+        const freshNotifs = await EvencifyApi.getNotifications();
+        if (isMounted) setNotifications(freshNotifs);
+      })
       .subscribe();
+
+    // Automatic periodic background sync (every 20 seconds)
+    const syncInterval = setInterval(() => {
+      if (isMounted) {
+        syncDatabase(true);
+      }
+    }, 20000);
+
+    // Automatic sync whenever tab/window regains focus or visibility
+    const handleFocusSync = () => {
+      if (document.visibilityState === 'visible' && isMounted) {
+        syncDatabase(true);
+      }
+    };
+    window.addEventListener('focus', handleFocusSync);
+    document.addEventListener('visibilitychange', handleFocusSync);
 
     // Check for active Supabase Auth session (such as returning from OAuth redirect)
     supabase.auth.getSession().then(({ data }) => {
@@ -249,10 +298,13 @@ export default function App() {
 
     return () => {
       isMounted = false;
+      clearInterval(syncInterval);
+      window.removeEventListener('focus', handleFocusSync);
+      document.removeEventListener('visibilitychange', handleFocusSync);
       supabase.removeChannel(channel);
       authListener?.subscription?.unsubscribe();
     };
-  }, []);
+  }, [activeUserEmail]);
 
   // Role switching
   const handleSelectRole = (role: UserRole) => {
@@ -855,6 +907,9 @@ export default function App() {
             showToast('Administrator profile: Console is active.');
           }
         }}
+        onSyncDatabase={() => syncDatabase(false)}
+        isSyncing={isSyncing}
+        lastSyncedAt={lastSyncedAt}
       />
 
       {/* Main Content Areas */}
