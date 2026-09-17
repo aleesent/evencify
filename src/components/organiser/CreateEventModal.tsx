@@ -26,7 +26,6 @@ interface CreateEventModalProps {
   onClose: () => void;
   onEventCreated: (event: EventItem) => void;
   organiserName: string;
-  organiserId?: string;
 }
 
 export const CreateEventModal: React.FC<CreateEventModalProps> = ({
@@ -34,7 +33,6 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   onClose,
   onEventCreated,
   organiserName,
-  organiserId,
 }) => {
   const [step, setStep] = useState(1);
 
@@ -89,7 +87,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
       venue,
       city,
       expectedAttendance: expectedAttendance ? Number(expectedAttendance) : undefined,
-      organiserId: organiserId || 'org-1',
+      organiserId: 'org-1',
       organiserName: organiserName || 'Singhania Events',
       crewPositionsTotal,
       crewPositionsAvailable: crewPositionsTotal,

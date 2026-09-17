@@ -34,16 +34,11 @@ apiRouter.post('/auth/send-verification', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Email address is required.' });
     }
 
-    const host = req.get('host') || 'localhost:3000';
-    const protocol = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
-    const origin = req.get('origin') || `${protocol}://${host}`;
-
     const result = await sendVerificationEmail({
       email,
       name,
       role: role || 'crew',
       purpose: purpose || 'signup',
-      origin,
     });
 
     return res.json(result);
