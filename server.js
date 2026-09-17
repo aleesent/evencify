@@ -3,11 +3,16 @@ import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { apiRouter } from './server/apiRouter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Body parser for JSON API requests
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Render and Cloud platforms supply the PORT environment variable
 const PORT = Number(process.env.PORT) || 3000;
@@ -16,6 +21,9 @@ const PORT = Number(process.env.PORT) || 3000;
 app.get('/healthz', (_req, res) => {
   res.status(200).send('OK');
 });
+
+// Mount Brevo SMTP and Auth API routes
+app.use('/api', apiRouter);
 
 const distPath = path.join(__dirname, 'dist');
 const indexPath = path.join(distPath, 'index.html');

@@ -14,3 +14,9 @@ services:
         value: https://tutspdayygbrrqtuepao.supabase.co
       - key: VITE_SUPABASE_ANON_KEY
         value: sb_publishable_gn9U1OxaMNUwGMroOA_Rew_k4F9fMPH
+      - key: BREVO_SMTP_HOST
+        value: smtp-relay.brevo.com
+      - key: BREVO_SMTP_PORT
+        value: 587
+      - key: BREVO_SENDER_NAME
+        value: Evencify Verification

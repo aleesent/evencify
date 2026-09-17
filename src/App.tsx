@@ -112,19 +112,14 @@ export default function App() {
   // Toast banner for feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Database auto-sync & live status state
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date>(new Date());
-
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Dedicated automatic & manual database synchronizer
-  const syncDatabase = async (silent = false) => {
+  // Dedicated automatic database synchronizer (runs silently in the background)
+  const syncDatabase = async () => {
     if (!isSupabaseConfigured()) return;
-    if (!silent) setIsSyncing(true);
     try {
       const [dbEvents, dbCrew, dbApps, dbGroups, dbUsers, dbNotifs] = await Promise.allSettled([
         EvencifyApi.getEvents(),
@@ -161,17 +156,8 @@ export default function App() {
       if (dbNotifs.status === 'fulfilled' && dbNotifs.value.length > 0) {
         setNotifications(dbNotifs.value);
       }
-      setLastSyncedAt(new Date());
-      if (!silent) {
-        showToast('Database synchronized with live Supabase!');
-      }
     } catch (err) {
-      console.error('Supabase sync error:', err);
-      if (!silent) {
-        showToast('Database synchronization error. Please check network.');
-      }
-    } finally {
-      if (!silent) setIsSyncing(false);
+      console.error('Supabase background sync error:', err);
     }
   };
 
@@ -208,7 +194,7 @@ export default function App() {
     if (!isSupabaseConfigured()) return;
 
     let isMounted = true;
-    syncDatabase(true);
+    syncDatabase();
 
     // Setup Postgres realtime listeners across all live public tables
     const channel = supabase
@@ -248,14 +234,14 @@ export default function App() {
     // Automatic periodic background sync (every 20 seconds)
     const syncInterval = setInterval(() => {
       if (isMounted) {
-        syncDatabase(true);
+        syncDatabase();
       }
     }, 20000);
 
     // Automatic sync whenever tab/window regains focus or visibility
     const handleFocusSync = () => {
       if (document.visibilityState === 'visible' && isMounted) {
-        syncDatabase(true);
+        syncDatabase();
       }
     };
     window.addEventListener('focus', handleFocusSync);
@@ -907,9 +893,6 @@ export default function App() {
             showToast('Administrator profile: Console is active.');
           }
         }}
-        onSyncDatabase={() => syncDatabase(false)}
-        isSyncing={isSyncing}
-        lastSyncedAt={lastSyncedAt}
       />
 
       {/* Main Content Areas */}

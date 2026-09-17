@@ -18,6 +18,7 @@ export interface AuthSessionUser {
   email: string;
   name: string;
   role: 'crew' | 'organiser' | 'admin';
+  isVerified?: boolean;
 }
 
 export const EvencifyApi = {
@@ -120,6 +121,8 @@ export const EvencifyApi = {
         full_name: params.fullName,
         role: params.role,
         is_active: true,
+        is_verified: true,
+        verification_badge: 'Email Verified',
       });
 
       if (profileUpsertError) {
@@ -150,6 +153,7 @@ export const EvencifyApi = {
         email: params.email,
         name: params.fullName,
         role: params.role,
+        isVerified: true,
       };
 
       return { user: sessionUser };

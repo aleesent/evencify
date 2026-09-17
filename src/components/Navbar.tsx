@@ -16,7 +16,6 @@ import {
   ChevronDown,
   LayoutDashboard,
   Globe,
-  Database,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -35,11 +34,6 @@ interface NavbarProps {
   onNavigateCrewTab?: (tab: 'overview' | 'find-events' | 'applications' | 'profile') => void;
   onNavigateOrganiserTab?: (tab: 'overview' | 'events' | 'crew' | 'applications' | 'profile') => void;
   onOpenProfile?: () => void;
-  onOpenDatabaseConfig?: () => void;
-  isDatabaseConfigured?: boolean;
-  onSyncDatabase?: () => void;
-  isSyncing?: boolean;
-  lastSyncedAt?: Date;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -58,11 +52,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNavigateCrewTab,
   onNavigateOrganiserTab,
   onOpenProfile,
-  onOpenDatabaseConfig,
-  isDatabaseConfigured = true,
-  onSyncDatabase,
-  isSyncing = false,
-  lastSyncedAt,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -171,32 +160,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 />
               </div>
             </button>
-
-            {isDatabaseConfigured ? (
-              <button
-                onClick={onSyncDatabase}
-                disabled={isSyncing}
-                className="hidden xl:inline-flex items-center gap-1.5 rounded-full border border-emerald-200/90 bg-emerald-50/80 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100 hover:border-emerald-300 transition-all cursor-pointer shadow-2xs active:scale-95"
-                title={`Live Supabase Database Connected & Auto-Syncing${lastSyncedAt ? ` • Last synced: ${lastSyncedAt.toLocaleTimeString()}` : ''}. Click to sync immediately.`}
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className={`absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 ${isSyncing ? 'animate-ping' : ''}`} />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                </span>
-                <span className="text-emerald-950 font-medium">
-                  {isSyncing ? 'Syncing...' : 'Live DB'}
-                </span>
-              </button>
-            ) : onOpenDatabaseConfig ? (
-              <button
-                onClick={onOpenDatabaseConfig}
-                className="hidden xl:inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-900 hover:bg-amber-100 transition-colors cursor-pointer"
-                title="Connect Supabase Database"
-              >
-                <Database className="h-3 w-3 text-amber-600" />
-                <span>Connect Database</span>
-              </button>
-            ) : null}
           </div>
 
           {/* ================= CENTER NAVIGATION ================= */}

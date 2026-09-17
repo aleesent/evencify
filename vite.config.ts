@@ -5,7 +5,58 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      {
+        name: 'brevo-api-middleware',
+        configureServer(server) {
+          server.middlewares.use(async (req, res, next) => {
+            const url = req.url || '';
+            if (url.startsWith('/api')) {
+              try {
+                if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+                  const chunks: any[] = [];
+                  req.on('data', (chunk) => chunks.push(chunk));
+                  req.on('end', async () => {
+                    const raw = Buffer.concat(chunks).toString();
+                    try {
+                      (req as any).body = raw ? JSON.parse(raw) : {};
+                    } catch {
+                      (req as any).body = {};
+                    }
+                    const { apiRouter } = await import('./server/apiRouter.js');
+                    const origUrl = req.url;
+                    req.url = req.url?.replace(/^\/api/, '') || '/';
+                    apiRouter(req as any, res as any, (err: any) => {
+                      req.url = origUrl;
+                      next(err);
+                    });
+                  });
+                  return;
+                } else {
+                  const { apiRouter } = await import('./server/apiRouter.js');
+                  const origUrl = req.url;
+                  req.url = req.url?.replace(/^\/api/, '') || '/';
+                  apiRouter(req as any, res as any, (err: any) => {
+                    req.url = origUrl;
+                    next(err);
+                  });
+                  return;
+                }
+              } catch (apiErr) {
+                console.error('API middleware error:', apiErr);
+                res.statusCode = 500;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: 'Internal API Server Error' }));
+                return;
+              }
+            }
+            next();
+          });
+        },
+      },
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
