@@ -1568,6 +1568,26 @@ export const EvencifyApi = {
   },
 
   /**
+   * Discreate / delete an event coordination group and its messages from Supabase
+   */
+  async deleteCoordinationGroup(groupId: string): Promise<boolean> {
+    if (!isSupabaseConfigured()) return false;
+
+    try {
+      await supabase.from('coordination_messages').delete().eq('group_id', groupId);
+      const { error } = await supabase.from('coordination_groups').delete().eq('id', groupId);
+      if (error) {
+        console.error('deleteCoordinationGroup error:', error);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error('deleteCoordinationGroup error:', err);
+      return false;
+    }
+  },
+
+  /**
    * Create an in-app notification in Supabase
    */
   async createNotification(notif: {

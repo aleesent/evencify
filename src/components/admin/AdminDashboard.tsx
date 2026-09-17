@@ -61,6 +61,7 @@ interface AdminDashboardProps {
   users: UserAccount[];
   eventGroups?: EventCoordinationGroup[];
   onCreateEventGroup?: (eventId: string) => void;
+  onDiscreateEventGroup?: (groupId: string) => void;
   onOpenGroupChat?: (group: EventCoordinationGroup) => void;
   onToggleUserStatus: (userId: string) => void;
   onToggleUserVerification?: (userId: string) => void;
@@ -86,6 +87,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   users,
   eventGroups = [],
   onCreateEventGroup,
+  onDiscreateEventGroup,
   onOpenGroupChat,
   onToggleUserStatus,
   onToggleUserVerification,
@@ -127,6 +129,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const [roleChangeUser, setRoleChangeUser] = useState<UserAccount | null>(null);
   const [newSelectedRole, setNewSelectedRole] = useState<'crew' | 'organiser' | 'admin'>('crew');
+  const [groupToDiscreate, setGroupToDiscreate] = useState<EventCoordinationGroup | null>(null);
 
   // Platform Metrics
   const totalCrew = crewList.length;
@@ -946,15 +949,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                         if (eventGroup) {
                           return (
-                            <button
-                              type="button"
-                              onClick={() => onOpenGroupChat?.(eventGroup)}
-                              className="inline-flex items-center gap-1.5 rounded-xl bg-purple-50 text-purple-800 border border-purple-200 px-3 py-2 text-xs font-semibold hover:bg-purple-100 transition-colors cursor-pointer"
-                              title="Open Shift Coordination Chat between Organiser and Crew"
-                            >
-                              <MessageSquare className="h-3.5 w-3.5 text-purple-600" />
-                              <span>Event Chat ({eventGroup.messages.length})</span>
-                            </button>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => onOpenGroupChat?.(eventGroup)}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-purple-50 text-purple-800 border border-purple-200 px-3 py-2 text-xs font-semibold hover:bg-purple-100 transition-colors cursor-pointer"
+                                title="Open Shift Coordination Chat between Organiser and Crew"
+                              >
+                                <MessageSquare className="h-3.5 w-3.5 text-purple-600" />
+                                <span>Event Chat ({eventGroup.messages.length})</span>
+                              </button>
+                              {onDiscreateEventGroup && (
+                                <button
+                                  type="button"
+                                  onClick={() => setGroupToDiscreate(eventGroup)}
+                                  className="inline-flex items-center gap-1 rounded-xl bg-red-50 text-red-700 border border-red-200 px-2.5 py-2 text-xs font-semibold hover:bg-red-100 transition-colors cursor-pointer"
+                                  title="Admin Exclusive Action: Discreate and delete this shift group"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                                  <span className="hidden xl:inline">Discreate</span>
+                                </button>
+                              )}
+                            </div>
                           );
                         }
 
@@ -1381,17 +1397,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             </div>
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={() => onOpenGroupChat?.(group)}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-neutral-900 px-4 py-2 text-xs font-bold text-white hover:bg-neutral-800 transition-colors shrink-0 cursor-pointer shadow-xs"
-                          >
-                            <MessageSquare className="h-3.5 w-3.5 text-amber-400" />
-                            <span>Open Coordination Chat</span>
-                            <span className="rounded-full bg-neutral-700 px-1.5 py-0.2 text-[10px]">
-                              {group.messages.length}
-                            </span>
-                          </button>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {onDiscreateEventGroup && (
+                              <button
+                                type="button"
+                                onClick={() => setGroupToDiscreate(group)}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-red-50 text-red-700 border border-red-200 px-3 py-2 text-xs font-semibold hover:bg-red-100 transition-colors shrink-0 cursor-pointer"
+                                title="Admin Action: Discreate and delete this shift group"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                                <span>Discreate</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => onOpenGroupChat?.(group)}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-neutral-900 px-4 py-2 text-xs font-bold text-white hover:bg-neutral-800 transition-colors shrink-0 cursor-pointer shadow-xs"
+                            >
+                              <MessageSquare className="h-3.5 w-3.5 text-amber-400" />
+                              <span>Open Coordination Chat</span>
+                              <span className="rounded-full bg-neutral-700 px-1.5 py-0.2 text-[10px]">
+                                {group.messages.length}
+                              </span>
+                            </button>
+                          </div>
                         </div>
 
                         {/* Members Bar */}
@@ -1615,6 +1644,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           crewList={crewList}
           eventGroups={eventGroups}
           onCreateEventGroup={onCreateEventGroup}
+          onDiscreateEventGroup={onDiscreateEventGroup}
           onOpenGroupChat={onOpenGroupChat}
           onUpdateApplicationStatus={onUpdateApplicationStatus}
           onDeleteApplication={onDeleteApplication}
@@ -1761,6 +1791,43 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 className="flex-1 rounded-xl border border-neutral-200 bg-white py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors cursor-pointer"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. Discreate Group Confirmation Modal */}
+      {groupToDiscreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-neutral-200 animate-in fade-in zoom-in-95 duration-150">
+            <div className="h-12 w-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-4">
+              <Trash2 className="h-6 w-6" />
+            </div>
+            <h3 className="text-base font-bold text-neutral-900">
+              Discreate Event Coordination Group?
+            </h3>
+            <p className="mt-2 text-xs text-neutral-600 leading-relaxed">
+              Are you sure you want to discreate and delete the official shift coordination group for <strong className="text-neutral-900">{groupToDiscreate.eventName}</strong> ({groupToDiscreate.eventId})? This will permanently delete the shift chat and revoke access for the organiser and {groupToDiscreate.crewMembers.length} assigned crew members.
+            </p>
+            <div className="mt-6 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setGroupToDiscreate(null)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const id = groupToDiscreate.id;
+                  setGroupToDiscreate(null);
+                  onDiscreateEventGroup?.(id);
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer shadow-xs"
+              >
+                Yes, Discreate Group
               </button>
             </div>
           </div>

@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host=0.0.0.0",
+    "dev": "vite --port=3000 --host=0.0.0.0",
     "sitemap": "tsx scripts/generate-sitemap.ts",
     "build": "tsx scripts/generate-sitemap.ts && vite build && node -e \"if (process.env.RENDER) { import('./server.js'); }\"",
     "start": "node server.js",

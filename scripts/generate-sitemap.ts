@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 console.log('Generating complete sitemap entries with Surat & Gujarat priority and published database events...');
-const entries = generateAllSitemapEntries(INITIAL_EVENTS, 'https://evencify.com');
+const entries = generateAllSitemapEntries(INITIAL_EVENTS);
 const xml = generateSitemapXml(entries);
 
 const publicDir = path.resolve(__dirname, '../public');

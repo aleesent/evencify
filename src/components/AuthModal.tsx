@@ -51,19 +51,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // If a specific role was already targeted (e.g., user clicked "Join as Crew"),
-      // set the role and go directly to auth step, while still preserving "← Change account type".
-      // Otherwise, open with the clean "Choose Account Type" step.
-      if (targetRole && (targetRole === 'crew' || targetRole === 'organiser')) {
+      // Create Account (signup) is the default view for Get Started and Create flows
+      const resolvedMode = initialMode || initialTab || 'signup';
+      setMode(resolvedMode === 'login' ? 'login' : 'signup');
+
+      // If user is explicitly logging in with an existing role, open directly to auth step.
+      // For any 'signup' / Get Started / Create action, always open directly to "Choose Account Type" first.
+      if (resolvedMode === 'login' && targetRole && (targetRole === 'crew' || targetRole === 'organiser')) {
         setSelectedRole(targetRole);
         setStep('auth');
       } else {
+        if (targetRole === 'crew' || targetRole === 'organiser') {
+          setSelectedRole(targetRole);
+        }
         setStep('choose-role');
       }
-
-      // Create Account must be the default view
-      const resolvedMode = initialMode || initialTab || 'signup';
-      setMode(resolvedMode === 'login' ? 'login' : 'signup');
 
       setShowForgotPassword(false);
       setForgotEmailSent(false);
@@ -476,6 +478,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       <button
                         type="button"
                         onClick={() => {
+                          setStep('choose-role');
                           setMode('signup');
                           setAuthError(null);
                         }}

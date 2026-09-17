@@ -16,20 +16,23 @@ import {
   FileCheck,
   Search,
   Building2,
-  ArrowRight,
-  TrendingUp,
   MapPin,
   Star,
-  ExternalLink,
-  Sliders,
   Trash2,
   PauseCircle,
   PlayCircle,
   Eye,
-  XCircle,
-  UserCheck,
   ShieldCheck,
   MessageSquare,
+  Home,
+  ChevronLeft,
+  ChevronDown,
+  ChevronUp,
+  Phone,
+  Mail,
+  Filter,
+  Sparkles,
+  XCircle,
 } from 'lucide-react';
 
 interface OrganiserDashboardProps {
@@ -82,14 +85,19 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
   >('all');
 
   const [selectedEventForDetail, setSelectedEventForDetail] = useState<EventItem | null>(null);
+  const [expandedCardIds, setExpandedCardIds] = useState<string[]>([]);
 
-  // Organiser Dashboard Metrics
+  const toggleCardExpansion = (id: string) => {
+    setExpandedCardIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  // High-level Metrics
   const activeEventsCount = events.filter((e) => e.status === 'Open').length;
-  const upcomingEventsCount = events.filter(
-    (e) => new Date(e.date) >= new Date() && e.status !== 'Closed'
-  ).length;
   const crewRequiredCount = events.reduce((acc, e) => acc + e.crewPositionsTotal, 0);
   const totalApplicationsCount = applications.length;
+  const pendingCount = applications.filter((a) => a.status === 'Pending').length;
   const shortlistedCount = applications.filter((a) => a.status === 'Shortlisted').length;
   const confirmedCrewCount = applications.filter((a) => a.status === 'Accepted').length;
 
@@ -99,241 +107,309 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
   });
 
   return (
-    <div className="min-h-screen bg-neutral-50/70 pb-20 pt-6">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-neutral-100/60 pb-20 pt-4 sm:pt-6">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
         
-        {/* Top Command Bar */}
-        <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 sm:p-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        {/* ================= SIMPLIFIED TOP HEADER CARD ================= */}
+        <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-7 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-0.5 text-[11px] font-semibold text-neutral-800">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-0.5 text-xs font-bold text-neutral-800">
                   <Building2 className="h-3.5 w-3.5 text-neutral-600" />
-                  Organiser Command Center
+                  Organiser Dashboard
                 </span>
                 {organiserProfile.hasUdyam && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
-                    <FileCheck className="h-3.5 w-3.5 text-emerald-600" />
-                    Business Verified
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                    Verified Business
                   </span>
                 )}
               </div>
-              <h1 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900">
+
+              <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900">
                 {organiserProfile.companyName}
               </h1>
-              <p className="mt-1 text-xs sm:text-sm font-medium text-neutral-500">
-                Lead Organiser: <span className="font-semibold text-neutral-800">{organiserProfile.name}</span> •{' '}
-                {organiserProfile.city}
+              <p className="mt-0.5 text-xs sm:text-sm text-neutral-500 font-medium">
+                Host: <span className="font-bold text-neutral-800">{organiserProfile.name}</span> • {organiserProfile.city}
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            {/* Quick action button */}
+            <div className="flex items-center gap-2 shrink-0">
               <button
+                type="button"
                 onClick={onOpenCreateEvent}
-                className="flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-neutral-900 px-5 py-3 text-sm font-bold text-white hover:bg-neutral-800 transition-all shadow-xs cursor-pointer"
               >
-                <Plus className="h-4 w-4" />
-                <span>Create Event</span>
+                <Plus className="h-4 w-4 text-amber-300" />
+                <span>Post New Event</span>
               </button>
             </div>
           </div>
 
-          {/* 6 Requested Metric Cards */}
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-6 border-t border-neutral-100">
-            <div className="rounded-xl bg-neutral-50/70 p-4 border border-neutral-200/60">
-              <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
-                Active Events
+          {/* 4 Clear Stat Tiles */}
+          <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3 pt-5 border-t border-neutral-100">
+            {/* 1. Active Events */}
+            <div
+              onClick={() => {
+                setSelectedEventForDetail(null);
+                setActiveTab('events');
+              }}
+              className="rounded-xl bg-neutral-50 p-4 border border-neutral-200 cursor-pointer hover:bg-neutral-100/70 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-700 uppercase tracking-wide">
+                  Active Events
+                </span>
+                <Calendar className="h-4 w-4 text-neutral-400" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-neutral-900">{activeEventsCount}</div>
+              <div className="mt-2 text-2xl sm:text-3xl font-black text-neutral-900">
+                {activeEventsCount}
+              </div>
+              <p className="mt-0.5 text-[11px] font-medium text-neutral-500">
+                Events currently accepting crew
+              </p>
             </div>
 
-            <div className="rounded-xl bg-neutral-50/70 p-4 border border-neutral-200/60">
-              <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
-                Upcoming Events
+            {/* 2. Crew Needed */}
+            <div
+              onClick={() => {
+                setSelectedEventForDetail(null);
+                setActiveTab('events');
+              }}
+              className="rounded-xl bg-amber-50/60 p-4 border border-amber-200/80 cursor-pointer hover:bg-amber-50 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">
+                  Crew Positions
+                </span>
+                <Users className="h-4 w-4 text-amber-600" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-neutral-900">{upcomingEventsCount}</div>
+              <div className="mt-2 text-2xl sm:text-3xl font-black text-amber-900">
+                {crewRequiredCount}
+              </div>
+              <p className="mt-0.5 text-[11px] font-medium text-amber-800">
+                Total staff positions
+              </p>
             </div>
 
-            <div className="rounded-xl bg-neutral-50/70 p-4 border border-neutral-200/60">
-              <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
-                Crew Required
+            {/* 3. Applications Received */}
+            <div
+              onClick={() => setActiveTab('applications')}
+              className="rounded-xl bg-blue-50/60 p-4 border border-blue-200/80 cursor-pointer hover:bg-blue-50 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-blue-900 uppercase tracking-wide">
+                  Applications
+                </span>
+                <Clock className="h-4 w-4 text-blue-600" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-neutral-900">{crewRequiredCount}</div>
+              <div className="mt-2 text-2xl sm:text-3xl font-black text-blue-700">
+                {totalApplicationsCount}
+              </div>
+              <p className="mt-0.5 text-[11px] font-medium text-blue-800">
+                {pendingCount} waiting for your review
+              </p>
             </div>
 
-            <div className="rounded-xl bg-neutral-50/70 p-4 border border-neutral-200/60">
-              <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
-                Applications
+            {/* 4. Confirmed Crew */}
+            <div
+              onClick={() => setActiveTab('crew')}
+              className="rounded-xl bg-emerald-50/60 p-4 border border-emerald-200/80 cursor-pointer hover:bg-emerald-50 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-900 uppercase tracking-wide">
+                  Hired Crew
+                </span>
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-neutral-900">{totalApplicationsCount}</div>
-            </div>
-
-            <div className="rounded-xl bg-neutral-50/70 p-4 border border-neutral-200/60">
-              <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
-                Shortlisted
+              <div className="mt-2 text-2xl sm:text-3xl font-black text-emerald-700">
+                {confirmedCrewCount}
               </div>
-              <div className="mt-2 text-2xl font-bold text-blue-600">{shortlistedCount}</div>
-            </div>
-
-            <div className="rounded-xl bg-neutral-50/70 p-4 border border-neutral-200/60">
-              <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
-                Confirmed Crew
-              </div>
-              <div className="mt-2 text-2xl font-bold text-emerald-600">{confirmedCrewCount}</div>
+              <p className="mt-0.5 text-[11px] font-medium text-emerald-800">
+                Confirmed for event shifts
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Organiser Navigation Tabs */}
-        <div className="mt-6 flex overflow-x-auto rounded-xl border border-neutral-200/80 bg-white p-1.5 scrollbar-none gap-1">
+        {/* ================= TAB NAVIGATION ================= */}
+        <div className="mt-5 flex overflow-x-auto rounded-xl border border-neutral-200 bg-white p-1.5 scrollbar-none gap-1.5 shadow-xs">
           {[
-            { id: 'overview', label: 'Overview' },
-            { id: 'events', label: `Events (${events.length})` },
-            { id: 'applications', label: `Applications (${applications.length})` },
-            { id: 'crew', label: `Crew Roster (${crewList.length})` },
-            { id: 'profile', label: 'Profile & Settings' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id as any);
-                setSelectedEventForDetail(null);
-              }}
-              className={`shrink-0 rounded-lg px-4 py-2 text-xs sm:text-sm font-semibold transition-colors cursor-pointer ${
-                activeTab === tab.id
-                  ? 'bg-neutral-900 text-white'
-                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-          <button
-            onClick={onOpenCreateEvent}
-            className="ml-auto shrink-0 flex items-center gap-1.5 rounded-lg bg-neutral-900 px-3.5 py-2 text-xs font-semibold text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>New Event</span>
-          </button>
+            { id: 'overview', label: 'Dashboard', icon: Home },
+            { id: 'events', label: `My Events (${events.length})`, icon: Calendar },
+            { id: 'applications', label: `Applicants (${applications.length})`, icon: Users },
+            { id: 'crew', label: `Hired Crew (${crewList.length})`, icon: CheckCircle2 },
+            { id: 'profile', label: 'Company Profile', icon: Building2 },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  setActiveTab(tab.id as any);
+                  setSelectedEventForDetail(null);
+                }}
+                className={`shrink-0 flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-neutral-900 text-white shadow-xs'
+                    : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
+                }`}
+              >
+                <Icon className={`h-4 w-4 ${isActive ? 'text-amber-300' : 'text-neutral-500'}`} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* ================= TAB: OVERVIEW ================= */}
+        {/* ================= TAB 1: DASHBOARD (OVERVIEW) ================= */}
         {activeTab === 'overview' && (
-          <div className="mt-6 space-y-6">
+          <div className="mt-5 space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
-              {/* Event Quick View Card */}
-              <div className="lg:col-span-2 rounded-2xl border border-neutral-200/80 bg-white p-6">
+              {/* Active Events Overview Card */}
+              <div className="lg:col-span-2 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-bold text-neutral-900">Your Active Events</h3>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-bold text-neutral-900">Your Active Events</h2>
+                    <p className="text-xs text-neutral-500">Events open for crew applications</p>
+                  </div>
                   <button
-                    onClick={() => setActiveTab('events')}
-                    className="text-xs font-semibold text-neutral-600 hover:text-neutral-900 cursor-pointer"
+                    type="button"
+                    onClick={() => {
+                      setSelectedEventForDetail(null);
+                      setActiveTab('events');
+                    }}
+                    className="text-xs font-bold text-neutral-900 hover:underline cursor-pointer"
                   >
-                    View all events ({events.length}) →
+                    View All ({events.length}) →
                   </button>
                 </div>
 
-                <div className="space-y-3">
-                  {events.slice(0, 3).map((e) => (
-                    <div
-                      key={e.id}
-                      className="rounded-xl border border-neutral-200/80 bg-white p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-neutral-300 transition-colors"
-                    >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-700 uppercase tracking-wide">
-                            {e.eventType}
-                          </span>
-                          <h4 className="font-bold text-sm text-neutral-900">{e.name}</h4>
-                        </div>
-                        <div className="mt-1 text-xs text-neutral-500">
-                          {e.date} • {e.venue}, {e.city}
-                        </div>
-                      </div>
+                <div className="space-y-2.5">
+                  {events.slice(0, 3).map((e) => {
+                    const filledSlots = e.crewPositionsTotal - e.crewPositionsAvailable;
 
-                      <div className="flex items-center gap-3">
-                        <div className="text-right text-xs">
-                          <div className="font-semibold text-neutral-900">
-                            {e.crewPositionsTotal - e.crewPositionsAvailable}/{e.crewPositionsTotal} Crew Confirmed
+                    return (
+                      <div
+                        key={e.id}
+                        className="rounded-xl border border-neutral-200 bg-white p-3.5 sm:p-4 hover:border-neutral-300 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-bold text-sm sm:text-base text-neutral-900 truncate">{e.name}</h3>
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                                e.status === 'Open'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-neutral-100 text-neutral-600'
+                              }`}
+                            >
+                              {e.status}
+                            </span>
                           </div>
-                          <div className="text-neutral-500 font-medium mt-0.5">₹{e.payAmount} {e.payBasis}</div>
+                          <div className="flex items-center gap-2 text-xs text-neutral-500 mt-1 flex-wrap">
+                            <span>{e.date}</span>
+                            <span>•</span>
+                            <span>{e.city}</span>
+                            <span>•</span>
+                            <span className="font-semibold text-neutral-700 bg-neutral-100 px-2 py-0.5 rounded-md">
+                              {filledSlots}/{e.crewPositionsTotal} Hired
+                            </span>
+                          </div>
                         </div>
 
-                        <button
-                          onClick={() => {
-                            setSelectedEventForDetail(e);
-                            setActiveTab('events');
-                          }}
-                          className="rounded-xl border border-neutral-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors cursor-pointer"
-                        >
-                          Manage
-                        </button>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedEventForDetail(e);
+                              setActiveTab('events');
+                            }}
+                            className="rounded-xl bg-neutral-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+                          >
+                            Manage →
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Pending Approvals Card */}
-              <div className="rounded-2xl border border-neutral-200/80 bg-white p-6">
-                <h3 className="text-base font-bold text-neutral-900 mb-0.5">Pending Applications</h3>
-                <p className="text-xs text-neutral-500 mb-4">
-                  Candidates waiting for your review.
-                </p>
+              {/* Pending Applicants Quick Action Card */}
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-base font-bold text-neutral-900">New Applicants</h2>
+                    <span className="rounded-full bg-amber-100 text-amber-900 border border-amber-200 px-2 py-0.5 text-[11px] font-bold">
+                      {pendingCount} waiting
+                    </span>
+                  </div>
+                  <p className="text-xs text-neutral-500 mb-4">
+                    Review and hire verified crew for your upcoming events.
+                  </p>
 
-                <div className="space-y-3">
-                  {applications.filter((a) => a.status === 'Pending').length === 0 ? (
-                    <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/50 p-6 text-center text-xs text-neutral-500">
-                      No pending applications right now.
-                    </div>
-                  ) : (
-                    applications
-                      .filter((a) => a.status === 'Pending')
-                      .slice(0, 3)
-                      .map((app) => (
-                        <div
-                          key={app.id}
-                          className="rounded-xl border border-neutral-200/80 bg-white p-3 flex items-center justify-between hover:border-neutral-300 transition-colors"
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <img
-                              src={app.crewPhoto}
-                              alt={app.crewName}
-                              referrerPolicy="no-referrer"
-                              className="h-9 w-9 rounded-lg object-cover border border-neutral-200"
-                            />
-                            <div>
-                              <div className="text-xs font-bold text-neutral-900">{app.crewName}</div>
-                              <div className="text-[10px] text-neutral-500">{app.crewCategory}</div>
+                  <div className="space-y-3">
+                    {applications.filter((a) => a.status === 'Pending').length === 0 ? (
+                      <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-6 text-center text-xs text-neutral-500">
+                        No pending applications right now.
+                      </div>
+                    ) : (
+                      applications
+                        .filter((a) => a.status === 'Pending')
+                        .slice(0, 3)
+                        .map((app) => (
+                          <div
+                            key={app.id}
+                            className="rounded-xl border border-neutral-200 bg-neutral-50/50 p-3 flex items-center justify-between gap-2"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <img
+                                src={app.crewPhoto}
+                                alt={app.crewName}
+                                referrerPolicy="no-referrer"
+                                className="h-10 w-10 rounded-xl object-cover border border-neutral-200 shrink-0"
+                              />
+                              <div>
+                                <div className="text-xs font-bold text-neutral-900">{app.crewName}</div>
+                                <div className="text-[11px] text-neutral-500">{app.crewCategory}</div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => onUpdateApplicationStatus(app.id, 'Shortlisted')}
+                                className="rounded-lg border border-neutral-300 bg-white px-2.5 py-1 text-xs font-bold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+                              >
+                                Shortlist
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => onUpdateApplicationStatus(app.id, 'Accepted')}
+                                className="rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-bold text-white hover:bg-emerald-700 cursor-pointer"
+                              >
+                                Hire
+                              </button>
                             </div>
                           </div>
-
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => onUpdateApplicationStatus(app.id, 'Shortlisted')}
-                              className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] font-semibold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
-                            >
-                              Shortlist
-                            </button>
-                            <button
-                              onClick={() => onUpdateApplicationStatus(app.id, 'Accepted')}
-                              className="rounded-lg bg-neutral-900 px-2 py-1 text-[11px] font-semibold text-white hover:bg-neutral-800 cursor-pointer"
-                            >
-                              Accept
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                  )}
+                        ))
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-neutral-100">
                   <button
+                    type="button"
                     onClick={() => setActiveTab('applications')}
-                    className="w-full text-center text-xs font-semibold text-neutral-600 hover:text-neutral-900 cursor-pointer"
+                    className="w-full text-center text-xs font-bold text-neutral-800 hover:underline cursor-pointer py-1"
                   >
-                    View All Applications ({applications.length}) →
+                    See All Applicants ({applications.length}) →
                   </button>
                 </div>
               </div>
@@ -342,43 +418,51 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
           </div>
         )}
 
-        {/* ================= TAB: EVENTS (MANAGEMENT) ================= */}
+        {/* ================= TAB 2: EVENTS ================= */}
         {activeTab === 'events' && (
-          <div className="mt-6 space-y-6">
+          <div className="mt-5 space-y-5">
             {selectedEventForDetail ? (
-              /* Event Detail View */
-              <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 space-y-6">
+              /* EVENT DETAIL & MANAGEMENT VIEW */
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-7 shadow-xs space-y-6">
                 <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
                   <button
+                    type="button"
                     onClick={() => setSelectedEventForDetail(null)}
-                    className="text-xs font-semibold text-neutral-600 hover:text-neutral-900 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-neutral-700 hover:text-neutral-900 cursor-pointer"
                   >
-                    ← Back to All Events
+                    <ChevronLeft className="h-4 w-4" />
+                    <span>Back to all events</span>
                   </button>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-800">
-                      Status: {selectedEventForDetail.status}
-                    </span>
-                  </div>
+
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-bold ${
+                      selectedEventForDetail.status === 'Open'
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                        : selectedEventForDetail.status === 'Paused'
+                        ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                        : 'bg-neutral-100 text-neutral-700 border border-neutral-300'
+                    }`}
+                  >
+                    {selectedEventForDetail.status === 'Open' ? 'Active • Accepting Crew' : selectedEventForDetail.status}
+                  </span>
                 </div>
 
+                {/* Event header & actions */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-semibold text-neutral-700 uppercase tracking-wide">
+                    <span className="rounded-md bg-neutral-100 px-2.5 py-0.5 text-xs font-bold text-neutral-800 uppercase">
                       {selectedEventForDetail.eventType}
                     </span>
-                    <h2 className="mt-2 text-2xl font-bold tracking-tight text-neutral-900">
+                    <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold text-neutral-900">
                       {selectedEventForDetail.name}
                     </h2>
                     <p className="mt-1 text-xs sm:text-sm text-neutral-500 font-medium">
-                      {selectedEventForDetail.date} • {selectedEventForDetail.startTime} -{' '}
-                      {selectedEventForDetail.endTime} • {selectedEventForDetail.venue},{' '}
-                      {selectedEventForDetail.city}
+                      {selectedEventForDetail.date} • {selectedEventForDetail.startTime} - {selectedEventForDetail.endTime} • {selectedEventForDetail.venue}, {selectedEventForDetail.city}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    {/* Event Shift Coordination Group Button */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Shift Group Chat */}
                     {(() => {
                       const eventGroup = eventGroups.find((g) => g.eventId === selectedEventForDetail.id);
                       if (eventGroup) {
@@ -386,10 +470,10 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                           <button
                             type="button"
                             onClick={() => onOpenGroupChat?.(eventGroup)}
-                            className="flex items-center gap-1.5 rounded-xl bg-purple-600 text-white px-3.5 py-2 text-xs font-semibold hover:bg-purple-700 cursor-pointer transition-colors shadow-xs"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-purple-700 text-white px-4 py-2.5 text-xs font-bold hover:bg-purple-800 cursor-pointer shadow-xs"
                           >
                             <MessageSquare className="h-4 w-4 text-purple-200" />
-                            <span>Event Crew Chat ({eventGroup.messages.length})</span>
+                            <span>Shift Chat ({eventGroup.messages.length})</span>
                           </button>
                         );
                       }
@@ -398,6 +482,7 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
 
                     {selectedEventForDetail.status === 'Open' ? (
                       <button
+                        type="button"
                         onClick={() => {
                           onUpdateEventStatus(selectedEventForDetail.id, 'Paused');
                           setSelectedEventForDetail({
@@ -405,13 +490,14 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                             status: 'Paused',
                           });
                         }}
-                        className="flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3.5 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-xs font-bold text-neutral-800 hover:bg-neutral-50 cursor-pointer"
                       >
                         <PauseCircle className="h-4 w-4" />
-                        <span>Pause Applications</span>
+                        <span>Pause</span>
                       </button>
                     ) : (
                       <button
+                        type="button"
                         onClick={() => {
                           onUpdateEventStatus(selectedEventForDetail.id, 'Open');
                           setSelectedEventForDetail({
@@ -419,19 +505,20 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                             status: 'Open',
                           });
                         }}
-                        className="flex items-center gap-1.5 rounded-xl bg-neutral-900 px-3.5 py-2 text-xs font-semibold text-white hover:bg-neutral-800 cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-neutral-900 px-4 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 cursor-pointer"
                       >
                         <PlayCircle className="h-4 w-4" />
-                        <span>Publish Event</span>
+                        <span>Resume</span>
                       </button>
                     )}
 
                     <button
+                      type="button"
                       onClick={() => {
                         onDeleteEvent(selectedEventForDetail.id);
                         setSelectedEventForDetail(null);
                       }}
-                      className="flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3.5 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-3 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 cursor-pointer"
                     >
                       <Trash2 className="h-4 w-4" />
                       <span>Delete</span>
@@ -439,63 +526,48 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                   </div>
                 </div>
 
-                {/* Event Information & Requirements */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-neutral-100">
-                  <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-4">
-                    <div className="text-[11px] text-neutral-500 font-semibold uppercase tracking-wider">
-                      Crew Requirements
-                    </div>
-                    <div className="text-base font-bold text-neutral-900 mt-1">
+                {/* 3 Information Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                  <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                    <div className="text-[11px] text-neutral-500 font-bold uppercase">Crew Needed</div>
+                    <div className="text-lg font-extrabold text-neutral-900 mt-1">
                       {selectedEventForDetail.crewPositionsTotal} × {selectedEventForDetail.requiredCategory}
                     </div>
-                    <div className="text-xs text-neutral-600 font-medium mt-1">
+                    <div className="text-xs text-neutral-600 mt-0.5">
                       Experience: {selectedEventForDetail.experienceRequirement}
                     </div>
-                    <div className="text-xs text-neutral-600 font-medium">
-                      Gender: {selectedEventForDetail.genderRequirement}
-                    </div>
                   </div>
 
-                  <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-4">
-                    <div className="text-[11px] text-neutral-500 font-semibold uppercase tracking-wider">
-                      Compensation
-                    </div>
-                    <div className="text-base font-bold text-neutral-900 mt-1">
+                  <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                    <div className="text-[11px] text-neutral-500 font-bold uppercase">Pay Per Shift</div>
+                    <div className="text-lg font-extrabold text-neutral-900 mt-1">
                       ₹{selectedEventForDetail.payAmount} {selectedEventForDetail.payBasis}
                     </div>
-                    <div className="text-xs text-neutral-600 font-medium mt-1">
+                    <div className="text-xs text-neutral-600 mt-0.5">
                       Timeline: {selectedEventForDetail.paymentTimeline}
-                    </div>
-                    <div className="text-xs text-neutral-600 font-medium">
-                      Method: {selectedEventForDetail.paymentMethod || 'UPI / Direct Bank'}
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-4">
-                    <div className="text-[11px] text-neutral-500 font-semibold uppercase tracking-wider">
-                      Dress Code & Brief
+                  <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                    <div className="text-[11px] text-neutral-500 font-bold uppercase">Dress Code & Instructions</div>
+                    <div className="text-xs font-bold text-neutral-900 mt-1">
+                      {selectedEventForDetail.dressCode || 'Formal black attire'}
                     </div>
-                    <div className="text-xs font-semibold text-neutral-900 mt-1">
-                      {selectedEventForDetail.dressCode || 'Standard formal attire'}
-                    </div>
-                    <div className="text-xs text-neutral-500 mt-1">
+                    <div className="text-xs text-neutral-500 mt-0.5">
                       {selectedEventForDetail.specialRequirements || 'No special requirements'}
                     </div>
                   </div>
                 </div>
 
-                {/* Applications for this Event */}
+                {/* Applicants for this Event */}
                 <div className="pt-4 border-t border-neutral-100">
                   <h3 className="text-base font-bold text-neutral-900 mb-3">
-                    Applications for this Event (
-                    {applications.filter((a) => a.eventId === selectedEventForDetail.id).length}
-                    )
+                    Applicants for this Event ({applications.filter((a) => a.eventId === selectedEventForDetail.id).length})
                   </h3>
 
                   <div className="space-y-2.5">
-                    {applications.filter((a) => a.eventId === selectedEventForDetail.id).length ===
-                    0 ? (
-                      <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/50 p-6 text-center text-xs text-neutral-500">
+                    {applications.filter((a) => a.eventId === selectedEventForDetail.id).length === 0 ? (
+                      <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-center text-xs text-neutral-500">
                         No applications received yet for this event.
                       </div>
                     ) : (
@@ -504,52 +576,60 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                         .map((app) => (
                           <div
                             key={app.id}
-                            className="rounded-xl border border-neutral-200/80 bg-white p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-neutral-300 transition-colors"
+                            className="rounded-xl border border-neutral-200 bg-white p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-neutral-300 transition-colors"
                           >
                             <div className="flex items-center gap-3">
                               <img
                                 src={app.crewPhoto}
                                 alt={app.crewName}
                                 referrerPolicy="no-referrer"
-                                className="h-10 w-10 rounded-xl object-cover border border-neutral-200"
+                                className="h-11 w-11 rounded-xl object-cover border border-neutral-200 shrink-0"
                               />
                               <div>
-                                <div className="font-bold text-sm text-neutral-900">
+                                <div className="font-extrabold text-sm text-neutral-900">
                                   {app.crewName}
                                 </div>
                                 <div className="text-xs text-neutral-500 mt-0.5">
-                                  {app.crewCategory} • {app.experienceYears} yrs exp • <span className="font-semibold text-neutral-800">{app.systemRating} ★</span>
+                                  {app.crewCategory} • {app.experienceYears} yrs exp • ⭐ {app.systemRating}
                                 </div>
                               </div>
                             </div>
 
                             <div className="flex items-center gap-2">
                               <span
-                                className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                                className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
                                   app.status === 'Accepted'
-                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
+                                    ? 'bg-emerald-100 text-emerald-800'
                                     : app.status === 'Shortlisted'
-                                    ? 'bg-blue-50 text-blue-700 border border-blue-200/60'
+                                    ? 'bg-blue-100 text-blue-800'
                                     : app.status === 'Rejected'
-                                    ? 'bg-neutral-100 text-neutral-600 border border-neutral-200'
-                                    : 'bg-amber-50 text-amber-700 border border-amber-200/60'
+                                    ? 'bg-neutral-100 text-neutral-600'
+                                    : 'bg-amber-100 text-amber-800'
                                 }`}
                               >
-                                {app.status}
+                                {app.status === 'Accepted'
+                                  ? 'Hired'
+                                  : app.status === 'Shortlisted'
+                                  ? 'Shortlisted'
+                                  : app.status === 'Pending'
+                                  ? 'Waiting'
+                                  : 'Declined'}
                               </span>
 
                               {app.status !== 'Accepted' && (
                                 <button
+                                  type="button"
                                   onClick={() => onUpdateApplicationStatus(app.id, 'Accepted')}
-                                  className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+                                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 cursor-pointer"
                                 >
-                                  Accept
+                                  Hire
                                 </button>
                               )}
                               {app.status === 'Pending' && (
                                 <button
+                                  type="button"
                                   onClick={() => onUpdateApplicationStatus(app.id, 'Shortlisted')}
-                                  className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors cursor-pointer"
+                                  className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-bold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
                                 >
                                   Shortlist
                                 </button>
@@ -562,252 +642,319 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                 </div>
               </div>
             ) : (
-              /* Events List with Controls */
-              <div className="rounded-2xl border border-neutral-200/80 bg-white p-6">
-                <div className="flex items-center justify-between mb-6">
+              /* EVENTS LIST WITH CONTROLS */
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs">
+                <div className="flex items-center justify-between mb-5">
                   <div>
-                    <h3 className="text-base font-bold text-neutral-900">Your Created Events</h3>
-                    <p className="text-xs text-neutral-500">
-                      Organisers can only view and manage events created under their profile.
-                    </p>
+                    <h2 className="text-base sm:text-lg font-bold text-neutral-900">Your Created Events</h2>
+                    <p className="text-xs text-neutral-500">Manage staffing, applications, and shift dates</p>
                   </div>
                   <button
+                    type="button"
                     onClick={onOpenCreateEvent}
-                    className="flex items-center gap-1.5 rounded-xl bg-neutral-900 px-4 py-2 text-xs font-semibold text-white hover:bg-neutral-800 cursor-pointer transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-neutral-900 px-4 py-2 text-xs font-bold text-white hover:bg-neutral-800 cursor-pointer"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 text-amber-300" />
                     <span>Create Event</span>
                   </button>
                 </div>
 
-                <div className="space-y-3.5">
-                  {events.map((evt) => (
-                    <div
-                      key={evt.id}
-                      className="rounded-xl border border-neutral-200/80 bg-white p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-neutral-300 transition-colors"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-700 uppercase tracking-wide">
-                            {evt.eventType}
-                          </span>
-                          <h4 className="text-base font-bold text-neutral-900">{evt.name}</h4>
-                        </div>
-                        <div className="text-xs text-neutral-500">
-                          {evt.date} • {evt.startTime} - {evt.endTime} • {evt.venue}, {evt.city}
-                        </div>
-                        <div className="text-xs text-neutral-600">
-                          Positions: <strong className="text-neutral-900">{evt.crewPositionsTotal} {evt.requiredCategory}</strong> • Pay: ₹{evt.payAmount} {evt.payBasis}
-                        </div>
-                      </div>
+                <div className="space-y-3">
+                  {events.map((evt) => {
+                    const filledSlots = evt.crewPositionsTotal - evt.crewPositionsAvailable;
+                    const eventGroup = eventGroups.find((g) => g.eventId === evt.id);
+                    const isExpanded = expandedCardIds.includes(evt.id);
 
-                      <div className="flex flex-wrap items-center gap-2">
-                        {/* Coordination Chat Button / Status */}
-                        {(() => {
-                          const eventGroup = eventGroups.find((g) => g.eventId === evt.id);
-                          const acceptedApps = applications.filter(
-                            (a) => a.eventId === evt.id && a.status === 'Accepted'
-                          ).length;
-                          const isStaffed =
-                            acceptedApps >= evt.crewPositionsTotal || evt.crewPositionsAvailable === 0;
+                    return (
+                      <div
+                        key={evt.id}
+                        className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5 hover:border-neutral-300 transition-colors shadow-2xs"
+                      >
+                        {/* Summary View (Uncongested: only minimal, clear data shown first) */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="text-base font-bold text-neutral-900 truncate">
+                                {evt.name}
+                              </h3>
+                              <span
+                                className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                                  evt.status === 'Open'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : evt.status === 'Paused'
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-neutral-100 text-neutral-600'
+                                }`}
+                              >
+                                {evt.status}
+                              </span>
+                            </div>
 
-                          if (eventGroup) {
-                            return (
+                            <div className="mt-1 flex items-center gap-2.5 text-xs text-neutral-500 flex-wrap">
+                              <span>{evt.date}</span>
+                              <span>•</span>
+                              <span>{evt.city}</span>
+                              <span>•</span>
+                              <span className="font-semibold text-neutral-700 bg-neutral-100 px-2 py-0.5 rounded-md">
+                                {filledSlots}/{evt.crewPositionsTotal} Hired
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => toggleCardExpansion(evt.id)}
+                              className="inline-flex items-center gap-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-bold text-neutral-700 hover:bg-neutral-100 cursor-pointer transition-colors"
+                            >
+                              <span>{isExpanded ? 'Less' : 'Details'}</span>
+                              {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setSelectedEventForDetail(evt)}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-neutral-900 px-4 py-2 text-xs font-bold text-white hover:bg-neutral-800 cursor-pointer transition-colors"
+                            >
+                              <Eye className="h-3.5 w-3.5 text-amber-300" />
+                              <span>Manage</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Full Details (Only visible when expanded or clicked to open) */}
+                        {isExpanded && (
+                          <div className="mt-4 pt-4 border-t border-neutral-100 space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                              <div className="rounded-xl bg-neutral-50 p-3 border border-neutral-100">
+                                <div className="text-neutral-400 font-bold uppercase text-[10px]">Time & Venue</div>
+                                <div className="font-bold text-neutral-800 mt-0.5">{evt.startTime} - {evt.endTime}</div>
+                                <div className="text-neutral-600 mt-0.5">{evt.venue}, {evt.city}</div>
+                              </div>
+
+                              <div className="rounded-xl bg-neutral-50 p-3 border border-neutral-100">
+                                <div className="text-neutral-400 font-bold uppercase text-[10px]">Staffing & Pay</div>
+                                <div className="font-bold text-neutral-800 mt-0.5">
+                                  {filledSlots} of {evt.crewPositionsTotal} {evt.requiredCategory} hired
+                                </div>
+                                <div className="text-neutral-600 mt-0.5">₹{evt.payAmount} {evt.payBasis}</div>
+                              </div>
+
+                              <div className="rounded-xl bg-neutral-50 p-3 border border-neutral-100">
+                                <div className="text-neutral-400 font-bold uppercase text-[10px]">Category & Payment</div>
+                                <div className="font-bold text-neutral-800 mt-0.5">{evt.eventType}</div>
+                                <div className="text-neutral-600 mt-0.5">Payment: {evt.paymentTimeline}</div>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                {eventGroup && (
+                                  <button
+                                    type="button"
+                                    onClick={() => onOpenGroupChat?.(eventGroup)}
+                                    className="inline-flex items-center gap-1.5 rounded-xl bg-purple-700 text-white px-3 py-1.5 text-xs font-bold hover:bg-purple-800 cursor-pointer shadow-xs"
+                                  >
+                                    <MessageSquare className="h-3.5 w-3.5 text-purple-200" />
+                                    <span>Shift Chat</span>
+                                  </button>
+                                )}
+
+                                {evt.status === 'Open' ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => onUpdateEventStatus(evt.id, 'Paused')}
+                                    className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-bold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+                                  >
+                                    <PauseCircle className="h-3.5 w-3.5 text-neutral-500" />
+                                    <span>Pause</span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => onUpdateEventStatus(evt.id, 'Open')}
+                                    className="inline-flex items-center gap-1.5 rounded-xl bg-neutral-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-neutral-800 cursor-pointer"
+                                  >
+                                    <PlayCircle className="h-3.5 w-3.5" />
+                                    <span>Resume</span>
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => onDeleteEvent(evt.id)}
+                                  className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 cursor-pointer"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                  <span>Delete</span>
+                                </button>
+                              </div>
+
                               <button
                                 type="button"
-                                onClick={() => onOpenGroupChat?.(eventGroup)}
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-purple-50 text-purple-900 border border-purple-200 px-3 py-1.5 text-xs font-semibold hover:bg-purple-100 cursor-pointer transition-colors"
+                                onClick={() => setSelectedEventForDetail(evt)}
+                                className="text-xs font-bold text-neutral-900 hover:underline cursor-pointer ml-auto"
                               >
-                                <MessageSquare className="h-3.5 w-3.5 text-purple-700" />
-                                <span>Shift Chat ({eventGroup.messages.length})</span>
+                                Full Event Management & Applicants →
                               </button>
-                            );
-                          }
-
-                          if (isStaffed) {
-                            return (
-                              <span
-                                className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 text-[11px] font-medium"
-                                title="All crew positions filled. Admin can provision the event coordination group."
-                              >
-                                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                                <span>Staffed ({acceptedApps}/{evt.crewPositionsTotal}) • Awaiting Admin Group</span>
-                              </span>
-                            );
-                          }
-
-                          return null;
-                        })()}
-
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            evt.status === 'Open'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
-                              : evt.status === 'Paused'
-                              ? 'bg-amber-50 text-amber-700 border border-amber-200/60'
-                              : 'bg-neutral-100 text-neutral-600 border border-neutral-200'
-                          }`}
-                        >
-                          {evt.status}
-                        </span>
-
-                        <button
-                          onClick={() => setSelectedEventForDetail(evt)}
-                          className="flex items-center gap-1 rounded-xl border border-neutral-200 bg-white px-3.5 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 cursor-pointer transition-colors"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                          <span>View Details</span>
-                        </button>
-
-                        {evt.status === 'Open' ? (
-                          <button
-                            onClick={() => onUpdateEventStatus(evt.id, 'Paused')}
-                            className="rounded-xl border border-neutral-200 bg-white p-2 text-neutral-600 hover:bg-neutral-50 cursor-pointer transition-colors"
-                            title="Pause Event"
-                          >
-                            <PauseCircle className="h-4 w-4" />
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => onUpdateEventStatus(evt.id, 'Open')}
-                            className="rounded-xl bg-neutral-900 p-2 text-white hover:bg-neutral-800 cursor-pointer transition-colors"
-                            title="Publish Event"
-                          >
-                            <PlayCircle className="h-4 w-4" />
-                          </button>
+                            </div>
+                          </div>
                         )}
-
-                        <button
-                          onClick={() => onDeleteEvent(evt.id)}
-                          className="rounded-xl border border-neutral-200 bg-white p-2 text-red-600 hover:bg-red-50 cursor-pointer transition-colors"
-                          title="Delete Event"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* ================= TAB: APPLICATIONS ================= */}
+        {/* ================= TAB 3: APPLICANTS ================= */}
         {activeTab === 'applications' && (
-          <div className="mt-6 rounded-2xl border border-neutral-200/80 bg-white p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="mt-5 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-base font-bold text-neutral-900">Crew Application Management</h3>
+                <h2 className="text-base sm:text-lg font-bold text-neutral-900">Review Crew Applicants</h2>
                 <p className="text-xs text-neutral-500">
-                  Review applicant profile photos, ratings, experience, and update statuses.
+                  Tap 'Hire' to confirm crew members for your events.
                 </p>
               </div>
 
-              {/* Status Filters */}
-              <div className="flex flex-wrap gap-1 rounded-xl border border-neutral-200/80 bg-neutral-50 p-1">
-                {(['all', 'Pending', 'Shortlisted', 'Accepted', 'Rejected'] as const).map((filter) => (
-                  <button
-                    key={filter}
-                    onClick={() => setApplicationFilter(filter)}
-                    className={`rounded-lg px-3 py-1 text-xs font-semibold capitalize transition-colors cursor-pointer ${
-                      applicationFilter === filter
-                        ? 'bg-neutral-900 text-white'
-                        : 'text-neutral-600 hover:text-neutral-900'
-                    }`}
-                  >
-                    {filter}
-                  </button>
-                ))}
+              {/* Status Filter Pills */}
+              <div className="flex flex-wrap gap-1 rounded-xl border border-neutral-200 bg-neutral-50 p-1">
+                {(['all', 'Pending', 'Shortlisted', 'Accepted', 'Rejected'] as const).map((filter) => {
+                  const label =
+                    filter === 'all'
+                      ? 'All'
+                      : filter === 'Pending'
+                      ? 'Waiting'
+                      : filter === 'Shortlisted'
+                      ? 'Shortlisted'
+                      : filter === 'Accepted'
+                      ? 'Hired'
+                      : 'Declined';
+
+                  return (
+                    <button
+                      key={filter}
+                      type="button"
+                      onClick={() => setApplicationFilter(filter)}
+                      className={`rounded-lg px-3 py-1 text-xs font-bold transition-colors cursor-pointer ${
+                        applicationFilter === filter
+                          ? 'bg-neutral-900 text-white'
+                          : 'text-neutral-700 hover:text-neutral-900'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Applicant Cards */}
             <div className="space-y-3">
-              {filteredApps.map((app) => (
-                <div
-                  key={app.id}
-                  className="rounded-xl border border-neutral-200/80 bg-white p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-neutral-300 transition-colors"
-                >
-                  <div className="flex items-center gap-3.5">
-                    <img
-                      src={app.crewPhoto}
-                      alt={app.crewName}
-                      referrerPolicy="no-referrer"
-                      className="h-12 w-12 rounded-xl object-cover border border-neutral-200"
-                    />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-base text-neutral-900">{app.crewName}</h4>
-                        <div className="flex items-center gap-1 text-xs font-semibold text-neutral-800 bg-amber-50 border border-amber-200/60 px-1.5 py-0.2 rounded-full">
-                          <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
-                          <span>{app.systemRating}</span>
+              {filteredApps.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center text-xs text-neutral-500">
+                  No applicants matching this filter.
+                </div>
+              ) : (
+                filteredApps.map((app) => (
+                  <div
+                    key={app.id}
+                    className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-neutral-300 transition-colors shadow-2xs"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <img
+                        src={app.crewPhoto}
+                        alt={app.crewName}
+                        referrerPolicy="no-referrer"
+                        className="h-12 w-12 rounded-xl object-cover border border-neutral-200 shrink-0"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-extrabold text-base text-neutral-900">{app.crewName}</h3>
+                          <span className="flex items-center gap-1 text-xs font-bold text-amber-900 bg-amber-100/70 border border-amber-200 px-2 py-0.2 rounded-md">
+                            <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                            <span>{app.systemRating}</span>
+                          </span>
                         </div>
+                        <p className="text-xs text-neutral-600 mt-0.5 font-medium">
+                          Role: <strong className="text-neutral-900">{app.crewCategory}</strong> • {app.experienceYears} Years Exp • {app.city}
+                        </p>
+                        {app.note && (
+                          <p className="text-xs font-medium text-neutral-600 italic mt-1 bg-neutral-50 px-2.5 py-1 rounded-lg border border-neutral-200 inline-block">
+                            "{app.note}"
+                          </p>
+                        )}
                       </div>
-                      <p className="text-xs text-neutral-500 mt-0.5">
-                        Role: <strong className="text-neutral-800">{app.crewCategory}</strong> • Experience: {app.experienceYears} Years • City: {app.city}
-                      </p>
-                      {app.note && (
-                        <p className="text-[11px] font-medium text-neutral-600 italic mt-1">"{app.note}"</p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-bold ${
+                          app.status === 'Accepted'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : app.status === 'Shortlisted'
+                            ? 'bg-blue-100 text-blue-800'
+                            : app.status === 'Rejected'
+                            ? 'bg-neutral-100 text-neutral-600'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}
+                      >
+                        {app.status === 'Accepted'
+                          ? '✓ Hired'
+                          : app.status === 'Shortlisted'
+                          ? '⭐ Shortlisted'
+                          : app.status === 'Pending'
+                          ? '⏳ Waiting Review'
+                          : 'Declined'}
+                      </span>
+
+                      {app.status !== 'Accepted' && (
+                        <button
+                          type="button"
+                          onClick={() => onUpdateApplicationStatus(app.id, 'Accepted')}
+                          className="rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-700 transition-colors cursor-pointer"
+                        >
+                          Hire Crew
+                        </button>
+                      )}
+
+                      {app.status !== 'Shortlisted' && app.status !== 'Accepted' && (
+                        <button
+                          type="button"
+                          onClick={() => onUpdateApplicationStatus(app.id, 'Shortlisted')}
+                          className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-bold text-neutral-800 hover:bg-neutral-50 transition-colors cursor-pointer"
+                        >
+                          Shortlist
+                        </button>
+                      )}
+
+                      {app.status !== 'Rejected' && (
+                        <button
+                          type="button"
+                          onClick={() => onUpdateApplicationStatus(app.id, 'Rejected')}
+                          className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-bold text-neutral-500 hover:bg-neutral-50 transition-colors cursor-pointer"
+                        >
+                          Decline
+                        </button>
                       )}
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        app.status === 'Accepted'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
-                          : app.status === 'Shortlisted'
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200/60'
-                          : app.status === 'Rejected'
-                          ? 'bg-neutral-100 text-neutral-600 border border-neutral-200'
-                          : 'bg-amber-50 text-amber-700 border border-amber-200/60'
-                      }`}
-                    >
-                      {app.status}
-                    </span>
-
-                    {app.status !== 'Accepted' && (
-                      <button
-                        onClick={() => onUpdateApplicationStatus(app.id, 'Accepted')}
-                        className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-                      >
-                        Accept
-                      </button>
-                    )}
-
-                    {app.status !== 'Shortlisted' && app.status !== 'Accepted' && (
-                      <button
-                        onClick={() => onUpdateApplicationStatus(app.id, 'Shortlisted')}
-                        className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors cursor-pointer"
-                      >
-                        Shortlist
-                      </button>
-                    )}
-
-                    {app.status !== 'Rejected' && (
-                      <button
-                        onClick={() => onUpdateApplicationStatus(app.id, 'Rejected')}
-                        className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors cursor-pointer"
-                      >
-                        Reject
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}
 
-        {/* ================= TAB: CREW ================= */}
+        {/* ================= TAB 4: CREW ROSTER ================= */}
         {activeTab === 'crew' && (
-          <div className="mt-6 rounded-2xl border border-neutral-200/80 bg-white p-6 space-y-4">
+          <div className="mt-5 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
             <div>
-              <h3 className="text-base font-bold text-neutral-900">Your Selected Event Crew Roster</h3>
+              <h2 className="text-base sm:text-lg font-bold text-neutral-900">Your Confirmed Crew Roster</h2>
               <p className="text-xs text-neutral-500">
-                Confirmed personnel for your active and upcoming event operations.
+                Staff members confirmed for your upcoming event shifts.
               </p>
             </div>
 
@@ -815,33 +962,41 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
               {crewList.map((crew) => (
                 <div
                   key={crew.id}
-                  className="rounded-xl border border-neutral-200/80 bg-white p-4 space-y-3 hover:border-neutral-300 transition-colors"
+                  className="rounded-xl border border-neutral-200 bg-white p-4 space-y-3 hover:border-neutral-300 transition-colors shadow-2xs"
                 >
                   <div className="flex items-center gap-3">
                     <img
                       src={crew.photoUrl}
                       alt={crew.name}
                       referrerPolicy="no-referrer"
-                      className="h-11 w-11 rounded-xl object-cover border border-neutral-200"
+                      className="h-12 w-12 rounded-xl object-cover border border-neutral-200 shrink-0"
                     />
                     <div>
-                      <h4 className="font-bold text-sm text-neutral-900">{crew.name}</h4>
-                      <p className="text-xs text-neutral-500">{crew.city} • {crew.phone}</p>
+                      <h3 className="font-extrabold text-sm text-neutral-900">{crew.name}</h3>
+                      <p className="text-xs text-neutral-500">{crew.city} • Verified Staff</p>
                     </div>
                   </div>
+
                   <div className="flex flex-wrap gap-1">
                     {crew.categories.map((c) => (
                       <span
                         key={c}
-                        className="rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-700"
+                        className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] font-bold text-neutral-700"
                       >
                         {c}
                       </span>
                     ))}
                   </div>
+
                   <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs">
-                    <span className="font-semibold text-neutral-800">{crew.systemRating} ★ Rating</span>
-                    <span className="text-neutral-500">{crew.completedEventsCount} Shifts Completed</span>
+                    <span className="font-bold text-neutral-800">⭐ {crew.systemRating} Rating</span>
+                    <button
+                      type="button"
+                      onClick={() => onViewCrewProfile(crew)}
+                      className="text-xs font-bold text-neutral-900 hover:underline cursor-pointer"
+                    >
+                      View Profile →
+                    </button>
                   </div>
                 </div>
               ))}
@@ -849,55 +1004,73 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
           </div>
         )}
 
-        {/* ================= TAB: PROFILE & SETTINGS ================= */}
+        {/* ================= TAB 5: COMPANY PROFILE ================= */}
         {activeTab === 'profile' && (
-          <div className="mt-6 rounded-2xl border border-neutral-200/80 bg-white p-6 space-y-6">
+          <div className="mt-5 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-7 shadow-xs space-y-6">
             <div>
-              <h3 className="text-base font-bold text-neutral-900">Organiser Business Profile</h3>
+              <h2 className="text-base sm:text-lg font-bold text-neutral-900">Organiser Business Profile</h2>
               <p className="text-xs text-neutral-500">
-                Manage company credentials, business verification, and address details.
+                Company credentials and address details visible on event shift listings.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div className="rounded-xl bg-neutral-50/70 p-4 border border-neutral-200/70">
-                <div className="text-neutral-500 font-semibold uppercase text-[11px] tracking-wider">Company Name</div>
-                <div className="text-base font-bold text-neutral-900 mt-1">{organiserProfile.companyName}</div>
+              <div className="rounded-xl bg-neutral-50 p-4 border border-neutral-200">
+                <div className="text-neutral-500 font-bold uppercase text-[11px] tracking-wider">Company Name</div>
+                <div className="text-base font-extrabold text-neutral-900 mt-1">{organiserProfile.companyName}</div>
               </div>
 
-              <div className="rounded-xl bg-neutral-50/70 p-4 border border-neutral-200/70">
-                <div className="text-neutral-500 font-semibold uppercase text-[11px] tracking-wider">Authorized Lead</div>
-                <div className="text-base font-bold text-neutral-900 mt-1">{organiserProfile.name}</div>
+              <div className="rounded-xl bg-neutral-50 p-4 border border-neutral-200">
+                <div className="text-neutral-500 font-bold uppercase text-[11px] tracking-wider">Authorized Lead</div>
+                <div className="text-base font-extrabold text-neutral-900 mt-1">{organiserProfile.name}</div>
               </div>
 
-              <div className="rounded-xl bg-neutral-50/70 p-4 border border-neutral-200/70">
-                <div className="text-neutral-500 font-semibold uppercase text-[11px] tracking-wider">Business Verification Status</div>
+              <div className="rounded-xl bg-neutral-50 p-4 border border-neutral-200">
+                <div className="text-neutral-500 font-bold uppercase text-[11px] tracking-wider">Business Verification</div>
                 <div className="flex items-center gap-2 mt-1">
                   {organiserProfile.hasUdyam ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                      <FileCheck className="h-3.5 w-3.5 text-emerald-600" />
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
                       Verified Business
                     </span>
                   ) : (
-                    <span className="text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded text-xs font-medium">Pending Verification</span>
+                    <span className="text-neutral-600 bg-neutral-100 px-2.5 py-0.5 rounded-full text-xs font-medium">Pending Verification</span>
                   )}
                 </div>
               </div>
 
-              <div className="rounded-xl bg-neutral-50/70 p-4 border border-neutral-200/70">
-                <div className="text-neutral-500 font-semibold uppercase text-[11px] tracking-wider">City & Address</div>
+              <div className="rounded-xl bg-neutral-50 p-4 border border-neutral-200">
+                <div className="text-neutral-500 font-bold uppercase text-[11px] tracking-wider">Location & Address</div>
                 <div className="text-neutral-900 font-medium mt-1">
                   {organiserProfile.address}, {organiserProfile.city} ({organiserProfile.pincode})
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-neutral-50 p-4 border border-neutral-200 sm:col-span-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-neutral-500 font-bold uppercase text-[11px] tracking-wider">Your Contact Details</div>
+                  <span className="text-[11px] text-neutral-500 bg-neutral-200/80 px-2 py-0.5 rounded-md font-medium">Private (Only you & Admin)</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 text-xs">
+                  <div>
+                    <span className="text-neutral-500">Email:</span>{' '}
+                    <span className="font-semibold text-neutral-900">{organiserProfile.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-500">Phone:</span>{' '}
+                    <span className="font-semibold text-neutral-900">{organiserProfile.phone}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="pt-4 border-t border-neutral-100 flex justify-end">
               <button
+                type="button"
                 onClick={onOpenOnboarding}
-                className="rounded-xl bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+                className="rounded-xl bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition-colors cursor-pointer"
               >
-                Edit Organiser Details
+                Edit Details
               </button>
             </div>
           </div>

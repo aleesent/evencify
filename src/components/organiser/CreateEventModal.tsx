@@ -87,7 +87,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
       venue,
       city,
       expectedAttendance: expectedAttendance ? Number(expectedAttendance) : undefined,
-      organiserId: 'org-current',
+      organiserId: 'org-1',
       organiserName: organiserName || 'Singhania Events',
       crewPositionsTotal,
       crewPositionsAvailable: crewPositionsTotal,

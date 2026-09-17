@@ -13,17 +13,7 @@ export const FeatureContent: React.FC<FeatureContentProps> = ({
 }) => {
   return (
     <div className="flex flex-col justify-center text-black max-w-lg select-none">
-      {/* 1. Monospace Category Tag & Step Number */}
-      <div className="flex items-center gap-2 mb-1 sm:mb-2">
-        <span className="font-mono text-[10px] xs:text-[11px] sm:text-xs font-bold text-neutral-900 bg-neutral-200/80 px-1.5 py-0.5 rounded">
-          {step.stepNumber}
-        </span>
-        <span className="font-mono text-[9px] xs:text-[10px] sm:text-xs tracking-[0.18em] uppercase font-bold text-neutral-500">
-          {step.categoryCode || step.category}
-        </span>
-      </div>
-
-      {/* 2. Editorial Headline with Distinct Type Styling */}
+      {/* Editorial Headline with Distinct Type Styling */}
       <h3 className="text-base xs:text-lg sm:text-2xl md:text-3xl lg:text-[36px] font-black tracking-tight text-neutral-900 leading-tight sm:leading-[1.15]">
         {step.titleLead ? (
           <>
@@ -56,7 +46,6 @@ export const FeatureContent: React.FC<FeatureContentProps> = ({
       {/* 4. Monospace Audit / Security Stamp */}
       {step.metaStamp && (
         <div className="mt-1 sm:mt-2 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-neutral-400" />
           <span className="font-mono text-[8px] xs:text-[9px] sm:text-[10px] tracking-wider text-neutral-500 uppercase">
             {step.metaStamp}
           </span>

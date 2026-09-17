@@ -1,99 +1,118 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { StoryVisualType } from './types';
 
 interface FeatureVisualProps {
   type: StoryVisualType;
 }
 
-// Realistic SVG Barcode with crisp, varied bar widths and serial caption
+// Realistic SVG Barcode with crisp, varied bar widths, scanning laser line and serial caption
 const RealisticBarcode = ({ code = 'EV-2026-8842-X', height = 18 }: { code?: string; height?: number }) => (
   <div className="flex flex-col items-center justify-center w-full">
-    <svg className="w-full max-w-[140px] opacity-80" height={height} viewBox="0 0 160 24" fill="currentColor">
-      <rect x="0" y="0" width="3" height="24" />
-      <rect x="5" y="0" width="1.5" height="24" />
-      <rect x="9" y="0" width="4" height="24" />
-      <rect x="15" y="0" width="1.5" height="24" />
-      <rect x="18" y="0" width="2.5" height="24" />
-      <rect x="23" y="0" width="5" height="24" />
-      <rect x="30" y="0" width="2" height="24" />
-      <rect x="34" y="0" width="1" height="24" />
-      <rect x="37" y="0" width="4" height="24" />
-      <rect x="43" y="0" width="2" height="24" />
-      <rect x="47" y="0" width="3" height="24" />
-      <rect x="52" y="0" width="1" height="24" />
-      <rect x="55" y="0" width="5" height="24" />
-      <rect x="62" y="0" width="2" height="24" />
-      <rect x="66" y="0" width="3.5" height="24" />
-      <rect x="71" y="0" width="1.5" height="24" />
-      <rect x="75" y="0" width="4" height="24" />
-      <rect x="81" y="0" width="2" height="24" />
-      <rect x="85" y="0" width="1" height="24" />
-      <rect x="88" y="0" width="3.5" height="24" />
-      <rect x="93" y="0" width="2.5" height="24" />
-      <rect x="98" y="0" width="5" height="24" />
-      <rect x="105" y="0" width="1.5" height="24" />
-      <rect x="108" y="0" width="3" height="24" />
-      <rect x="113" y="0" width="2" height="24" />
-      <rect x="117" y="0" width="4" height="24" />
-      <rect x="123" y="0" width="1.5" height="24" />
-      <rect x="126" y="0" width="3" height="24" />
-      <rect x="131" y="0" width="2.5" height="24" />
-      <rect x="135" y="0" width="4.5" height="24" />
-      <rect x="142" y="0" width="1.5" height="24" />
-      <rect x="145" y="0" width="3" height="24" />
-      <rect x="150" y="0" width="2" height="24" />
-      <rect x="154" y="0" width="4" height="24" />
-    </svg>
+    <div className="relative overflow-hidden w-full max-w-[140px]">
+      <svg className="w-full opacity-80" height={height} viewBox="0 0 160 24" fill="currentColor">
+        <rect x="0" y="0" width="3" height="24" />
+        <rect x="5" y="0" width="1.5" height="24" />
+        <rect x="9" y="0" width="4" height="24" />
+        <rect x="15" y="0" width="1.5" height="24" />
+        <rect x="18" y="0" width="2.5" height="24" />
+        <rect x="23" y="0" width="5" height="24" />
+        <rect x="30" y="0" width="2" height="24" />
+        <rect x="34" y="0" width="1" height="24" />
+        <rect x="37" y="0" width="4" height="24" />
+        <rect x="43" y="0" width="2" height="24" />
+        <rect x="47" y="0" width="3" height="24" />
+        <rect x="52" y="0" width="1" height="24" />
+        <rect x="55" y="0" width="5" height="24" />
+        <rect x="62" y="0" width="2" height="24" />
+        <rect x="66" y="0" width="3.5" height="24" />
+        <rect x="71" y="0" width="1.5" height="24" />
+        <rect x="75" y="0" width="4" height="24" />
+        <rect x="81" y="0" width="2" height="24" />
+        <rect x="85" y="0" width="1" height="24" />
+        <rect x="88" y="0" width="3.5" height="24" />
+        <rect x="93" y="0" width="2.5" height="24" />
+        <rect x="98" y="0" width="5" height="24" />
+        <rect x="105" y="0" width="1.5" height="24" />
+        <rect x="108" y="0" width="3" height="24" />
+        <rect x="113" y="0" width="2" height="24" />
+        <rect x="117" y="0" width="4" height="24" />
+        <rect x="123" y="0" width="1.5" height="24" />
+        <rect x="126" y="0" width="3" height="24" />
+        <rect x="131" y="0" width="2.5" height="24" />
+        <rect x="135" y="0" width="4.5" height="24" />
+        <rect x="142" y="0" width="1.5" height="24" />
+        <rect x="145" y="0" width="3" height="24" />
+        <rect x="150" y="0" width="2" height="24" />
+        <rect x="154" y="0" width="4" height="24" />
+      </svg>
+      {/* Animated subtle laser beam */}
+      <motion.div
+        initial={{ left: '-10%' }}
+        animate={{ left: '110%' }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-0 bottom-0 w-1 bg-gradient-to-r from-transparent via-[#FED000] to-transparent shadow-[0_0_8px_#FED000] pointer-events-none opacity-80"
+      />
+    </div>
     <span className="font-mono text-[7px] sm:text-[8px] tracking-[0.25em] text-neutral-500 uppercase mt-0.5">
       *{code}*
     </span>
   </div>
 );
 
-// Authentic vector 2D QR Code Matrix
+// Authentic vector 2D QR Code Matrix with animated laser sweep
 const VectorQRCode = ({ size = 42 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 29 29" fill="black" className="shrink-0">
-    <rect x="0" y="0" width="7" height="7" rx="0.5" fill="none" stroke="black" strokeWidth="1" />
-    <rect x="2" y="2" width="3" height="3" fill="black" />
-    <rect x="22" y="0" width="7" height="7" rx="0.5" fill="none" stroke="black" strokeWidth="1" />
-    <rect x="24" y="2" width="3" height="3" fill="black" />
-    <rect x="0" y="22" width="7" height="7" rx="0.5" fill="none" stroke="black" strokeWidth="1" />
-    <rect x="2" y="24" width="3" height="3" fill="black" />
-    <rect x="9" y="1" width="2" height="2" />
-    <rect x="13" y="2" width="2" height="2" />
-    <rect x="17" y="1" width="2" height="2" />
-    <rect x="10" y="4" width="2" height="2" />
-    <rect x="14" y="5" width="2" height="2" />
-    <rect x="18" y="4" width="2" height="2" />
-    <rect x="1" y="9" width="2" height="2" />
-    <rect x="4" y="10" width="2" height="2" />
-    <rect x="8" y="8" width="2" height="2" />
-    <rect x="12" y="8" width="2" height="2" />
-    <rect x="15" y="9" width="2" height="2" />
-    <rect x="19" y="8" width="2" height="2" />
-    <rect x="23" y="10" width="2" height="2" />
-    <rect x="26" y="9" width="2" height="2" />
-    <rect x="8" y="12" width="2" height="2" />
-    <rect x="11" y="12" width="2" height="2" />
-    <rect x="14" y="13" width="2" height="2" />
-    <rect x="18" y="12" width="2" height="2" />
-    <rect x="21" y="13" width="2" height="2" />
-    <rect x="9" y="16" width="2" height="2" />
-    <rect x="13" y="16" width="2" height="2" />
-    <rect x="16" y="17" width="2" height="2" />
-    <rect x="20" y="16" width="2" height="2" />
-    <rect x="1" y="18" width="2" height="2" />
-    <rect x="4" y="19" width="2" height="2" />
-    <rect x="8" y="20" width="2" height="2" />
-    <rect x="11" y="20" width="2" height="2" />
-    <rect x="15" y="21" width="2" height="2" />
-    <rect x="18" y="20" width="2" height="2" />
-    <rect x="22" y="19" width="2" height="2" />
-    <rect x="25" y="20" width="2" height="2" />
-    <rect x="10" y="24" width="2" height="2" />
-    <rect x="14" y="25" width="2" height="2" />
-    <rect x="18" y="24" width="2" height="2" />
-  </svg>
+  <div className="relative overflow-hidden rounded inline-block">
+    <svg width={size} height={size} viewBox="0 0 29 29" fill="black" className="shrink-0">
+      <rect x="0" y="0" width="7" height="7" rx="0.5" fill="none" stroke="black" strokeWidth="1" />
+      <rect x="2" y="2" width="3" height="3" fill="black" />
+      <rect x="22" y="0" width="7" height="7" rx="0.5" fill="none" stroke="black" strokeWidth="1" />
+      <rect x="24" y="2" width="3" height="3" fill="black" />
+      <rect x="0" y="22" width="7" height="7" rx="0.5" fill="none" stroke="black" strokeWidth="1" />
+      <rect x="2" y="24" width="3" height="3" fill="black" />
+      <rect x="9" y="1" width="2" height="2" />
+      <rect x="13" y="2" width="2" height="2" />
+      <rect x="17" y="1" width="2" height="2" />
+      <rect x="10" y="4" width="2" height="2" />
+      <rect x="14" y="5" width="2" height="2" />
+      <rect x="18" y="4" width="2" height="2" />
+      <rect x="1" y="9" width="2" height="2" />
+      <rect x="4" y="10" width="2" height="2" />
+      <rect x="8" y="8" width="2" height="2" />
+      <rect x="12" y="8" width="2" height="2" />
+      <rect x="15" y="9" width="2" height="2" />
+      <rect x="19" y="8" width="2" height="2" />
+      <rect x="23" y="10" width="2" height="2" />
+      <rect x="26" y="9" width="2" height="2" />
+      <rect x="8" y="12" width="2" height="2" />
+      <rect x="11" y="12" width="2" height="2" />
+      <rect x="14" y="13" width="2" height="2" />
+      <rect x="18" y="12" width="2" height="2" />
+      <rect x="21" y="13" width="2" height="2" />
+      <rect x="9" y="16" width="2" height="2" />
+      <rect x="13" y="16" width="2" height="2" />
+      <rect x="16" y="17" width="2" height="2" />
+      <rect x="20" y="16" width="2" height="2" />
+      <rect x="1" y="18" width="2" height="2" />
+      <rect x="4" y="19" width="2" height="2" />
+      <rect x="8" y="20" width="2" height="2" />
+      <rect x="11" y="20" width="2" height="2" />
+      <rect x="15" y="21" width="2" height="2" />
+      <rect x="18" y="20" width="2" height="2" />
+      <rect x="22" y="19" width="2" height="2" />
+      <rect x="25" y="20" width="2" height="2" />
+      <rect x="10" y="24" width="2" height="2" />
+      <rect x="14" y="25" width="2" height="2" />
+      <rect x="18" y="24" width="2" height="2" />
+    </svg>
+    {/* Animated horizontal laser scan line */}
+    <motion.div
+      initial={{ top: '-10%' }}
+      animate={{ top: '110%' }}
+      transition={{ duration: 1.9, repeat: Infinity, ease: 'easeInOut' }}
+      className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FED000] to-transparent shadow-[0_0_6px_#FED000] pointer-events-none"
+    />
+  </div>
 );
 
 export const FeatureVisual: React.FC<FeatureVisualProps> = ({ type }) => {

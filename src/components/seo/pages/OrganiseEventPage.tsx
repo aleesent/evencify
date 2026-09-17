@@ -97,7 +97,7 @@ export const OrganiseEventPage: React.FC<OrganiseEventPageProps> = ({
             <button
               onClick={() => {
                 if (onOpenCreateEvent) onOpenCreateEvent();
-                else if (onOpenAuthModal) onOpenAuthModal('organiser');
+                else if (onOpenAuthModal) onOpenAuthModal(undefined, 'signup');
               }}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-neutral-900 px-6 py-3 text-sm font-bold text-white hover:bg-black transition-colors cursor-pointer shadow-xs"
             >
@@ -105,7 +105,7 @@ export const OrganiseEventPage: React.FC<OrganiseEventPageProps> = ({
               <ArrowRight className="h-4 w-4 text-[#FED000]" />
             </button>
             <button
-              onClick={() => onOpenAuthModal?.('organiser')}
+              onClick={() => onOpenAuthModal?.(undefined, 'signup')}
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-bold text-neutral-800 hover:bg-neutral-50 transition-colors cursor-pointer"
             >
               <span>Sign Up as Organiser</span>

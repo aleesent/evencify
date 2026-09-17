@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Phone,
   Mail,
+  Lock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -18,6 +19,9 @@ interface CrewProfileModalProps {
   onClose: () => void;
   crew: CrewProfile | null;
   onInvite: (crew: CrewProfile) => void;
+  currentUserRole?: string;
+  currentUserId?: string;
+  currentUserEmail?: string;
 }
 
 export const CrewProfileModal: React.FC<CrewProfileModalProps> = ({
@@ -25,8 +29,20 @@ export const CrewProfileModal: React.FC<CrewProfileModalProps> = ({
   onClose,
   crew,
   onInvite,
+  currentUserRole,
+  currentUserId,
+  currentUserEmail,
 }) => {
   if (!isOpen || !crew) return null;
+
+  const canViewContact =
+    currentUserRole === 'admin' ||
+    (crew && (
+      (Boolean(currentUserId) && currentUserId === crew.id) ||
+      (Boolean(currentUserEmail) &&
+        Boolean(crew.email) &&
+        currentUserEmail?.toLowerCase() === crew.email.toLowerCase())
+    ));
 
   return (
     <AnimatePresence>
@@ -132,21 +148,53 @@ export const CrewProfileModal: React.FC<CrewProfileModalProps> = ({
             </div>
           </div>
 
-          {/* Contact Details (Simulated for Organisers) */}
-          <div className="mt-4 rounded-2xl bg-[#FFFDE6] border-2 border-black p-4 text-black text-xs space-y-2 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-black font-bold">Direct Contact:</span>
-              <span className="text-black font-black underline">Verified Phone & Identity</span>
+          {/* Contact Details (Admin or Self only; protected for organisers and other crew) */}
+          {canViewContact ? (
+            <div className="mt-4 rounded-2xl bg-[#FFFDE6] border-2 border-black p-4 text-black text-xs space-y-2 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-black font-bold flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5 text-black" />
+                  Direct Contact {currentUserRole === 'admin' ? '(Admin Access)' : '(Your Profile)'}:
+                </span>
+                <span className="text-black font-black underline text-[11px]">Verified Identity</span>
+              </div>
+              <div className="flex items-center gap-2 font-mono text-black font-black">
+                <Phone className="h-3.5 w-3.5 text-black" />
+                <span>{crew.phone}</span>
+              </div>
+              <div className="flex items-center gap-2 text-black font-semibold">
+                <Mail className="h-3.5 w-3.5 text-black" />
+                <span>{crew.email}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 font-mono text-black font-black">
-              <Phone className="h-3.5 w-3.5 text-black" />
-              <span>{crew.phone}</span>
+          ) : (
+            <div className="mt-4 rounded-2xl bg-neutral-50 border-2 border-neutral-300 p-4 text-neutral-800 text-xs space-y-2 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-bold flex items-center gap-1.5 text-neutral-700">
+                  <Lock className="h-3.5 w-3.5 text-neutral-500" />
+                  Contact Information:
+                </span>
+                <span className="text-[10px] font-bold text-neutral-600 bg-neutral-200 px-2 py-0.5 rounded-md">
+                  Protected for Privacy
+                </span>
+              </div>
+              <div className="space-y-1 pt-1 text-[11px] text-neutral-600">
+                <div className="flex items-center gap-2">
+                  <Phone className="h-3.5 w-3.5 text-neutral-400" />
+                  <span className="font-mono text-neutral-400 tracking-wider">+91 ••••• •••••</span>
+                  <span className="text-[10px] text-neutral-400 italic">(Hidden for privacy)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Mail className="h-3.5 w-3.5 text-neutral-400" />
+                  <span className="text-neutral-400 tracking-wider">••••••••••@•••••.com</span>
+                  <span className="text-[10px] text-neutral-400 italic">(Hidden for privacy)</span>
+                </div>
+              </div>
+              <p className="text-[10px] text-neutral-500 pt-1 border-t border-neutral-200">
+                Direct phone and email details are hidden for privacy. Only platform administrators and this crew member can view raw contact details. All communication is conducted via in-app event chat.
+              </p>
             </div>
-            <div className="flex items-center gap-2 text-black font-semibold">
-              <Mail className="h-3.5 w-3.5 text-black" />
-              <span>{crew.email}</span>
-            </div>
-          </div>
+          )}
 
           {/* Action buttons */}
           <div className="mt-6 pt-4 border-t-2 border-black flex items-center gap-3">

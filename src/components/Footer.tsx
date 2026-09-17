@@ -3,7 +3,6 @@ import { motion } from 'motion/react';
 import { EvencifyLogo } from './EvencifyLogo';
 import { UserRole } from '../types';
 import { ArrowUpRight, ShieldCheck } from 'lucide-react';
-import { SEOFooterLinks } from './seo/SEOFooterLinks';
 
 interface FooterProps {
   onSelectRole: (role: UserRole) => void;
@@ -215,9 +214,6 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
 
         </div>
-
-        {/* Dynamic SEO Internal Links for Surat, Gujarat, Cities, and Categories */}
-        <SEOFooterLinks />
 
         {/* Bottom Sub-Bar */}
         <div className="mt-8 pt-8 border-t border-neutral-900 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 gap-4">

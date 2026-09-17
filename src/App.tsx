@@ -710,7 +710,17 @@ export default function App() {
   };
 
   // Send message in an event coordination group
-  const handleSendMessageToGroup = (groupId: string, content: string) => {
+  const handleSendMessageToGroup = (
+    groupId: string,
+    messagePayload: { content: string; isAnnouncement?: boolean } | string
+  ) => {
+    const content =
+      typeof messagePayload === 'string'
+        ? messagePayload
+        : messagePayload?.content || '';
+    const isAnnouncement =
+      typeof messagePayload === 'object' && !!messagePayload?.isAnnouncement;
+
     const senderId =
       currentRole === 'admin'
         ? currentAdminProfile.id
@@ -732,6 +742,7 @@ export default function App() {
       senderName,
       senderRole: currentRole as 'admin' | 'organiser' | 'crew',
       content,
+      isAnnouncement,
       timestamp: 'Just now',
     };
 
@@ -766,7 +777,19 @@ export default function App() {
       senderRole: newMessage.senderRole,
       content: newMessage.content,
       timestamp: newMessage.timestamp,
+      isAnnouncement: newMessage.isAnnouncement,
     }).catch((err) => console.error('Supabase sendCoordinationMessage error:', err));
+  };
+
+  // Discreate / delete an event coordination group (Admin action)
+  const handleDiscreateGroup = (groupId: string) => {
+    setEventGroups((prev) => prev.filter((g) => g.id !== groupId));
+    setActiveChatGroup((prev) => (prev?.id === groupId ? null : prev));
+    showToast('Event coordination group has been discreated and removed.');
+
+    EvencifyApi.deleteCoordinationGroup(groupId).catch((err) =>
+      console.error('Supabase deleteCoordinationGroup error:', err)
+    );
   };
 
   const handleScrollToSection = (sectionId: string) => {
@@ -840,20 +863,21 @@ export default function App() {
         {currentRole === 'visitor' && (
           <div>
             <HeroSection
-              onJoinCrew={() => handleOpenAuth('crew', 'signup')}
-              onHireCrew={() => handleOpenAuth('organiser', 'signup')}
+              onGetStarted={() => handleOpenAuth(undefined, 'signup')}
+              onJoinCrew={() => handleOpenAuth(undefined, 'signup')}
+              onHireCrew={() => handleOpenAuth(undefined, 'signup')}
               onScrollToHowItWorks={() => handleScrollToSection('trust')}
             />
 
-            <ForCrewSection onJoinCrew={() => handleOpenAuth('crew', 'signup')} />
+            <ForCrewSection onJoinCrew={() => handleOpenAuth(undefined, 'signup')} />
 
-            <ForOrganisersSection onHireCrew={() => handleOpenAuth('organiser', 'signup')} />
+            <ForOrganisersSection onHireCrew={() => handleOpenAuth(undefined, 'signup')} />
 
-            <TrustSection onCreateAccount={() => handleOpenAuth('crew', 'signup')} />
+            <TrustSection onCreateAccount={() => handleOpenAuth(undefined, 'signup')} />
 
             <FinalCtaSection
-              onJoinCrew={() => handleOpenAuth('crew', 'signup')}
-              onHireCrew={() => handleOpenAuth('organiser', 'signup')}
+              onJoinCrew={() => handleOpenAuth(undefined, 'signup')}
+              onHireCrew={() => handleOpenAuth(undefined, 'signup')}
             />
 
             <FaqSection />
@@ -909,6 +933,7 @@ export default function App() {
             users={users}
             eventGroups={eventGroups}
             onCreateEventGroup={handleCreateEventGroup}
+            onDiscreateEventGroup={handleDiscreateGroup}
             onOpenGroupChat={(grp) => setActiveChatGroup(grp)}
             onToggleUserStatus={handleToggleUserStatus}
             onToggleUserVerification={handleToggleUserVerification}
@@ -1011,6 +1036,21 @@ export default function App() {
         onInvite={(crew) => {
           showToast(`Direct invitation sent to ${crew.name}!`);
         }}
+        currentUserRole={currentRole}
+        currentUserId={
+          currentRole === 'admin'
+            ? 'admin-1'
+            : currentRole === 'crew'
+            ? currentCrewProfile.id
+            : currentOrganiserProfile.id
+        }
+        currentUserEmail={
+          currentRole === 'admin'
+            ? 'admin@apexevents.com'
+            : currentRole === 'crew'
+            ? currentCrewProfile.email
+            : currentOrganiserProfile.email
+        }
       />
 
       {/* Event Shift Coordination Chat Modal (Admin, Organiser, and Hired Crew) */}
@@ -1036,6 +1076,7 @@ export default function App() {
             photo: currentRole === 'crew' ? currentCrewProfile.photo : undefined,
           }}
           onSendMessage={handleSendMessageToGroup}
+          onDiscreateGroup={handleDiscreateGroup}
         />
       )}
     </div>
