@@ -1,3 +1,30 @@
+User-agent: Googlebot
+Allow: /
+Allow: /events/
+Allow: /events/*
+Allow: /crew-jobs
+Allow: /event-staffing
+Allow: /organise-event
+Allow: /event-management
+Allow: /about
+Allow: /contact
+Allow: /privacy
+Allow: /terms
+Allow: /faq
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /chat/
+Disallow: /account/
+
+User-agent: Googlebot-Image
+Allow: /
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.svg$
+Allow: /*.webp$
+
 User-agent: *
 Allow: /
 Allow: /events/
@@ -22,5 +49,6 @@ Disallow: /*?*filter=
 Disallow: /*?*session=
 
 # Sitemap directives
-Sitemap: https://www.evencify.com/sitemap.xml
 Sitemap: https://evencify.com/sitemap.xml
+Sitemap: https://www.evencify.com/sitemap.xml
+

@@ -1033,6 +1033,7 @@ export interface SEOOutput {
   h1: string;
   structuredData: Record<string, unknown>[];
   breadcrumbItems: { name: string; url: string }[];
+  keywords?: string;
 }
 
 // ----------------------------------------------------
@@ -1076,11 +1077,11 @@ export function getSEOData(params: {
 
   switch (params.type) {
     case 'homepage': {
-      const title = 'Evencify | Event Made Easy – Discover Events in Surat & Gujarat';
+      const title = 'Evencify | #1 Events in Surat & Gujarat – Hire Verified Event Crew';
       const description =
-        'Discover upcoming events in Surat and Gujarat with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more.';
+        'Discover upcoming events in Surat & Gujarat or hire verified event crew in 60s. Find concerts, weddings, corporate expos & high-paying crew shifts with Evencify.';
       const canonicalUrl = 'https://evencify.com';
-      const h1 = 'Discover Events Near You';
+      const h1 = 'Events in Surat & Gujarat | Hire Verified Event Crew';
 
       const organizationSchema = {
         '@context': 'https://schema.org',
@@ -1090,12 +1091,118 @@ export function getSEOData(params: {
         logo: logoImage,
         description: 'India’s event workforce operating system connecting verified event crew and event organisers.',
         sameAs: ['https://twitter.com/evencify', 'https://www.linkedin.com/company/evencify', 'https://instagram.com/evencify'],
+        contactPoint: {
+          '@type': 'ContactPoint',
+          contactType: 'Customer Support',
+          email: 'support@evencify.com',
+          telephone: '+91-98251-10022',
+          areaServed: 'IN',
+          availableLanguage: ['English', 'Hindi', 'Gujarati'],
+        },
         address: {
           '@type': 'PostalAddress',
+          streetAddress: '601, World Trade Center, Ring Road',
           addressLocality: 'Surat',
           addressRegion: 'Gujarat',
+          postalCode: '395002',
           addressCountry: 'IN',
         },
+        knowsAbout: [
+          'Event Management',
+          'Event Staffing',
+          'Event Crew Hiring',
+          'Concerts',
+          'Conferences',
+          'Exhibitions',
+          'Surat Events',
+          'Gujarat Events',
+        ],
+      };
+
+      const localBusinessSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'LocalBusiness',
+        '@id': 'https://evencify.com/#localbusiness',
+        name: 'Evencify - Events & Crew Hiring Platform',
+        image: fallbackImage,
+        telephone: '+91-98251-10022',
+        email: 'support@evencify.com',
+        url: 'https://evencify.com',
+        priceRange: '₹₹',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: '601, World Trade Center, Ring Road',
+          addressLocality: 'Surat',
+          addressRegion: 'Gujarat',
+          postalCode: '395002',
+          addressCountry: 'IN',
+        },
+        geo: {
+          '@type': 'GeoCoordinates',
+          latitude: 21.1702,
+          longitude: 72.8311,
+        },
+      };
+
+      const webApplicationSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        name: 'Evencify',
+        url: 'https://evencify.com',
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'All',
+        description: 'India’s event workforce operating system connecting verified event crew and event organisers.',
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: '4.9',
+          reviewCount: '248',
+          bestRating: '5',
+          worstRating: '1',
+        },
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'INR',
+        },
+      };
+
+      const faqSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: 'What is Evencify?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Evencify is India’s event workforce operating system connecting event organisers with verified event crew. Organisers can build teams, publish shifts, and manage their workforce, while crew can discover and apply for high-paying event shifts.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'How do I find upcoming events in Surat and Gujarat?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'You can discover upcoming concerts, exhibitions, workshops, and festivals in Surat across Vesu, Adajan, Dumas Road, and City Light directly on Evencify with live schedules, venue details, and ticketing.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'How can organisers hire verified event crew in Surat?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Event organisers can publish crew requirements in 60 seconds and hire background-verified hospitality staff, registration desk coordinators, bouncers/security, and stage crew with same-day escrow settlements.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'What event roles can crew members apply for on Evencify?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Crew members can apply for roles including Registration Desk, Hospitality Staff, Bouncers / Security, Sound & Light Technicians, Stage Coordinators, Ushers, Promoters, and VIP Liaisons.',
+            },
+          },
+        ],
       };
 
       const webSiteSchema = {
@@ -1124,15 +1231,15 @@ export function getSEOData(params: {
         twitterDescription: description,
         twitterImage: fallbackImage,
         h1,
-        structuredData: [organizationSchema, webSiteSchema],
+        structuredData: [organizationSchema, localBusinessSchema, webApplicationSchema, faqSchema, webSiteSchema],
         breadcrumbItems: [{ name: 'Home', url: 'https://evencify.com' }],
       };
     }
 
     case 'all-events': {
-      const title = 'Upcoming Events in India | Concerts, Expos, Workshops | Evencify';
+      const title = 'Upcoming Events 2026 in Surat & India | Concerts, Expos | Evencify';
       const description =
-        'Explore verified upcoming events across India. Discover concerts, tech conferences, business expos, luxury weddings, and cultural festivals happening near you.';
+        'Explore verified upcoming events in Surat, Gujarat & across India. Real-time schedules, venues, booking links, and on-demand event crew hiring on Evencify.';
       const canonicalUrl = 'https://evencify.com/events';
       const h1 = 'Upcoming Events in India';
 
@@ -1260,13 +1367,13 @@ export function getSEOData(params: {
       const isSurat = city.slug === 'surat';
       const isGujaratCity = city.stateSlug === 'gujarat';
       const title = isSurat
-        ? 'Events in Surat | Upcoming Events & Things to Do | Evencify'
-        : `Events in ${city.name} | Upcoming Events | Evencify`;
+        ? 'Events in Surat 2026 | Upcoming Events, Concerts & Expos | Evencify'
+        : `Events in ${city.name} 2026 | Upcoming Events & Shows | Evencify`;
       const description = isSurat
-        ? 'Discover upcoming events in Surat and Gujarat with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more.'
+        ? 'Discover upcoming events in Surat 2026 with Evencify. Explore concerts, luxury weddings, diamond & textile expos at SIECC, and hire background-verified crew.'
         : `Discover upcoming events in ${city.name}, ${city.state} with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more.`;
       const canonicalUrl = `https://evencify.com/events/${city.slug}`;
-      const h1 = isSurat ? 'Events in Surat' : `Upcoming Events in ${city.name}`;
+      const h1 = isSurat ? 'Events in Surat 2026' : `Upcoming Events in ${city.name}`;
 
       const breadcrumbItems = isGujaratCity
         ? [

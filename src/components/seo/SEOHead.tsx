@@ -24,6 +24,9 @@ export const SEOHead: React.FC<SEOHeadProps> = ({ seo }) => {
     // 2. Standard Meta Tags
     setMetaTag('name', 'description', seo.description);
     setMetaTag('name', 'robots', seo.robots);
+    if (seo.keywords) {
+      setMetaTag('name', 'keywords', seo.keywords);
+    }
 
     // 3. Canonical Link Tag
     let canonicalLink = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
