@@ -865,14 +865,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
 
-            {/* Delivery Alert & Spam Folder Tip */}
-            <div className="mt-3.5 rounded-xl border border-blue-200/90 bg-blue-50/70 p-2.5 text-xs text-blue-900 text-left flex items-start gap-2">
-              <span className="text-base shrink-0">📬</span>
-              <div className="leading-snug">
-                <span className="font-semibold">Check Spam / Junk Folder:</span> If the email isn't in your Primary inbox, please check your Spam/Junk folder or Promotions tab (Google often filters new transactional senders).
-              </div>
-            </div>
-
             {/* Instant Code / Auto-Fill Option */}
             {previewCode && (
               <div className="mt-2.5 rounded-xl border border-amber-300 bg-amber-50/95 p-3 text-left shadow-xs">
@@ -1039,14 +1031,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <p className="mt-1 text-xs sm:text-sm text-neutral-500">
               Enter the 6-digit code sent to <strong className="text-neutral-900">{email}</strong>
             </p>
-
-            {/* Delivery Alert & Spam Folder Tip */}
-            <div className="mt-3 rounded-xl border border-blue-200/90 bg-blue-50/70 p-2.5 text-xs text-blue-900 text-left flex items-start gap-2">
-              <span className="text-base shrink-0">📬</span>
-              <div className="leading-snug">
-                <span className="font-semibold">Check Spam / Junk Folder:</span> If the reset email doesn't appear in your Primary inbox, please check your Spam/Junk folder or Promotions tab.
-              </div>
-            </div>
 
             {previewCode && (
               <div className="mt-2.5 rounded-xl border border-amber-300 bg-amber-50/95 p-3 text-left shadow-xs">

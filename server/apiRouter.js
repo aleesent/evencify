@@ -158,7 +158,7 @@ apiRouter.get('/brevo/status', (_req, res) => {
   }
 });
 
-// 5. Test Brevo SMTP Relay
+// 5. Test Brevo SMTP Relay & Dispatch Live Test
 apiRouter.post('/brevo/test-connection', async (req, res) => {
   try {
     const { testEmail, customConfig } = req.body || {};
@@ -169,15 +169,35 @@ apiRouter.post('/brevo/test-connection', async (req, res) => {
     if (connectionTest.success && testEmail) {
       emailResult = await sendVerificationEmail({
         email: testEmail,
-        name: 'Brevo Test User',
+        name: 'Evencify Admin',
         purpose: 'signup',
         customConfig: customConfig || {},
       });
     }
 
+    if (testEmail) {
+      if (emailResult?.success) {
+        return res.json({
+          ...connectionTest,
+          success: true,
+          emailSent: true,
+          message: `Live verification email successfully dispatched to ${testEmail}! Check your inbox for the 6-digit OTP code.`,
+          emailDetails: emailResult,
+        });
+      } else {
+        return res.json({
+          ...connectionTest,
+          success: false,
+          emailSent: false,
+          message: emailResult?.error || 'Failed to dispatch test verification email.',
+          emailDetails: emailResult,
+        });
+      }
+    }
+
     return res.json({
       ...connectionTest,
-      emailSent: emailResult?.success || false,
+      emailSent: false,
       emailDetails: emailResult,
     });
   } catch (err) {

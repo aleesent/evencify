@@ -36,31 +36,59 @@ export const EvencifyApi = {
 
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
-      if (error || !session) return null;
+      if (session?.user) {
+        // Fetch user profile from database to get exact assigned role and active state
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .maybeSingle();
 
-      // Fetch user profile from database to get exact assigned role and active state
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-
-      if (profileError || !profile) {
-        return null;
+        if (profile && profile.is_active) {
+          const user: AuthSessionUser = {
+            id: profile.id,
+            email: profile.email || session.user.email || '',
+            name: profile.full_name || 'Evencify User',
+            role: profile.role as 'crew' | 'organiser' | 'admin',
+            isVerified: Boolean(profile.is_verified),
+          };
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('evencify_active_user', JSON.stringify(user));
+          }
+          return user;
+        }
       }
 
-      // Check if account has been suspended by an administrator
-      if (!profile.is_active) {
-        await supabase.auth.signOut();
-        return null;
+      // Local storage fallback for users verified via Brevo OTP
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('evencify_active_user');
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed?.email) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('email', parsed.email.trim().toLowerCase())
+                .maybeSingle();
+
+              if (profile && profile.is_active) {
+                return {
+                  id: profile.id,
+                  email: profile.email,
+                  name: profile.full_name || parsed.name || 'Evencify User',
+                  role: (profile.role || parsed.role) as 'crew' | 'organiser' | 'admin',
+                  isVerified: Boolean(profile.is_verified),
+                };
+              }
+            }
+          } catch {
+            localStorage.removeItem('evencify_active_user');
+          }
+        }
       }
 
-      return {
-        id: profile.id,
-        email: profile.email || session.user.email || '',
-        name: profile.full_name || 'Evencify User',
-        role: profile.role as 'crew' | 'organiser' | 'admin',
-      };
+      return null;
     } catch (err) {
       console.error('Failed to get current session:', err);
       return null;
@@ -82,20 +110,25 @@ export const EvencifyApi = {
       return { user: null as any, error: 'Registration as Administrator is strictly forbidden.' };
     }
 
+    const cleanEmail = params.email.trim().toLowerCase();
+
     if (!isSupabaseConfigured()) {
-      return {
-        user: {
-          id: `usr-${Date.now()}`,
-          email: params.email,
-          name: params.fullName || (params.role === 'crew' ? 'Aarav Mehta' : 'Singhania Events'),
-          role: params.role,
-        },
+      const offlineUser: AuthSessionUser = {
+        id: `usr-${Date.now()}`,
+        email: cleanEmail,
+        name: params.fullName || (params.role === 'crew' ? 'Aarav Mehta' : 'Singhania Events'),
+        role: params.role,
+        isVerified: true,
       };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('evencify_active_user', JSON.stringify(offlineUser));
+      }
+      return { user: offlineUser };
     }
 
     try {
       const { data, error } = await supabase.auth.signUp({
-        email: params.email,
+        email: cleanEmail,
         password: params.password || 'EvencifySecure123!',
         options: {
           data: {
@@ -106,18 +139,57 @@ export const EvencifyApi = {
         },
       });
 
+      // Handle case where user is already registered in auth, but now verifying via Brevo OTP
       if (error) {
+        const isAlreadyRegistered =
+          error.message?.toLowerCase().includes('already registered') ||
+          error.message?.toLowerCase().includes('already exists') ||
+          (error as any).status === 422;
+
+        if (isAlreadyRegistered) {
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('email', cleanEmail)
+            .maybeSingle();
+
+          if (existingProfile) {
+            await supabase
+              .from('profiles')
+              .update({
+                is_verified: true,
+                verification_badge: 'Email Verified',
+                full_name: params.fullName || existingProfile.full_name,
+                role: params.role || existingProfile.role,
+                is_active: true,
+              })
+              .eq('id', existingProfile.id);
+
+            const verifiedUser: AuthSessionUser = {
+              id: existingProfile.id,
+              email: cleanEmail,
+              name: params.fullName || existingProfile.full_name || 'Evencify User',
+              role: (params.role || existingProfile.role) as 'crew' | 'organiser',
+              isVerified: true,
+            };
+
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('evencify_active_user', JSON.stringify(verifiedUser));
+            }
+
+            return { user: verifiedUser };
+          }
+        }
+
         return { user: null as any, error: error.message };
       }
 
-      if (!data.user) {
-        return { user: null as any, error: 'User registration failed.' };
-      }
+      const userId = data?.user?.id || `usr-${Date.now()}`;
 
-      // Ensure profile record exists in profiles table
+      // Ensure profile record exists in profiles table with verified status
       const { error: profileUpsertError } = await supabase.from('profiles').upsert({
-        id: data.user.id,
-        email: params.email,
+        id: userId,
+        email: cleanEmail,
         full_name: params.fullName,
         role: params.role,
         is_active: true,
@@ -132,7 +204,7 @@ export const EvencifyApi = {
       // Ensure role specific profile table is initialized
       if (params.role === 'crew') {
         await supabase.from('crew_profiles').upsert({
-          user_id: data.user.id,
+          user_id: userId,
           rating: 4.9,
           total_reviews: 0,
           completed_events: 0,
@@ -142,19 +214,23 @@ export const EvencifyApi = {
         });
       } else if (params.role === 'organiser') {
         await supabase.from('organiser_profiles').upsert({
-          user_id: data.user.id,
+          user_id: userId,
           company_name: params.companyName || `${params.fullName} Events`,
           udyam_registered: false,
         });
       }
 
       const sessionUser: AuthSessionUser = {
-        id: data.user.id,
-        email: params.email,
+        id: userId,
+        email: cleanEmail,
         name: params.fullName,
         role: params.role,
         isVerified: true,
       };
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('evencify_active_user', JSON.stringify(sessionUser));
+      }
 
       return { user: sessionUser };
     } catch (err: any) {
@@ -230,6 +306,32 @@ export const EvencifyApi = {
       });
 
       if (error) {
+        // If Supabase returned 'Email not confirmed', allow Brevo-verified users to log in
+        if (
+          error.message?.toLowerCase().includes('email not confirmed') ||
+          (error as any).code === 'email_not_confirmed'
+        ) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('email', cleanEmail)
+            .maybeSingle();
+
+          if (profile && profile.is_active) {
+            const user: AuthSessionUser = {
+              id: profile.id,
+              email: profile.email || cleanEmail,
+              name: profile.full_name || 'Evencify User',
+              role: profile.role as 'crew' | 'organiser' | 'admin',
+              isVerified: true,
+            };
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('evencify_active_user', JSON.stringify(user));
+            }
+            return { user };
+          }
+        }
+
         // If Supabase returned 'Invalid login credentials', check if it's admin or seed user
         if (cleanEmail === 'admin@evencify.com' || cleanEmail.startsWith('admin')) {
           return {
@@ -281,13 +383,20 @@ export const EvencifyApi = {
         };
       }
 
+      const authenticatedUser: AuthSessionUser = {
+        id: profile.id,
+        email: profile.email || data.user.email || '',
+        name: profile.full_name || 'Evencify User',
+        role: profile.role as 'crew' | 'organiser' | 'admin',
+        isVerified: Boolean(profile.is_verified),
+      };
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('evencify_active_user', JSON.stringify(authenticatedUser));
+      }
+
       return {
-        user: {
-          id: profile.id,
-          email: profile.email || data.user.email || '',
-          name: profile.full_name || 'Evencify User',
-          role: profile.role as 'crew' | 'organiser' | 'admin',
-        },
+        user: authenticatedUser,
       };
     } catch (err: any) {
       if (cleanEmail === 'admin@evencify.com' || cleanEmail.startsWith('admin')) {
@@ -477,6 +586,9 @@ export const EvencifyApi = {
    * Terminate active Supabase session
    */
   async signOut(): Promise<void> {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('evencify_active_user');
+    }
     if (isSupabaseConfigured()) {
       try {
         await supabase.auth.signOut();

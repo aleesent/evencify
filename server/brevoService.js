@@ -24,10 +24,10 @@ export const generateOtpCode = () => {
  * Resolves Brevo SMTP and API configurations from environment variables or custom overrides
  */
 export const getBrevoConfig = (customOverrides = {}) => {
-  const host = customOverrides.host || process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com';
-  const port = Number(customOverrides.port || process.env.BREVO_SMTP_PORT || 587);
-  const user = customOverrides.user || process.env.BREVO_SMTP_USER || process.env.BREVO_USER || '';
-  const smtpKey = customOverrides.smtpKey || customOverrides.key || process.env.BREVO_SMTP_KEY || process.env.BREVO_KEY || '';
+  const host = customOverrides.host || process.env.BREVO_SMTP_HOST || process.env.SMTP_HOST || 'smtp-relay.brevo.com';
+  const port = Number(customOverrides.port || process.env.BREVO_SMTP_PORT || process.env.SMTP_PORT || 587);
+  const user = customOverrides.user || process.env.BREVO_SMTP_USER || process.env.SMTP_USER || process.env.BREVO_USER || '';
+  const smtpKey = customOverrides.smtpKey || customOverrides.key || process.env.BREVO_SMTP_KEY || process.env.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.BREVO_KEY || '';
   
   // Brevo API Key: Check custom, env, or if the provided smtpKey starts with xkeysib- (Brevo API key format)
   let apiKey = customOverrides.apiKey || process.env.BREVO_API_KEY || '';
@@ -35,7 +35,7 @@ export const getBrevoConfig = (customOverrides = {}) => {
     apiKey = smtpKey;
   }
 
-  const senderEmail = customOverrides.senderEmail || process.env.BREVO_SENDER_EMAIL || user || 'verify@evencify.com';
+  const senderEmail = customOverrides.senderEmail || process.env.BREVO_SENDER_EMAIL || process.env.SMTP_FROM || process.env.EMAIL_FROM || user || 'noreply@evencify.com';
   const senderName = customOverrides.senderName || process.env.BREVO_SENDER_NAME || 'Evencify Verification';
 
   const isSmtpConfigured = Boolean(user && smtpKey && host);
@@ -61,7 +61,7 @@ export const getBrevoConfig = (customOverrides = {}) => {
 };
 
 /**
- * Builds HTML email template matching Evencify's modern styling with the exact brand logo
+ * Builds HTML email template matching Evencify's modern styling with the exact brand logo colours and clean layout
  */
 export const buildVerificationHtml = ({ code, name, role, purpose = 'signup', origin = '' }) => {
   const isReset = purpose === 'reset-password';
@@ -70,12 +70,7 @@ export const buildVerificationHtml = ({ code, name, role, purpose = 'signup', or
   
   const leadText = isReset
     ? `We received a request to reset your password for your <strong>${roleLabel}</strong> account on Evencify.`
-    : `Welcome to Evencify! To activate and securely verify your <strong>${roleLabel}</strong> account, please enter the 6-digit verification code below.`;
-
-  // Public URL for the exact brand logo asset
-  const defaultHost = 'https://ais-pre-dkx2fxartaixivref46poq-198335895817.asia-southeast1.run.app';
-  const appBase = (origin || process.env.APP_URL || defaultHost).replace(/\/$/, '');
-  const logoUrl = `${appBase}/evencify.logo.png`;
+    : `Please use the 6-digit verification code below to verify and activate your <strong>${roleLabel}</strong> account on Evencify.`;
 
   return `
 <!DOCTYPE html>
@@ -85,34 +80,50 @@ export const buildVerificationHtml = ({ code, name, role, purpose = 'signup', or
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #111827; -webkit-font-smoothing: antialiased;">
+<body style="margin: 0; padding: 0; background-color: #f4f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #111827; -webkit-font-smoothing: antialiased;">
   <!-- Preview text -->
-  <div style="display: none; font-size: 1px; color: #f3f4f6; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">
-    Your 6-digit Evencify verification code is ${code}. Valid for 10 minutes.
+  <div style="display: none; font-size: 1px; color: #f4f5f7; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">
+    Your Evencify verification code is ${code}. Valid for 10 minutes.
   </div>
 
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f3f4f6; padding: 40px 16px;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f4f5f7; padding: 36px 16px;">
     <tr>
       <td align="center">
         <!-- Main Card Container -->
-        <table role="presentation" width="100%" style="max-width: 560px; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 12px 36px -4px rgba(0,0,0,0.08), 0 4px 16px -2px rgba(0,0,0,0.03); border: 1px solid #e5e7eb;" cellspacing="0" cellpadding="0" border="0">
+        <table role="presentation" width="100%" style="max-width: 520px; background-color: #ffffff; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 20px -2px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;" cellspacing="0" cellpadding="0" border="0">
           
-          <!-- Brand Header with Exact Logo -->
+          <!-- Brand Header with evencify. text logo and brand colours -->
           <tr>
-            <td style="background-color: #0F1014; padding: 28px 36px; border-bottom: 3px solid #FED000;">
+            <td style="background-color: #0F1014; padding: 24px 32px; border-bottom: 2px solid #FED000;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
                   <td align="left" style="vertical-align: middle;">
-                    <a href="${appBase}" target="_blank" style="text-decoration: none; display: inline-block;">
-                      <!-- Exact Logo Image -->
-                      <img src="${logoUrl}" alt="Evencify — Events Made Easy" width="180" style="display: block; max-width: 180px; height: auto; border: 0; outline: none;" />
-                    </a>
+                    <!-- evencify. Text Mark in Brand Colors -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <!-- 'even' in iconic yellow brand pill -->
+                        <td style="background-color: #FED000; border-radius: 8px; padding: 4px 10px; vertical-align: middle;">
+                          <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 20px; font-weight: 900; color: #000000; letter-spacing: -0.4px; line-height: 1; display: inline-block;">
+                            even
+                          </span>
+                        </td>
+                        <!-- 'cify.' with white text and yellow period -->
+                        <td style="padding-left: 5px; vertical-align: middle;">
+                          <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 20px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.4px; line-height: 1; display: inline-block;">
+                            cify<span style="color: #FED000; font-weight: 900;">.</span>
+                          </span>
+                        </td>
+                      </tr>
+                    </table>
+                    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 9px; font-weight: 700; color: #9CA3AF; letter-spacing: 2px; text-transform: uppercase; margin-top: 5px;">
+                      Events Made Easy
+                    </div>
                   </td>
                   <td align="right" style="vertical-align: middle;">
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="background-color: rgba(254, 208, 0, 0.12); border: 1px solid rgba(254, 208, 0, 0.35); border-radius: 9999px;">
                       <tr>
-                        <td style="padding: 5px 12px;">
-                          <span style="color: #FED000; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+                        <td style="padding: 4px 12px;">
+                          <span style="color: #FED000; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
                             ● SECURE OTP
                           </span>
                         </td>
@@ -126,38 +137,31 @@ export const buildVerificationHtml = ({ code, name, role, purpose = 'signup', or
 
           <!-- Content Body -->
           <tr>
-            <td style="padding: 40px 36px 32px 36px;">
-              <!-- User Role Pill -->
-              <div style="margin-bottom: 16px;">
-                <span style="display: inline-block; background-color: #f4f4f5; border: 1px solid #e4e4e7; border-radius: 8px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: #3f3f46;">
-                  ${roleLabel} Verification
-                </span>
-              </div>
-
-              <h1 style="font-size: 24px; font-weight: 800; color: #0F1014; margin: 0 0 14px 0; line-height: 1.25; letter-spacing: -0.4px;">
+            <td style="padding: 34px 32px 28px 32px;">
+              <h1 style="font-size: 22px; font-weight: 800; color: #0F1014; margin: 0 0 12px 0; line-height: 1.3; letter-spacing: -0.3px;">
                 ${title}
               </h1>
 
-              <p style="font-size: 15px; line-height: 1.6; color: #4b5563; margin: 0 0 26px 0;">
+              <p style="font-size: 14.5px; line-height: 1.6; color: #4b5563; margin: 0 0 24px 0;">
                 Hello <strong>${name ? name : 'there'}</strong>,<br>
                 ${leadText}
               </p>
 
-              <!-- Luxury OTP Code Display Card -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background: linear-gradient(180deg, #FFFDF0 0%, #FFFBE6 100%); border: 1.5px dashed #FED000; border-radius: 18px; margin: 28px 0;">
+              <!-- Clean & Professional OTP Code Display Card -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #FAFAFB; border: 1.5px solid #FED000; border-radius: 14px; margin: 20px 0;">
                 <tr>
-                  <td style="padding: 28px 20px; text-align: center;">
-                    <div style="font-size: 11px; font-weight: 800; color: #854d0e; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;">
-                      Official 6-Digit Verification Code
+                  <td style="padding: 24px 16px; text-align: center;">
+                    <div style="font-size: 10.5px; font-weight: 800; color: #78350f; text-transform: uppercase; letter-spacing: 1.6px; margin-bottom: 8px;">
+                      Your Verification Code
                     </div>
                     
-                    <div style="font-size: 40px; font-weight: 900; letter-spacing: 12px; color: #0F1014; font-family: 'SF Mono', Consolas, Monaco, 'Courier New', monospace; padding: 6px 0; text-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    <div style="font-size: 38px; font-weight: 900; letter-spacing: 10px; color: #0F1014; font-family: 'SF Mono', Consolas, Monaco, 'Courier New', monospace; padding: 4px 0;">
                       ${code}
                     </div>
 
-                    <div style="margin-top: 12px;">
-                      <span style="display: inline-block; background-color: rgba(15, 16, 20, 0.06); border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: #713f12;">
-                        ⏱ Valid for 10 minutes • Single-use code
+                    <div style="margin-top: 10px;">
+                      <span style="display: inline-block; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 20px; padding: 3px 12px; font-size: 11.5px; font-weight: 600; color: #6b7280;">
+                        Valid for 10 minutes • Single-use
                       </span>
                     </div>
                   </td>
@@ -165,29 +169,23 @@ export const buildVerificationHtml = ({ code, name, role, purpose = 'signup', or
               </table>
 
               <!-- Security Information -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f9fafb; border: 1px solid #f3f4f6; border-radius: 14px; margin-top: 24px;">
-                <tr>
-                  <td style="padding: 16px 20px;">
-                    <p style="font-size: 12.5px; line-height: 1.6; color: #6b7280; margin: 0;">
-                      🔒 <strong>Security Tip:</strong> Never share your verification code with anyone. Evencify team members will never ask for your code via phone, email, or social media.
-                    </p>
-                    <p style="font-size: 12px; line-height: 1.5; color: #9ca3af; margin: 8px 0 0 0;">
-                      If you did not make this request on Evencify, you can safely ignore this email. Your account remains completely secure.
-                    </p>
-                  </td>
-                </tr>
-              </table>
+              <p style="font-size: 12.5px; line-height: 1.6; color: #6b7280; margin: 20px 0 0 0;">
+                Never share this code with anyone. Evencify team members will never ask for your verification code.
+              </p>
+              <p style="font-size: 11.5px; line-height: 1.5; color: #9ca3af; margin: 8px 0 0 0;">
+                If you did not request this verification code, no further action is required and you can safely ignore this email.
+              </p>
             </td>
           </tr>
 
           <!-- Brand Footer -->
           <tr>
-            <td style="background-color: #fafafa; border-top: 1px solid #f0f0f0; padding: 24px 36px; text-align: center;">
-              <p style="font-size: 12px; font-weight: 500; color: #71717a; margin: 0 0 6px 0;">
-                Delivered securely via Brevo Transactional Service • <strong>Evencify India</strong>
+            <td style="background-color: #fafafa; border-top: 1px solid #f0f0f0; padding: 20px 32px; text-align: center;">
+              <p style="font-size: 12px; font-weight: 600; color: #52525b; margin: 0 0 4px 0;">
+                Evencify • Events Made Easy
               </p>
               <p style="font-size: 11px; color: #a1a1aa; margin: 0;">
-                © ${new Date().getFullYear()} Evencify Technologies Pvt. Ltd. Events Made Easy. All rights reserved.
+                © ${new Date().getFullYear()} Evencify India. All rights reserved.
               </p>
             </td>
           </tr>
@@ -377,8 +375,7 @@ export const sendVerificationEmail = async ({
       return {
         success: true,
         simulated: false,
-        previewCode: code,
-        message: `Verification code sent to ${cleanEmail} via ${methodLabel}.`,
+        message: `Verification code sent to ${cleanEmail}. Please check your email inbox for your 6-digit code.`,
         deliveryMethod: deliveryResult.method,
         expiresAt,
       };
@@ -386,8 +383,7 @@ export const sendVerificationEmail = async ({
       console.error('Brevo transmission error:', sendError.message || sendError);
       return {
         success: false,
-        error: `Brevo delivery failed: ${sendError.message}. Please verify your Brevo credentials and sender verification.`,
-        previewCode: code,
+        error: `Brevo delivery failed: ${sendError.message}. Please check your Brevo credentials or sender domain verification.`,
         expiresAt,
       };
     }
