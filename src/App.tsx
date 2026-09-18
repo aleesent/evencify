@@ -130,7 +130,7 @@ export default function App() {
         EvencifyApi.getNotifications(),
       ]);
 
-      if (dbEvents.status === 'fulfilled' && dbEvents.value.length > 0) {
+      if (dbEvents.status === 'fulfilled') {
         setEvents(dbEvents.value);
       }
       if (dbCrew.status === 'fulfilled' && dbCrew.value.length > 0) {
@@ -140,20 +140,29 @@ export default function App() {
           return match || prev;
         });
       }
-      if (activeUserEmail) {
+      const syncEmail = activeUserEmail || (() => {
         try {
-          const dbOrg = await EvencifyApi.getOrganiserProfile(activeUserEmail);
+          const u = JSON.parse(localStorage.getItem('evencify_active_user') || '{}');
+          return u.email || '';
+        } catch { return ''; }
+      })();
+
+      if (syncEmail) {
+        try {
+          const [dbOrg, dbCrewProf] = await Promise.all([
+            EvencifyApi.getOrganiserProfile(syncEmail),
+            EvencifyApi.getCrewProfile(syncEmail),
+          ]);
           if (dbOrg) setCurrentOrganiserProfile(dbOrg);
-          const dbCrewProf = await EvencifyApi.getCrewProfile(activeUserEmail);
           if (dbCrewProf) setCurrentCrewProfile(dbCrewProf);
         } catch {
           // ignore profile sync error
         }
       }
-      if (dbApps.status === 'fulfilled' && dbApps.value.length > 0) {
+      if (dbApps.status === 'fulfilled') {
         setApplications(dbApps.value);
       }
-      if (dbGroups.status === 'fulfilled' && dbGroups.value.length > 0) {
+      if (dbGroups.status === 'fulfilled') {
         setEventGroups(dbGroups.value);
         setActiveChatGroup((prev) => {
           if (!prev) return null;
@@ -163,7 +172,7 @@ export default function App() {
       if (dbUsers.status === 'fulfilled' && dbUsers.value.length > 0) {
         setUsers(dbUsers.value);
       }
-      if (dbNotifs.status === 'fulfilled' && dbNotifs.value.length > 0) {
+      if (dbNotifs.status === 'fulfilled') {
         setNotifications(dbNotifs.value);
       }
     } catch (err) {
@@ -206,20 +215,47 @@ export default function App() {
     let isMounted = true;
     syncDatabase();
 
+    // Deploy Preparation: Purge sample events & extra users from Supabase once on mount
+    if (!localStorage.getItem('evencify_deploy_ready_v1')) {
+      localStorage.setItem('evencify_deploy_ready_v1', 'true');
+      EvencifyApi.purgeSampleEventsAndKeepOneOrganiserOneCrew().then(() => {
+        if (isMounted) syncDatabase();
+      });
+    }
+
+    // Check active session immediately on mount
+    EvencifyApi.getCurrentSession().then((sessionUser) => {
+      if (sessionUser && isMounted) {
+        setActiveUserEmail(sessionUser.email);
+        setActiveUserName(sessionUser.name);
+        setAuthenticatedRole(sessionUser.role);
+        setCurrentRole(sessionUser.role);
+        if (sessionUser.role === 'organiser') {
+          EvencifyApi.getOrganiserProfile(sessionUser.email).then((org) => {
+            if (org && isMounted) setCurrentOrganiserProfile(org);
+          });
+        } else if (sessionUser.role === 'crew') {
+          EvencifyApi.getCrewProfile(sessionUser.email).then((cr) => {
+            if (cr && isMounted) setCurrentCrewProfile(cr);
+          });
+        }
+      }
+    });
+
     // Setup Postgres realtime listeners across all live public tables
     const channel = supabase
       .channel('evencify-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, async () => {
         const freshEvents = await EvencifyApi.getEvents();
-        if (freshEvents.length > 0 && isMounted) setEvents(freshEvents);
+        if (isMounted) setEvents(freshEvents);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'applications' }, async () => {
         const freshApps = await EvencifyApi.getApplications();
-        if (freshApps.length > 0 && isMounted) setApplications(freshApps);
+        if (isMounted) setApplications(freshApps);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'coordination_messages' }, async () => {
         const freshGroups = await EvencifyApi.getCoordinationGroups();
-        if (freshGroups.length > 0 && isMounted) {
+        if (isMounted) {
           setEventGroups(freshGroups);
           setActiveChatGroup((prev) => {
             if (!prev) return null;
@@ -227,13 +263,60 @@ export default function App() {
           });
         }
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, async () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, async (payload) => {
         const freshUsers = await EvencifyApi.getUsers();
-        if (freshUsers.length > 0 && isMounted) setUsers(freshUsers);
+        if (isMounted) setUsers(freshUsers);
+
+        // Check if the changed profile belongs to the active user
+        const targetEmail = activeUserEmail || (() => {
+          try {
+            return JSON.parse(localStorage.getItem('evencify_active_user') || '{}')?.email || '';
+          } catch { return ''; }
+        })();
+
+        if (targetEmail && isMounted) {
+          const updated = payload.new as any;
+          if (updated && updated.email?.toLowerCase() === targetEmail.toLowerCase()) {
+            if (updated.full_name) setActiveUserName(updated.full_name);
+          }
+          if (currentRole === 'crew') {
+            const freshCrew = await EvencifyApi.getCrewProfile(targetEmail);
+            if (freshCrew && isMounted) setCurrentCrewProfile(freshCrew);
+          } else if (currentRole === 'organiser') {
+            const freshOrg = await EvencifyApi.getOrganiserProfile(targetEmail);
+            if (freshOrg && isMounted) setCurrentOrganiserProfile(freshOrg);
+          }
+        }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'crew_profiles' }, async () => {
         const freshCrew = await EvencifyApi.getCrewProfiles();
         if (freshCrew.length > 0 && isMounted) setCrewList(freshCrew);
+
+        const targetEmail = activeUserEmail || (() => {
+          try {
+            return JSON.parse(localStorage.getItem('evencify_active_user') || '{}')?.email || '';
+          } catch { return ''; }
+        })();
+
+        if (targetEmail && isMounted) {
+          const freshCrewProf = await EvencifyApi.getCrewProfile(targetEmail);
+          if (freshCrewProf && isMounted) setCurrentCrewProfile(freshCrewProf);
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'organiser_profiles' }, async () => {
+        const freshUsers = await EvencifyApi.getUsers();
+        if (freshUsers.length > 0 && isMounted) setUsers(freshUsers);
+
+        const targetEmail = activeUserEmail || (() => {
+          try {
+            return JSON.parse(localStorage.getItem('evencify_active_user') || '{}')?.email || '';
+          } catch { return ''; }
+        })();
+
+        if (targetEmail && isMounted) {
+          const freshOrgProf = await EvencifyApi.getOrganiserProfile(targetEmail);
+          if (freshOrgProf && isMounted) setCurrentOrganiserProfile(freshOrgProf);
+        }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, async () => {
         const freshNotifs = await EvencifyApi.getNotifications();
@@ -1104,18 +1187,21 @@ export default function App() {
         isOpen={crewOnboardingOpen}
         onClose={() => setCrewOnboardingOpen(false)}
         initialProfile={currentCrewProfile}
-        onSaveProfile={(updated) => {
+        onSaveProfile={async (updated) => {
           const merged = { ...currentCrewProfile, ...updated };
           setCurrentCrewProfile(merged);
           if (updated.name) setActiveUserName(updated.name);
           if (updated.email) setActiveUserEmail(updated.email);
-          // Persist directly to Supabase
-          EvencifyApi.updateCrewProfile(currentCrewProfile.id, updated).then(() => {
-            showToast('Crew profile saved to database!');
-          }).catch((err) => {
+
+          const targetId = currentCrewProfile.id || activeUserEmail || updated.email || 'crew-1';
+          try {
+            await EvencifyApi.updateCrewProfile(targetId, updated);
+            await syncDatabase();
+            showToast('Crew profile saved & synced live to Supabase!');
+          } catch (err) {
             console.error('Failed to save crew profile to Supabase:', err);
             showToast('Crew profile updated.');
-          });
+          }
         }}
       />
 
@@ -1124,19 +1210,22 @@ export default function App() {
         isOpen={organiserOnboardingOpen}
         onClose={() => setOrganiserOnboardingOpen(false)}
         initialProfile={currentOrganiserProfile}
-        onSaveProfile={(updated) => {
+        onSaveProfile={async (updated) => {
           const merged = { ...currentOrganiserProfile, ...updated };
           setCurrentOrganiserProfile(merged);
           if (updated.companyName) setActiveUserName(updated.companyName);
           else if (updated.name) setActiveUserName(updated.name);
           if (updated.email) setActiveUserEmail(updated.email);
-          // Persist directly to Supabase
-          EvencifyApi.updateOrganiserProfile(currentOrganiserProfile.id, updated).then(() => {
-            showToast('Organiser profile saved to database!');
-          }).catch((err) => {
+
+          const targetId = currentOrganiserProfile.id || activeUserEmail || updated.email || 'org-1';
+          try {
+            await EvencifyApi.updateOrganiserProfile(targetId, updated);
+            await syncDatabase();
+            showToast('Organiser profile saved & synced live to Supabase!');
+          } catch (err) {
             console.error('Failed to save organiser profile to Supabase:', err);
             showToast('Organiser profile updated.');
-          });
+          }
         }}
       />
 

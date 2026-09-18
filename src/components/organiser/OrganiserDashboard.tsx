@@ -291,7 +291,22 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                 </div>
 
                 <div className="space-y-2.5">
-                  {events.slice(0, 3).map((e) => {
+                  {events.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center">
+                      <Calendar className="h-8 w-8 text-neutral-400 mx-auto mb-2" />
+                      <p className="text-sm font-bold text-neutral-800">No active events yet</p>
+                      <p className="text-xs text-neutral-500 mt-1 mb-4">Post your first event to start hiring verified crew.</p>
+                      <button
+                        type="button"
+                        onClick={onOpenCreateEvent}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-neutral-900 px-4 py-2 text-xs font-bold text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+                      >
+                        <Plus className="h-3.5 w-3.5 text-amber-300" />
+                        <span>Create Your First Event</span>
+                      </button>
+                    </div>
+                  ) : (
+                    events.slice(0, 3).map((e) => {
                     const filledSlots = e.crewPositionsTotal - e.crewPositionsAvailable;
 
                     return (
@@ -337,7 +352,7 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                         </div>
                       </div>
                     );
-                  })}
+                  }))}
                 </div>
               </div>
 
@@ -660,7 +675,24 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                 </div>
 
                 <div className="space-y-3">
-                  {events.map((evt) => {
+                  {events.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-10 text-center">
+                      <Calendar className="h-10 w-10 text-neutral-400 mx-auto mb-3" />
+                      <h3 className="text-base font-bold text-neutral-900">You haven't posted any events yet</h3>
+                      <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto mb-5">
+                        Create and publish an event to start receiving applications from verified event crew with skill verification and direct hiring.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={onOpenCreateEvent}
+                        className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition-all cursor-pointer shadow-xs"
+                      >
+                        <Plus className="h-4 w-4 text-amber-300" />
+                        <span>Create New Event</span>
+                      </button>
+                    </div>
+                  ) : (
+                    events.map((evt) => {
                     const filledSlots = evt.crewPositionsTotal - evt.crewPositionsAvailable;
                     const eventGroup = eventGroups.find((g) => g.eventId === evt.id);
                     const isExpanded = expandedCardIds.includes(evt.id);
@@ -802,7 +834,7 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                         )}
                       </div>
                     );
-                  })}
+                  }))}
                 </div>
               </div>
             )}

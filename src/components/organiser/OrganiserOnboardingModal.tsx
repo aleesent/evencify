@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { OrganiserProfile } from '../../types';
-import { X, Building2, ShieldCheck, CheckCircle2, ArrowRight, FileCheck, Lock } from 'lucide-react';
+import { X, Building2, ShieldCheck, CheckCircle2, ArrowRight, FileCheck, Lock, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface OrganiserOnboardingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSaveProfile: (profile: Partial<OrganiserProfile>) => void;
+  onSaveProfile: (profile: Partial<OrganiserProfile>) => Promise<void> | void;
   initialProfile?: Partial<OrganiserProfile>;
 }
 
@@ -31,6 +31,7 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
   const [udyamNumber, setUdyamNumber] = useState(
     initialProfile?.udyamNumber || 'UDYAM-GJ-24-0098412'
   );
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (isOpen && initialProfile) {
@@ -48,20 +49,27 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSaveProfile({
-      name,
-      companyName,
-      email,
-      phone,
-      address,
-      pincode,
-      city,
-      hasUdyam,
-      udyamNumber: hasUdyam ? udyamNumber : undefined,
-    });
-    onClose();
+    setIsSaving(true);
+    try {
+      await onSaveProfile({
+        name,
+        companyName,
+        email,
+        phone,
+        address,
+        pincode,
+        city,
+        hasUdyam,
+        udyamNumber: hasUdyam ? udyamNumber : undefined,
+      });
+      onClose();
+    } catch (err) {
+      console.error('Save organiser profile error:', err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -256,10 +264,20 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
 
             <button
               type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-[#FED000] py-3 text-xs sm:text-sm font-black text-black hover:bg-[#E5BB00] transition-all cursor-pointer"
+              disabled={isSaving}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-[#FED000] py-3 text-xs sm:text-sm font-black text-black hover:bg-[#E5BB00] transition-all cursor-pointer disabled:opacity-50"
             >
-              <span>Save & Open Organiser Dashboard</span>
-              <ArrowRight className="h-4 w-4 text-black" />
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-black" />
+                  <span>Syncing Live with Supabase...</span>
+                </>
+              ) : (
+                <>
+                  <span>Save Profile & Sync Live</span>
+                  <ArrowRight className="h-4 w-4 text-black" />
+                </>
+              )}
             </button>
           </form>
         </motion.div>

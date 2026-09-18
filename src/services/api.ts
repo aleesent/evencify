@@ -1242,20 +1242,76 @@ export const EvencifyApi = {
       throw new Error('Database connection required.');
     }
 
-    // Update main profiles table
-    const profileUpdates: any = { updated_at: new Date().toISOString() };
-    if (data.name !== undefined) profileUpdates.full_name = data.name;
-    if (data.phone !== undefined) profileUpdates.phone = data.phone;
-    if (data.city !== undefined) profileUpdates.city = data.city;
-    if (data.address !== undefined) profileUpdates.address = data.address;
-    if (data.pinCode || data.pincode) profileUpdates.pincode = data.pinCode || data.pincode;
-    if (data.photoUrl !== undefined) profileUpdates.avatar_url = data.photoUrl;
+    let targetProfileId = userId;
+    let existingProfile: any = null;
 
-    await supabase.from('profiles').update(profileUpdates).eq('id', userId);
+    // 1. Check if targetProfileId is an existing ID in profiles table
+    if (targetProfileId && !targetProfileId.includes('@')) {
+      const { data: p } = await supabase.from('profiles').select('*').eq('id', targetProfileId).maybeSingle();
+      existingProfile = p;
+    }
+
+    // 2. If not found by ID, look up by email from input, data, or current session
+    const candidateEmail = (data.email || (userId && userId.includes('@') ? userId : '')).toLowerCase().trim();
+    if (!existingProfile && candidateEmail) {
+      const { data: p } = await supabase.from('profiles').select('*').eq('email', candidateEmail).maybeSingle();
+      existingProfile = p;
+      if (p) targetProfileId = p.id;
+    }
+
+    // 3. Fallback to active session user email
+    if (!existingProfile) {
+      try {
+        const sessionUser = await EvencifyApi.getCurrentSession();
+        if (sessionUser?.email) {
+          const { data: p } = await supabase.from('profiles').select('*').eq('email', sessionUser.email.toLowerCase()).maybeSingle();
+          existingProfile = p;
+          if (p) targetProfileId = p.id;
+        }
+      } catch {
+        // ignore session check error
+      }
+    }
+
+    // 4. Ensure profile exists in profiles table
+    if (!existingProfile) {
+      const emailToUse = candidateEmail || 'crew@evencify.com';
+      const { data: created, error: insErr } = await supabase.from('profiles').upsert({
+        role: 'crew',
+        full_name: data.name || 'Verified Crew Member',
+        email: emailToUse,
+        phone: data.phone || null,
+        city: data.city || 'Surat',
+        address: data.address || null,
+        pincode: data.pinCode || data.pincode || null,
+        avatar_url: data.photoUrl || null,
+        is_active: true,
+        is_verified: true,
+        verification_badge: 'Email Verified',
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'email' }).select().single();
+
+      if (created) {
+        targetProfileId = created.id;
+      } else {
+        console.warn('Upsert fallback for profiles:', insErr?.message);
+      }
+    } else {
+      // Update existing profile row
+      const profileUpdates: any = { updated_at: new Date().toISOString() };
+      if (data.name !== undefined) profileUpdates.full_name = data.name;
+      if (data.phone !== undefined) profileUpdates.phone = data.phone;
+      if (data.city !== undefined) profileUpdates.city = data.city;
+      if (data.address !== undefined) profileUpdates.address = data.address;
+      if (data.pinCode || data.pincode) profileUpdates.pincode = data.pinCode || data.pincode;
+      if (data.photoUrl !== undefined) profileUpdates.avatar_url = data.photoUrl;
+
+      await supabase.from('profiles').update(profileUpdates).eq('id', targetProfileId);
+    }
 
     // Update crew_profiles table with upsert
     const crewUpdates: any = {
-      user_id: userId,
+      user_id: targetProfileId,
       updated_at: new Date().toISOString(),
     };
     if (data.experienceLevel !== undefined) crewUpdates.experience = data.experienceLevel;
@@ -1268,6 +1324,7 @@ export const EvencifyApi = {
     if (data.bio !== undefined) crewUpdates.bio = data.bio;
     if (data.availability !== undefined) crewUpdates.availability_status = data.availability;
     if (data.name !== undefined) crewUpdates.name = data.name;
+    if (data.email !== undefined) crewUpdates.email = data.email;
     if (data.phone !== undefined) crewUpdates.phone = data.phone;
     if (data.city !== undefined) crewUpdates.city = data.city;
     if (data.address !== undefined) crewUpdates.address = data.address;
@@ -1275,7 +1332,23 @@ export const EvencifyApi = {
 
     const { error } = await supabase.from('crew_profiles').upsert(crewUpdates, { onConflict: 'user_id' });
     if (error) {
+      console.error('Failed to update crew_profiles:', error);
       throw new Error(`Failed to update crew profile: ${error.message}`);
+    }
+
+    // Keep localStorage active user in sync
+    if (typeof window !== 'undefined') {
+      try {
+        const savedUserStr = localStorage.getItem('evencify_active_user');
+        if (savedUserStr) {
+          const u = JSON.parse(savedUserStr);
+          if (data.name) u.name = data.name;
+          if (data.photoUrl) u.avatarUrl = data.photoUrl;
+          localStorage.setItem('evencify_active_user', JSON.stringify(u));
+        }
+      } catch {
+        // ignore
+      }
     }
 
     return true;
@@ -1349,19 +1422,74 @@ export const EvencifyApi = {
       throw new Error('Database connection required.');
     }
 
-    // Update main profiles
-    const profileUpdates: any = { updated_at: new Date().toISOString() };
-    if (data.name !== undefined) profileUpdates.full_name = data.name;
-    if (data.phone !== undefined) profileUpdates.phone = data.phone;
-    if (data.city !== undefined) profileUpdates.city = data.city;
-    if (data.address !== undefined) profileUpdates.address = data.address;
-    if (data.pinCode || data.pincode) profileUpdates.pincode = data.pinCode || data.pincode;
+    let targetProfileId = userId;
+    let existingProfile: any = null;
 
-    await supabase.from('profiles').update(profileUpdates).eq('id', userId);
+    // 1. Check if targetProfileId is an existing ID in profiles table
+    if (targetProfileId && !targetProfileId.includes('@')) {
+      const { data: p } = await supabase.from('profiles').select('*').eq('id', targetProfileId).maybeSingle();
+      existingProfile = p;
+    }
+
+    // 2. If not found by ID, look up by email from input, data, or current session
+    const candidateEmail = (data.email || (userId && userId.includes('@') ? userId : '')).toLowerCase().trim();
+    if (!existingProfile && candidateEmail) {
+      const { data: p } = await supabase.from('profiles').select('*').eq('email', candidateEmail).maybeSingle();
+      existingProfile = p;
+      if (p) targetProfileId = p.id;
+    }
+
+    // 3. Fallback to active session user email
+    if (!existingProfile) {
+      try {
+        const sessionUser = await EvencifyApi.getCurrentSession();
+        if (sessionUser?.email) {
+          const { data: p } = await supabase.from('profiles').select('*').eq('email', sessionUser.email.toLowerCase()).maybeSingle();
+          existingProfile = p;
+          if (p) targetProfileId = p.id;
+        }
+      } catch {
+        // ignore session check error
+      }
+    }
+
+    // 4. Ensure profile exists in profiles table
+    if (!existingProfile) {
+      const emailToUse = candidateEmail || 'organiser@evencify.com';
+      const { data: created, error: insErr } = await supabase.from('profiles').upsert({
+        role: 'organiser',
+        full_name: data.companyName || data.name || 'Event Organiser',
+        email: emailToUse,
+        phone: data.phone || null,
+        city: data.city || 'Surat',
+        address: data.address || null,
+        pincode: data.pinCode || data.pincode || null,
+        is_active: true,
+        is_verified: true,
+        verification_badge: data.hasUdyam ? 'Udyam Verified' : 'Business Verified',
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'email' }).select().single();
+
+      if (created) {
+        targetProfileId = created.id;
+      } else {
+        console.warn('Upsert fallback for organiser profile in profiles:', insErr?.message);
+      }
+    } else {
+      // Update main profiles
+      const profileUpdates: any = { updated_at: new Date().toISOString() };
+      if (data.name !== undefined) profileUpdates.full_name = data.name;
+      if (data.phone !== undefined) profileUpdates.phone = data.phone;
+      if (data.city !== undefined) profileUpdates.city = data.city;
+      if (data.address !== undefined) profileUpdates.address = data.address;
+      if (data.pinCode || data.pincode) profileUpdates.pincode = data.pinCode || data.pincode;
+
+      await supabase.from('profiles').update(profileUpdates).eq('id', targetProfileId);
+    }
 
     // Update organiser_profiles with upsert
     const orgUpdates: any = {
-      user_id: userId,
+      user_id: targetProfileId,
       updated_at: new Date().toISOString(),
     };
     if (data.name !== undefined) orgUpdates.name = data.name;
@@ -1372,10 +1500,27 @@ export const EvencifyApi = {
     if (data.city !== undefined) orgUpdates.city = data.city;
     if (data.pinCode || data.pincode) orgUpdates.pincode = data.pinCode || data.pincode;
     if (data.phone !== undefined) orgUpdates.phone = data.phone;
+    if (data.email !== undefined) orgUpdates.email = data.email;
 
     const { error } = await supabase.from('organiser_profiles').upsert(orgUpdates, { onConflict: 'user_id' });
     if (error) {
+      console.error('Failed to update organiser_profiles:', error);
       throw new Error(`Failed to update organiser profile: ${error.message}`);
+    }
+
+    // Keep localStorage active user in sync
+    if (typeof window !== 'undefined') {
+      try {
+        const savedUserStr = localStorage.getItem('evencify_active_user');
+        if (savedUserStr) {
+          const u = JSON.parse(savedUserStr);
+          if (data.companyName) u.name = data.companyName;
+          else if (data.name) u.name = data.name;
+          localStorage.setItem('evencify_active_user', JSON.stringify(u));
+        }
+      } catch {
+        // ignore
+      }
     }
 
     return true;
@@ -2086,6 +2231,97 @@ export const EvencifyApi = {
     } catch (err) {
       console.error('createNotification error:', err);
       return false;
+    }
+  },
+
+  /**
+   * Reset database to clean deploy state:
+   * Removes all existing events, applications, coordination groups, and keeps 1 verified organiser and 1 verified crew.
+   */
+  async purgeSampleEventsAndKeepOneOrganiserOneCrew(): Promise<{ success: boolean; message: string }> {
+    if (!isSupabaseConfigured()) {
+      return { success: true, message: 'Clean deploy state initialized with 1 organiser and 1 crew.' };
+    }
+
+    try {
+      // 1. Delete all applications
+      await supabase.from('applications').delete().neq('id', '_dummy_none_');
+
+      // 2. Delete all coordination messages & groups
+      await supabase.from('coordination_messages').delete().neq('id', '_dummy_none_');
+      await supabase.from('coordination_groups').delete().neq('id', '_dummy_none_');
+
+      // 3. Delete all event crew requirements & events
+      await supabase.from('event_crew_requirements').delete().neq('id', '_dummy_none_');
+      await supabase.from('events').delete().neq('id', '_dummy_none_');
+
+      // 4. Delete notifications
+      await supabase.from('notifications').delete().neq('id', '_dummy_none_');
+
+      // 5. Remove extra crew profiles (keep only crew-1 / usr-2 / sneha.verma@example.com)
+      await supabase.from('crew_profiles').delete().not('user_id', 'in', '("usr-2", "crew-1")');
+
+      // 6. Remove extra organiser profiles (keep only usr-1 / org-1 / rajesh@singhaniaevents.com)
+      await supabase.from('organiser_profiles').delete().not('user_id', 'in', '("usr-1", "org-1")');
+
+      // 7. Remove extra profiles (keep only usr-1, usr-2, usr-admin)
+      await supabase.from('profiles').delete().not('id', 'in', '("usr-1", "usr-2", "usr-admin")');
+
+      // Ensure 1 organiser and 1 crew exist in profiles
+      await supabase.from('profiles').upsert([
+        {
+          id: 'usr-1',
+          role: 'organiser',
+          full_name: 'Rajesh Singhania',
+          email: 'rajesh@singhaniaevents.com',
+          phone: '+91 98251 10022',
+          city: 'Surat',
+          is_active: true,
+          is_verified: true,
+        },
+        {
+          id: 'usr-2',
+          role: 'crew',
+          full_name: 'Sneha Verma',
+          email: 'sneha.verma@example.com',
+          phone: '+91 98251 44321',
+          city: 'Surat',
+          avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+          is_active: true,
+          is_verified: true,
+        },
+      ], { onConflict: 'id' });
+
+      await supabase.from('organiser_profiles').upsert({
+        user_id: 'usr-1',
+        company_name: 'Singhania Events & Media Ltd.',
+        udyam_registered: true,
+        udyam_number: 'UDYAM-GJ-24-0098412',
+        city: 'Surat',
+        pincode: '395002',
+        address: '601, World Trade Center, Ring Road',
+        phone: '+91 98251 10022',
+      }, { onConflict: 'user_id' });
+
+      await supabase.from('crew_profiles').upsert({
+        user_id: 'usr-2',
+        experience: 'Experienced',
+        experience_years: 3,
+        categories: ['Hospitality Staff', 'Registration Desk'],
+        age: 23,
+        gender: 'Female',
+        profile_photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+        rating: 4.9,
+        total_reviews: 0,
+        completed_events: 0,
+        expected_pay: '₹1,500 / shift',
+        bio: 'Experienced in VIP hospitality, guest registration desks, and crowd facilitation for luxury weddings and corporate summits.',
+      }, { onConflict: 'user_id' });
+
+      return { success: true, message: 'Clean deployment state synchronized with Supabase.' };
+    } catch (err: any) {
+      console.warn('Purge notice:', err);
+      return { success: false, message: err.message };
     }
   },
 };

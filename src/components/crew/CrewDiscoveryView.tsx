@@ -227,7 +227,34 @@ export const CrewDiscoveryView: React.FC<CrewDiscoveryViewProps> = ({
             <span className="text-xs font-bold text-black">Priced in INR (₹)</span>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {filteredEvents.length === 0 ? (
+            <div className="rounded-[24px] border-2 border-black bg-white p-10 sm:p-14 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FED000] border-2 border-black mb-4">
+                <Calendar className="h-7 w-7 text-black" />
+              </div>
+              <h3 className="text-lg font-black text-black">No Open Shifts Right Now</h3>
+              <p className="mt-1.5 text-sm font-semibold text-black/70 max-w-md mx-auto">
+                No active event shifts are currently posted matching your selection. New opportunities are posted regularly by verified organisers.
+              </p>
+              {(searchQuery || selectedCity !== 'All' || selectedEventType !== 'All' || selectedRoleCategory !== 'All' || selectedExperience !== 'All' || selectedGender !== 'All') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedCity('All');
+                    setSelectedEventType('All');
+                    setSelectedRoleCategory('All');
+                    setSelectedExperience('All');
+                    setSelectedGender('All');
+                  }}
+                  className="mt-5 rounded-xl border-2 border-black bg-black px-5 py-2.5 text-xs font-black text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+                >
+                  Clear All Filters
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {filteredEvents.map((event) => {
               const status = getApplicationStatus(event.id);
               return (
@@ -324,6 +351,7 @@ export const CrewDiscoveryView: React.FC<CrewDiscoveryViewProps> = ({
               );
             })}
           </div>
+          )}
         </div>
 
       </div>

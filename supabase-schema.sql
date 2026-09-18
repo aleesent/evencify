@@ -333,6 +333,18 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.notifications(user_i
 DO $$
 BEGIN
   BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.crew_profiles;
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.organiser_profiles;
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+  BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.events;
   EXCEPTION WHEN duplicate_object THEN NULL;
   END;
@@ -475,142 +487,52 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================================================
--- IDEMPOTENT SEED DATA (Only inserts records that do not already exist)
+-- ============================================================================
+-- IDEMPOTENT DEPLOY READY SEED DATA (1 Organiser, 1 Crew, 0 Events)
 -- ============================================================================
 
--- 1. Profiles
-INSERT INTO public.profiles (id, role, full_name, email, phone, avatar_url, city, address, pincode, is_active)
-SELECT 'usr-admin', 'admin', 'Evencify Operations Admin', 'admin@evencify.com', '+91 98250 11223', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80', 'Surat', 'Ring Road Business Hub', '395002', true
+-- Clean out legacy sample events & demo test records if any exist
+DELETE FROM public.applications WHERE id IN ('app-1', 'app-2', 'app-3', 'app-4', 'app-5', 'app-6', 'app-7', 'app-8');
+DELETE FROM public.coordination_messages WHERE group_id IN ('group-evt-101', 'group-evt-102');
+DELETE FROM public.coordination_groups WHERE id IN ('group-evt-101', 'group-evt-102');
+DELETE FROM public.event_crew_requirements WHERE event_id IN ('evt-101', 'evt-102', 'evt-103', 'evt-104', 'evt-105', 'evt-106', 'evt-107', 'evt-108', 'evt-109', 'evt-110', 'evt-111');
+DELETE FROM public.events WHERE id IN ('evt-101', 'evt-102', 'evt-103', 'evt-104', 'evt-105', 'evt-106', 'evt-107', 'evt-108', 'evt-109', 'evt-110', 'evt-111');
+DELETE FROM public.crew_profiles WHERE user_id IN ('usr-3', 'usr-4', 'usr-5', 'crew-3', 'crew-4', 'crew-5');
+DELETE FROM public.profiles WHERE id IN ('usr-3', 'usr-4', 'usr-5', 'crew-3', 'crew-4', 'crew-5');
+
+-- 1. Profiles (1 Organiser, 1 Crew, 1 Operations Admin)
+INSERT INTO public.profiles (id, role, full_name, email, phone, avatar_url, city, address, pincode, is_active, is_verified)
+SELECT 'usr-admin', 'admin', 'Evencify Operations Admin', 'admin@evencify.com', '+91 98000 00001', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80', 'Surat', 'Ring Road Business Hub', '395002', true, true
 WHERE NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = 'usr-admin' OR email = 'admin@evencify.com');
 
-INSERT INTO public.profiles (id, role, full_name, email, phone, avatar_url, city, address, pincode, is_active)
-SELECT 'usr-1', 'organiser', 'Rajesh Singhania', 'rajesh@singhaniaevents.com', '+91 98251 98765', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80', 'Surat', 'Ghod Dod Road, Athwa', '395007', true
+INSERT INTO public.profiles (id, role, full_name, email, phone, avatar_url, city, address, pincode, is_active, is_verified)
+SELECT 'usr-1', 'organiser', 'Rajesh Singhania', 'rajesh@singhaniaevents.com', '+91 98251 10022', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80', 'Surat', '601, World Trade Center, Ring Road', '395002', true, true
 WHERE NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = 'usr-1' OR email = 'rajesh@singhaniaevents.com');
 
-INSERT INTO public.profiles (id, role, full_name, email, phone, avatar_url, city, address, pincode, is_active)
-SELECT 'usr-2', 'crew', 'Ananya Sharma', 'ananya.sharma@example.com', '+91 98251 44321', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=80', 'Surat', 'City Light Town', '395007', true
-WHERE NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = 'usr-2' OR email = 'ananya.sharma@example.com');
+INSERT INTO public.profiles (id, role, full_name, email, phone, avatar_url, city, address, pincode, is_active, is_verified)
+SELECT 'usr-2', 'crew', 'Sneha Verma', 'sneha.verma@example.com', '+91 98251 44321', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80', 'Surat', '402, Riverfront Enclave, Vesu', '395007', true, true
+WHERE NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = 'usr-2' OR email = 'sneha.verma@example.com');
 
-INSERT INTO public.profiles (id, role, full_name, email, phone, avatar_url, city, address, pincode, is_active)
-SELECT 'usr-3', 'crew', 'Rohan Mehta', 'rohan.mehta@example.com', '+91 98795 12345', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80', 'Surat', 'Vesu Main Road', '395007', true
-WHERE NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = 'usr-3' OR email = 'rohan.mehta@example.com');
-
-INSERT INTO public.profiles (id, role, full_name, email, phone, avatar_url, city, address, pincode, is_active)
-SELECT 'usr-4', 'crew', 'Vikramaditya Rathore', 'vikram.rathore@example.com', '+91 97123 45678', 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=400&auto=format&fit=crop&q=80', 'Mumbai', 'Bandra West', '400050', true
-WHERE NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = 'usr-4' OR email = 'vikram.rathore@example.com');
-
-INSERT INTO public.profiles (id, role, full_name, email, phone, avatar_url, city, address, pincode, is_active)
-SELECT 'crew-3', 'crew', 'Priya Choksi', 'priya.choksi@example.com', '+91 98241 88990', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80', 'Surat', 'Adajan Circle', '395009', true
-WHERE NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = 'crew-3' OR email = 'priya.choksi@example.com');
-
-INSERT INTO public.profiles (id, role, full_name, email, phone, avatar_url, city, address, pincode, is_active)
-SELECT 'usr-5', 'crew', 'Kavita Patel', 'kavita.patel@example.com', '+91 98980 11223', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80', 'Ahmedabad', 'SG Highway', '380054', true
-WHERE NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = 'usr-5' OR email = 'kavita.patel@example.com');
-
-INSERT INTO public.profiles (id, role, full_name, email, phone, avatar_url, city, address, pincode, is_active)
-SELECT 'crew-5', 'crew', 'Tanvi Joshi', 'tanvi.j@example.com', '+91 98111 22334', 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80', 'Surat', 'Pal Rander Road', '395009', true
-WHERE NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = 'crew-5' OR email = 'tanvi.j@example.com');
-
--- 2. Crew Profiles
+-- 2. Crew Profile (Single initial crew: Sneha Verma)
 INSERT INTO public.crew_profiles (user_id, experience, categories, age, gender, profile_photo_url, rating, total_reviews, completed_events, availability_status, expected_pay, bio)
 VALUES
-  ('usr-2', 'Experienced', ARRAY['Hospitality Staff', 'Registration Desk', 'Event Helper']::TEXT[], 23, 'Female', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=80', 4.9, 18, 22, 'Available for Shifts', '₹1,600 / shift', 'Enthusiastic guest relations and hospitality crew member with 3+ years experience in luxury weddings and corporate summits.'),
-  ('usr-3', 'Veteran', ARRAY['Security', 'Setup / Teardown', 'Support']::TEXT[], 26, 'Male', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80', 4.8, 34, 45, 'Available for Shifts', '₹2,000 / shift', 'Stage production specialist, security coordinator, and logistics team lead.'),
-  ('crew-3', 'Experienced', ARRAY['Registration Desk', 'Promoter', 'Hospitality Staff']::TEXT[], 22, 'Female', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80', 5.0, 12, 16, 'Available for Shifts', '₹1,500 / shift', 'Fluent in English, Hindi, and Gujarati. Excellent attendee welcoming and registration desk management.'),
-  ('usr-4', 'Veteran', ARRAY['Security', 'Event Helper']::TEXT[], 28, 'Male', 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=400&auto=format&fit=crop&q=80', 4.9, 29, 38, 'Available for Shifts', '₹2,200 / shift', 'Professional event crowd management and VIP liaison for major arena concerts.'),
-  ('crew-5', 'Experienced', ARRAY['Hospitality Staff', 'Waiter / Service Staff']::TEXT[], 24, 'Female', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80', 4.7, 15, 19, 'Available for Shifts', '₹1,500 / shift', 'Hospitality coordinator with fine-dining catering and luxury convention experience.')
+  ('usr-2', 'Experienced', ARRAY['Hospitality Staff', 'Registration Desk']::TEXT[], 23, 'Female', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80', 4.9, 0, 0, 'Available for Shifts', '₹1,500 / shift', 'Experienced in VIP hospitality, guest registration desks, and crowd facilitation for luxury weddings and corporate summits.')
 ON CONFLICT (user_id) DO UPDATE SET
   rating = EXCLUDED.rating,
-  total_reviews = EXCLUDED.total_reviews,
-  completed_events = EXCLUDED.completed_events;
+  categories = EXCLUDED.categories,
+  expected_pay = EXCLUDED.expected_pay;
 
--- 3. Organiser Profiles
+-- 3. Organiser Profile (Single initial organiser: Rajesh Singhania / Singhania Events)
 INSERT INTO public.organiser_profiles (user_id, company_name, udyam_registered, udyam_number, address, city, pincode, phone)
 VALUES
-  ('usr-1', 'Singhania Events & Media Ltd.', true, 'UDYAM-GJ-24-0019283', '3rd Floor, International Trade Center, Ring Road', 'Surat', '395002', '+91 98251 98765')
+  ('usr-1', 'Singhania Events & Media Ltd.', true, 'UDYAM-GJ-24-0098412', '601, World Trade Center, Ring Road', 'Surat', '395002', '+91 98251 10022')
 ON CONFLICT (user_id) DO UPDATE SET
   company_name = EXCLUDED.company_name,
-  udyam_registered = EXCLUDED.udyam_registered;
+  udyam_registered = EXCLUDED.udyam_registered,
+  udyam_number = EXCLUDED.udyam_number;
 
--- 4. Events (Uses WHERE NOT EXISTS on id to never conflict with existing events)
-INSERT INTO public.events (
-  id, organiser_id, organiser_name, event_name, event_type, event_date, start_time, end_time,
-  venue, full_address, city, expected_attendance, total_crew_required, crew_positions_available,
-  required_category, gender_requirement, age_requirement, experience_requirement, dress_code,
-  special_requirements, pay_amount, payment_basis, payment_method, payment_timeline,
-  advance_required, advance_amount, status
-)
-SELECT
-  'evt-101', 'usr-1', 'Singhania Events & Media Ltd.', 'Grand Wedding Celebration — Mehta & Desai',
-  'Wedding', '2026-10-15', '16:00', '23:30', 'Avadh Utopia Resort',
-  'Dumas Road, Near Airport, Surat, Gujarat 395007', 'Surat', 1200, 15, 6,
-  'Hospitality Staff', 'Any', '20-30', 'Experienced', 'Black Formals with Nehru Jacket',
-  'Fluent Gujarati & Hindi speaker. Welcoming VIP guests at main foyer and escorting to banquet hall.',
-  1800, 'Per Shift', 'Direct UPI / Bank Transfer', 'Same Day', false, 0, 'published'
-WHERE NOT EXISTS (SELECT 1 FROM public.events WHERE id = 'evt-101');
-
-INSERT INTO public.events (
-  id, organiser_id, organiser_name, event_name, event_type, event_date, start_time, end_time,
-  venue, full_address, city, expected_attendance, total_crew_required, crew_positions_available,
-  required_category, gender_requirement, age_requirement, experience_requirement, dress_code,
-  special_requirements, pay_amount, payment_basis, payment_method, payment_timeline,
-  advance_required, advance_amount, status
-)
-SELECT
-  'evt-102', 'usr-1', 'Singhania Events & Media Ltd.', 'FinTech Leaders Summit 2026',
-  'Corporate', '2026-10-22', '08:30', '18:00', 'Surat International Exhibition & Convention Centre (SIECC)',
-  'Sarsana, Althan Road, Surat, Gujarat 395007', 'Surat', 800, 8, 3,
-  'Registration Desk', 'Female', '21-28', 'Experienced', 'Navy Blue Blazer, White Shirt, Trousers',
-  'Handling RFID delegate badge printing and QR check-in desks. Laptop skills required.',
-  2200, 'Per Day', 'Direct UPI / Bank Transfer', 'Within 24 Hours', false, 0, 'published'
-WHERE NOT EXISTS (SELECT 1 FROM public.events WHERE id = 'evt-102');
-
--- 5. Applications
-INSERT INTO public.applications (
-  id, event_id, event_name, event_date, crew_user_id, crew_name, crew_email, crew_phone,
-  crew_photo, crew_category, experience_years, system_rating, city, category, status, note, applied_at
-)
-SELECT
-  'app-1', 'evt-101', 'Grand Wedding Celebration — Mehta & Desai', '2026-10-15', 'usr-2', 'Ananya Sharma', 'ananya.sharma@example.com', '+91 98251 44321', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=80', 'Hospitality Staff', 3, 4.9, 'Surat', 'Hospitality Staff', 'accepted', 'Experienced in luxury weddings at Avadh Utopia. Ready for full evening shift.', now() - INTERVAL '3 days'
-WHERE NOT EXISTS (SELECT 1 FROM public.applications WHERE id = 'app-1');
-
-INSERT INTO public.applications (
-  id, event_id, event_name, event_date, crew_user_id, crew_name, crew_email, crew_phone,
-  crew_photo, crew_category, experience_years, system_rating, city, category, status, note, applied_at
-)
-SELECT
-  'app-2', 'evt-101', 'Grand Wedding Celebration — Mehta & Desai', '2026-10-15', 'usr-3', 'Rohan Mehta', 'rohan.mehta@example.com', '+91 98795 12345', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80', 'Security', 5, 4.8, 'Surat', 'Security', 'accepted', 'Available with private vehicle for early venue inspection.', now() - INTERVAL '2 days'
-WHERE NOT EXISTS (SELECT 1 FROM public.applications WHERE id = 'app-2');
-
--- 6. Event Coordination Groups
-INSERT INTO public.coordination_groups (
-  id, event_id, event_name, event_date, event_venue, organiser_id, organiser_name,
-  organiser_phone, created_by_admin_id, status, crew_members
-)
-SELECT
-  'group-evt-101', 'evt-101', 'Grand Wedding Celebration — Mehta & Desai', '2026-10-15',
-  'Avadh Utopia Resort, Dumas Road', 'usr-1', 'Rajesh Singhania',
-  '+91 98251 98765', 'usr-admin', 'active',
-  '[{"userId":"usr-2","name":"Ananya Sharma","category":"Hospitality Staff"},{"userId":"usr-3","name":"Rohan Mehta","category":"Security"}]'::jsonb
-WHERE NOT EXISTS (SELECT 1 FROM public.coordination_groups WHERE id = 'group-evt-101');
-
--- 7. Coordination Chat Messages
-INSERT INTO public.coordination_messages (id, group_id, sender_id, sender_name, sender_role, content, is_announcement, created_at)
-SELECT 'msg-1', 'group-evt-101', 'usr-admin', 'Evencify Operations Admin', 'admin', 'Welcome team! This is the official shift coordination group for the Mehta & Desai Wedding at Avadh Utopia.', true, now() - INTERVAL '2 hours'
-WHERE NOT EXISTS (SELECT 1 FROM public.coordination_messages WHERE id = 'msg-1');
-
-INSERT INTO public.coordination_messages (id, group_id, sender_id, sender_name, sender_role, content, is_announcement, created_at)
-SELECT 'msg-2', 'group-evt-101', 'usr-1', 'Rajesh Singhania', 'organiser', 'Welcome everyone! Please report at the service entrance gate by 3:30 PM sharp for your RFID wristbands and briefing.', false, now() - INTERVAL '1 hour 45 minutes'
-WHERE NOT EXISTS (SELECT 1 FROM public.coordination_messages WHERE id = 'msg-2');
-
--- 8. Notifications
-INSERT INTO public.notifications (id, user_id, title, message, type, is_read, created_at)
-SELECT 'notif-1', 'usr-2', 'Application Accepted!', 'Congratulations Ananya! You have been accepted for Grand Wedding Celebration — Mehta & Desai on Oct 15.', 'application', false, now() - INTERVAL '2 hours'
-WHERE NOT EXISTS (SELECT 1 FROM public.notifications WHERE id = 'notif-1');
-
-INSERT INTO public.notifications (id, user_id, title, message, type, is_read, created_at)
-SELECT 'notif-2', 'usr-1', 'New Applicant', 'Priya Choksi has applied for Registration Desk at your event Gujarat Textile Expo.', 'application', false, now() - INTERVAL '1 hour'
-WHERE NOT EXISTS (SELECT 1 FROM public.notifications WHERE id = 'notif-2');
+-- Note: Events, Applications, and Coordination Groups are completely cleared (0 existing events)
+-- Ready for production deployment!
 
 -- Confirmation output
-SELECT 'Evencify Database Schema & Seed Data successfully provisioned!' AS status;
+SELECT 'Evencify Database Schema initialized with 1 Organiser and 1 Crew (Deploy Ready)!' AS status;

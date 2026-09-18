@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CrewProfile, CrewCategory, CREW_CATEGORIES } from '../../types';
-import { X, CheckCircle2, Upload, AlertCircle, ArrowRight, ShieldCheck, Lock } from 'lucide-react';
+import { X, CheckCircle2, Upload, ArrowRight, Lock, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { EvencifyApi } from '../../services/api';
 
 interface CrewOnboardingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSaveProfile: (profile: Partial<CrewProfile>) => void;
+  onSaveProfile: (profile: Partial<CrewProfile>) => Promise<void> | void;
   initialProfile?: Partial<CrewProfile>;
 }
 
@@ -16,24 +17,28 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
   onSaveProfile,
   initialProfile,
 }) => {
-  const [name, setName] = useState(initialProfile?.name || 'Aarav Mehta');
-  const [phone, setPhone] = useState(initialProfile?.phone || '+91 98251 44556');
-  const [email, setEmail] = useState(initialProfile?.email || 'aarav.mehta@gmail.com');
+  const [name, setName] = useState(initialProfile?.name || 'Sneha Verma');
+  const [phone, setPhone] = useState(initialProfile?.phone || '+91 98251 44321');
+  const [email, setEmail] = useState(initialProfile?.email || 'sneha.verma@example.com');
   const [age, setAge] = useState<number>(initialProfile?.age || 23);
-  const [gender, setGender] = useState<'Male' | 'Female' | 'Other'>(initialProfile?.gender || 'Male');
+  const [gender, setGender] = useState<'Male' | 'Female' | 'Other'>(initialProfile?.gender || 'Female');
   const [city, setCity] = useState(initialProfile?.city || 'Surat');
-  const [address, setAddress] = useState(initialProfile?.address || '104, Shivalik Park, Vesu');
+  const [address, setAddress] = useState(initialProfile?.address || '402, Riverfront Enclave, Vesu');
   const [pincode, setPincode] = useState(initialProfile?.pincode || '395007');
-  const [experienceYears, setExperienceYears] = useState<number>(initialProfile?.experienceYears || 2);
+  const [experienceYears, setExperienceYears] = useState<number>(initialProfile?.experienceYears || 3);
   const [experienceLevel, setExperienceLevel] = useState<'Fresher' | 'Experienced' | 'Veteran'>('Experienced');
   const [selectedCategories, setSelectedCategories] = useState<CrewCategory[]>(
     initialProfile?.categories || ['Hospitality Staff', 'Registration Desk']
   );
   const [photoUrl, setPhotoUrl] = useState(
     initialProfile?.photoUrl ||
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80'
   );
   const [expectedPay, setExpectedPay] = useState(initialProfile?.expectedPay || '₹1,500 / shift');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen && initialProfile) {
@@ -65,25 +70,59 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Please select a valid image file (JPG, PNG, WebP).');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('File size must be under 5MB.');
+      return;
+    }
+
+    setUploadError(null);
+    setIsUploadingPhoto(true);
+    try {
+      const publicUrl = await EvencifyApi.uploadAvatar(file, initialProfile?.id);
+      setPhotoUrl(publicUrl);
+    } catch (err: any) {
+      console.error('Photo upload failed:', err);
+      setUploadError('Could not upload photo to storage. You can also paste an image URL.');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSaveProfile({
-      name,
-      phone,
-      email,
-      age,
-      gender,
-      city,
-      address,
-      pincode,
-      experienceYears,
-      experienceLevel,
-      categories: selectedCategories,
-      photoUrl,
-      expectedPay,
-      systemRating: initialProfile?.systemRating || 4.9, // System generated, NOT manual
-    });
-    onClose();
+    setIsSaving(true);
+    try {
+      await onSaveProfile({
+        name,
+        phone,
+        email,
+        age,
+        gender,
+        city,
+        address,
+        pincode,
+        experienceYears,
+        experienceLevel,
+        categories: selectedCategories,
+        photoUrl,
+        expectedPay,
+        systemRating: initialProfile?.systemRating || 4.9, // System generated, NOT manual
+      });
+      onClose();
+    } catch (err) {
+      console.error('Save profile error:', err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -271,24 +310,62 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
 
             {/* Profile Photo */}
             <div>
-              <label className="block text-xs font-black text-black mb-1">
-                Profile Photo URL
-              </label>
-              <div className="flex items-center gap-3">
-                <img
-                  src={photoUrl}
-                  alt="Preview"
-                  referrerPolicy="no-referrer"
-                  className="h-12 w-12 rounded-xl object-cover border-2 border-black"
-                />
-                <input
-                  type="url"
-                  value={photoUrl}
-                  onChange={(e) => setPhotoUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="flex-1 rounded-xl border-2 border-black bg-white px-3 py-2 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
-                />
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-black text-black">
+                  Profile Photo
+                </label>
+                <span className="text-[11px] font-bold text-neutral-500">
+                  Direct Upload or URL
+                </span>
               </div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="relative shrink-0">
+                  <img
+                    src={photoUrl}
+                    alt="Preview"
+                    referrerPolicy="no-referrer"
+                    className="h-14 w-14 rounded-2xl object-cover border-2 border-black bg-neutral-100 shadow-xs"
+                  />
+                  {isUploadingPhoto && (
+                    <div className="absolute inset-0 rounded-2xl bg-black/60 flex items-center justify-center">
+                      <Loader2 className="h-5 w-5 text-white animate-spin" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      disabled={isUploadingPhoto}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 rounded-xl border-2 border-black bg-white px-3 py-1.5 text-xs font-black text-black hover:bg-[#FFFDE6] transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      <Upload className="h-3.5 w-3.5 text-black" />
+                      <span>{isUploadingPhoto ? 'Uploading to Bucket...' : 'Upload Image File'}</span>
+                    </button>
+                    <span className="text-[11px] font-bold text-neutral-400">or paste URL:</span>
+                  </div>
+
+                  <input
+                    type="url"
+                    value={photoUrl}
+                    onChange={(e) => setPhotoUrl(e.target.value)}
+                    placeholder="https://images.unsplash.com/..."
+                    className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-xs font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
+                  />
+                </div>
+              </div>
+              {uploadError && (
+                <p className="mt-1 text-[11px] font-bold text-red-600">{uploadError}</p>
+              )}
             </div>
 
             {/* Crew Categories (Multiple Selection) */}
@@ -328,10 +405,20 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
 
             <button
               type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-[#FED000] py-3 text-xs sm:text-sm font-black text-black hover:bg-[#E5BB00] transition-all cursor-pointer"
+              disabled={isSaving || isUploadingPhoto}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-[#FED000] py-3 text-xs sm:text-sm font-black text-black hover:bg-[#E5BB00] transition-all cursor-pointer disabled:opacity-50"
             >
-              <span>Save & Redirect to Crew Dashboard</span>
-              <ArrowRight className="h-4 w-4 text-black" />
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-black" />
+                  <span>Syncing Live with Supabase...</span>
+                </>
+              ) : (
+                <>
+                  <span>Save Profile & Sync Live</span>
+                  <ArrowRight className="h-4 w-4 text-black" />
+                </>
+              )}
             </button>
           </form>
         </motion.div>
