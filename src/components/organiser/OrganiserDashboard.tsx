@@ -113,26 +113,40 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
         {/* ================= SIMPLIFIED TOP HEADER CARD ================= */}
         <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-7 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-0.5 text-xs font-bold text-neutral-800">
-                  <Building2 className="h-3.5 w-3.5 text-neutral-600" />
-                  Organiser Dashboard
-                </span>
-                {organiserProfile.hasUdyam && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
-                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                    Verified Business
+            <div className="flex items-center gap-4">
+              {organiserProfile.photoUrl ? (
+                <img
+                  src={organiserProfile.photoUrl}
+                  alt={organiserProfile.companyName || organiserProfile.name}
+                  referrerPolicy="no-referrer"
+                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl object-cover border-2 border-neutral-200 shadow-xs shrink-0 bg-neutral-100"
+                />
+              ) : (
+                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-black text-[#FED000] border-2 border-black flex items-center justify-center text-xl sm:text-2xl font-black shrink-0 shadow-xs">
+                  {(organiserProfile.companyName || organiserProfile.name || 'O')[0].toUpperCase()}
+                </div>
+              )}
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-0.5 text-xs font-bold text-neutral-800">
+                    <Building2 className="h-3.5 w-3.5 text-neutral-600" />
+                    Organiser Dashboard
                   </span>
-                )}
-              </div>
+                  {organiserProfile.hasUdyam && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                      Verified Business
+                    </span>
+                  )}
+                </div>
 
-              <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900">
-                {organiserProfile.companyName}
-              </h1>
-              <p className="mt-0.5 text-xs sm:text-sm text-neutral-500 font-medium">
-                Host: <span className="font-bold text-neutral-800">{organiserProfile.name}</span> • {organiserProfile.city}
-              </p>
+                <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900">
+                  {organiserProfile.companyName || organiserProfile.name}
+                </h1>
+                <p className="mt-0.5 text-xs sm:text-sm text-neutral-500 font-medium">
+                  Host: <span className="font-bold text-neutral-800">{organiserProfile.name}</span> • {organiserProfile.city || 'Location Pending'}
+                </p>
+              </div>
             </div>
 
             {/* Quick action button */}

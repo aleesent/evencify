@@ -109,12 +109,18 @@ export const CrewDashboardView: React.FC<CrewDashboardViewProps> = ({
         <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-7 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
             <div className="flex items-center gap-4">
-              <img
-                src={crewProfile.photoUrl}
-                alt={crewProfile.name}
-                referrerPolicy="no-referrer"
-                className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl object-cover border-2 border-neutral-200 shadow-xs shrink-0"
-              />
+              {crewProfile.photoUrl ? (
+                <img
+                  src={crewProfile.photoUrl}
+                  alt={crewProfile.name}
+                  referrerPolicy="no-referrer"
+                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl object-cover border-2 border-neutral-200 shadow-xs shrink-0 bg-neutral-100"
+                />
+              ) : (
+                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-black text-[#FED000] border-2 border-black flex items-center justify-center text-xl sm:text-2xl font-black shrink-0 shadow-xs">
+                  {(crewProfile.name || 'C')[0].toUpperCase()}
+                </div>
+              )}
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-0.5 text-xs font-bold text-emerald-800">

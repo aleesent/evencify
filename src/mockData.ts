@@ -27,7 +27,7 @@ export const INITIAL_CREW_PROFILES: CrewProfile[] = [
     address: '402, Riverfront Enclave, Vesu',
     pincode: '395007',
     city: 'Surat',
-    photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+    photoUrl: '',
     systemRating: 4.9,
     reviewsCount: 0,
     completedEventsCount: 0,
@@ -41,6 +41,44 @@ export const INITIAL_CREW_PROFILES: CrewProfile[] = [
 export const INITIAL_EVENTS: EventItem[] = [];
 
 export const INITIAL_APPLICATIONS: CrewApplication[] = [];
+
+export const EMPTY_CREW_PROFILE: CrewProfile = {
+  id: '',
+  name: '',
+  phone: '',
+  email: '',
+  experienceYears: 0,
+  experienceLevel: 'Fresher',
+  categories: [],
+  age: 18,
+  gender: 'Male',
+  address: '',
+  pincode: '',
+  city: '',
+  photoUrl: '',
+  systemRating: 4.9,
+  reviewsCount: 0,
+  completedEventsCount: 0,
+  availability: 'Available',
+  expectedPay: '',
+  bio: '',
+  profileCompletionPercentage: 0,
+};
+
+export const EMPTY_ORGANISER_PROFILE: OrganiserProfile = {
+  id: '',
+  name: '',
+  companyName: '',
+  hasUdyam: false,
+  udyamNumber: '',
+  address: '',
+  pincode: '',
+  city: '',
+  email: '',
+  phone: '',
+  photoUrl: '',
+  activeEventsCount: 0,
+};
 
 export const INITIAL_ORGANISER_PROFILE: OrganiserProfile = {
   id: 'org-1',

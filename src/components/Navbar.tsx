@@ -240,13 +240,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
           )}
 
-          {/* 4. ADMIN LOGGED IN: Console Badge */}
+          {/* 4. ADMIN LOGGED IN: Clean Site Navigation */}
           {isAuthenticated && currentRole === 'admin' && (
             <div className="hidden md:flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-neutral-100 px-3.5 py-1.5 text-xs font-semibold text-neutral-900 shadow-xs">
-                <Shield className="h-3.5 w-3.5 text-neutral-700" />
-                <span>Admin Console</span>
-              </span>
               <button
                 onClick={() => onSelectRole('visitor')}
                 className="text-xs font-semibold text-neutral-600 hover:text-neutral-950 px-2 py-1 cursor-pointer transition-colors"

@@ -217,17 +217,8 @@ export const Footer: React.FC<FooterProps> = ({
 
         {/* Bottom Sub-Bar */}
         <div className="mt-8 pt-8 border-t border-neutral-900 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-center sm:text-left">
+          <div className="text-center sm:text-left">
             <span>© {currentYear} Evencify Technologies Pvt. Ltd. All rights reserved.</span>
-            <span className="hidden sm:inline text-neutral-800">•</span>
-            {/* Live operational status indicator */}
-            <div className="inline-flex items-center justify-center gap-1.5 text-neutral-400">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <span>All Systems Operational</span>
-            </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-neutral-400">

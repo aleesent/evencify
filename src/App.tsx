@@ -9,6 +9,8 @@ import {
   UserAccount,
   AppNotification,
   EventCoordinationGroup,
+  isCrewProfileComplete,
+  isOrganiserProfileComplete,
 } from './types';
 import {
   INITIAL_EVENTS,
@@ -19,6 +21,8 @@ import {
   INITIAL_USERS,
   INITIAL_NOTIFICATIONS,
   INITIAL_EVENT_GROUPS,
+  EMPTY_CREW_PROFILE,
+  EMPTY_ORGANISER_PROFILE,
 } from './mockData';
 import { EvencifyApi } from './services/api';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
@@ -91,7 +95,9 @@ export default function App() {
 
   // Specific role modals
   const [crewOnboardingOpen, setCrewOnboardingOpen] = useState(false);
+  const [crewOnboardingMandatory, setCrewOnboardingMandatory] = useState(false);
   const [organiserOnboardingOpen, setOrganiserOnboardingOpen] = useState(false);
+  const [organiserOnboardingMandatory, setOrganiserOnboardingMandatory] = useState(false);
   const [createEventModalOpen, setCreateEventModalOpen] = useState(false);
 
   // Active subtabs for persistent navigation
@@ -208,20 +214,30 @@ export default function App() {
     };
   }, []);
 
+  const verifyCrewProfileCompleteness = (profile: CrewProfile | null) => {
+    if (!profile || !isCrewProfileComplete(profile)) {
+      setCrewOnboardingMandatory(true);
+      setCrewOnboardingOpen(true);
+    } else {
+      setCrewOnboardingMandatory(false);
+    }
+  };
+
+  const verifyOrganiserProfileCompleteness = (profile: OrganiserProfile | null) => {
+    if (!profile || !isOrganiserProfileComplete(profile)) {
+      setOrganiserOnboardingMandatory(true);
+      setOrganiserOnboardingOpen(true);
+    } else {
+      setOrganiserOnboardingMandatory(false);
+    }
+  };
+
   // Live Supabase auto-sync, polling timer, focus sync, & real-time Postgres updates
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
 
     let isMounted = true;
     syncDatabase();
-
-    // Deploy Preparation: Purge sample events & extra users from Supabase once on mount
-    if (!localStorage.getItem('evencify_deploy_ready_v1')) {
-      localStorage.setItem('evencify_deploy_ready_v1', 'true');
-      EvencifyApi.purgeSampleEventsAndKeepOneOrganiserOneCrew().then(() => {
-        if (isMounted) syncDatabase();
-      });
-    }
 
     // Check active session immediately on mount
     EvencifyApi.getCurrentSession().then((sessionUser) => {
@@ -232,11 +248,17 @@ export default function App() {
         setCurrentRole(sessionUser.role);
         if (sessionUser.role === 'organiser') {
           EvencifyApi.getOrganiserProfile(sessionUser.email).then((org) => {
-            if (org && isMounted) setCurrentOrganiserProfile(org);
+            if (isMounted) {
+              if (org) setCurrentOrganiserProfile(org);
+              verifyOrganiserProfileCompleteness(org);
+            }
           });
         } else if (sessionUser.role === 'crew') {
           EvencifyApi.getCrewProfile(sessionUser.email).then((cr) => {
-            if (cr && isMounted) setCurrentCrewProfile(cr);
+            if (isMounted) {
+              if (cr) setCurrentCrewProfile(cr);
+              verifyCrewProfileCompleteness(cr);
+            }
           });
         }
       }
@@ -265,7 +287,7 @@ export default function App() {
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, async (payload) => {
         const freshUsers = await EvencifyApi.getUsers();
-        if (isMounted) setUsers(freshUsers);
+        if (isMounted && freshUsers && freshUsers.length > 0) setUsers(freshUsers);
 
         // Check if the changed profile belongs to the active user
         const targetEmail = activeUserEmail || (() => {
@@ -359,11 +381,17 @@ export default function App() {
         if (userEmail) {
           if (userRole === 'organiser') {
             EvencifyApi.getOrganiserProfile(userEmail).then((org) => {
-              if (org && isMounted) setCurrentOrganiserProfile(org);
+              if (isMounted) {
+                if (org) setCurrentOrganiserProfile(org);
+                verifyOrganiserProfileCompleteness(org);
+              }
             });
           } else if (userRole === 'crew') {
             EvencifyApi.getCrewProfile(userEmail).then((cr) => {
-              if (cr && isMounted) setCurrentCrewProfile(cr);
+              if (isMounted) {
+                if (cr) setCurrentCrewProfile(cr);
+                verifyCrewProfileCompleteness(cr);
+              }
             });
           }
         }
@@ -388,11 +416,17 @@ export default function App() {
         if (userEmail) {
           if (userRole === 'organiser') {
             EvencifyApi.getOrganiserProfile(userEmail).then((org) => {
-              if (org && isMounted) setCurrentOrganiserProfile(org);
+              if (isMounted) {
+                if (org) setCurrentOrganiserProfile(org);
+                verifyOrganiserProfileCompleteness(org);
+              }
             });
           } else if (userRole === 'crew') {
             EvencifyApi.getCrewProfile(userEmail).then((cr) => {
-              if (cr && isMounted) setCurrentCrewProfile(cr);
+              if (isMounted) {
+                if (cr) setCurrentCrewProfile(cr);
+                verifyCrewProfileCompleteness(cr);
+              }
             });
           }
         }
@@ -449,23 +483,42 @@ export default function App() {
       setActiveUserName(finalName);
       if (existingCrew) {
         setCurrentCrewProfile(existingCrew);
+        verifyCrewProfileCompleteness(existingCrew);
       } else {
-        setCurrentCrewProfile((prev) => ({
-          ...prev,
+        const freshCrew: CrewProfile = {
+          ...EMPTY_CREW_PROFILE,
+          id: `crew-${Date.now()}`,
           name: finalName,
           email: email,
-        }));
+        };
+        setCurrentCrewProfile(freshCrew);
+        verifyCrewProfileCompleteness(freshCrew);
       }
       EvencifyApi.getCrewProfile(email).then((cr) => {
-        if (cr) setCurrentCrewProfile(cr);
+        if (cr) {
+          setCurrentCrewProfile(cr);
+          verifyCrewProfileCompleteness(cr);
+        }
       });
       showToast(`Welcome! Signed in as ${finalName} (Crew)`);
     } else if (role === 'organiser') {
       const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.role === 'organiser');
       const finalName = name || existing?.name || currentOrganiserProfile.companyName || defaultName;
       setActiveUserName(finalName);
+      const initialOrg: OrganiserProfile = {
+        ...EMPTY_ORGANISER_PROFILE,
+        id: `org-${Date.now()}`,
+        name: finalName,
+        companyName: finalName,
+        email: email,
+      };
+      setCurrentOrganiserProfile(initialOrg);
+      verifyOrganiserProfileCompleteness(initialOrg);
       EvencifyApi.getOrganiserProfile(email).then((org) => {
-        if (org) setCurrentOrganiserProfile(org);
+        if (org) {
+          setCurrentOrganiserProfile(org);
+          verifyOrganiserProfileCompleteness(org);
+        }
       });
       showToast(`Welcome! Signed in as ${finalName} (Organiser)`);
     } else if (role === 'admin') {
@@ -487,6 +540,10 @@ export default function App() {
     setActiveUserEmail('');
     setActiveUserName('');
     setAuthenticatedRole('visitor');
+    setCrewOnboardingMandatory(false);
+    setCrewOnboardingOpen(false);
+    setOrganiserOnboardingMandatory(false);
+    setOrganiserOnboardingOpen(false);
     await EvencifyApi.signOut();
     showToast('Signed out successfully.');
   };
@@ -715,7 +772,7 @@ export default function App() {
               categories: updatedData.categories || ['Event Helper'],
               age: 23,
               address: updatedData.city || 'Surat',
-              photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+              photoUrl: updatedData.avatarUrl || '',
               systemRating: updatedData.systemRating || 4.8,
               completedEventsCount: updatedData.completedEventsCount || 0,
               expectedPay: updatedData.expectedPay || '₹2,000 / shift',
@@ -766,7 +823,7 @@ export default function App() {
           categories: newUser.categories || ['Event Helper'],
           age: 23,
           address: newUser.city || 'Surat',
-          photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+          photoUrl: newUser.avatarUrl || '',
           systemRating: newUser.systemRating || 4.8,
           completedEventsCount: newUser.completedEventsCount || 0,
           expectedPay: newUser.expectedPay || '₹2,000 / shift',
@@ -1185,7 +1242,15 @@ export default function App() {
       {/* Crew Onboarding Modal */}
       <CrewOnboardingModal
         isOpen={crewOnboardingOpen}
-        onClose={() => setCrewOnboardingOpen(false)}
+        isMandatory={crewOnboardingMandatory}
+        onClose={() => {
+          if (!crewOnboardingMandatory || isCrewProfileComplete(currentCrewProfile)) {
+            setCrewOnboardingOpen(false);
+            setCrewOnboardingMandatory(false);
+          } else {
+            showToast('Please complete your profile to continue.');
+          }
+        }}
         initialProfile={currentCrewProfile}
         onSaveProfile={async (updated) => {
           const merged = { ...currentCrewProfile, ...updated };
@@ -1197,7 +1262,13 @@ export default function App() {
           try {
             await EvencifyApi.updateCrewProfile(targetId, updated);
             await syncDatabase();
-            showToast('Crew profile saved & synced live to Supabase!');
+            if (isCrewProfileComplete(merged)) {
+              setCrewOnboardingMandatory(false);
+              setCrewOnboardingOpen(false);
+              showToast('Crew profile saved & verified!');
+            } else {
+              showToast('Profile updated. Please complete remaining required fields.');
+            }
           } catch (err) {
             console.error('Failed to save crew profile to Supabase:', err);
             showToast('Crew profile updated.');
@@ -1208,7 +1279,15 @@ export default function App() {
       {/* Organiser Onboarding Modal */}
       <OrganiserOnboardingModal
         isOpen={organiserOnboardingOpen}
-        onClose={() => setOrganiserOnboardingOpen(false)}
+        isMandatory={organiserOnboardingMandatory}
+        onClose={() => {
+          if (!organiserOnboardingMandatory || isOrganiserProfileComplete(currentOrganiserProfile)) {
+            setOrganiserOnboardingOpen(false);
+            setOrganiserOnboardingMandatory(false);
+          } else {
+            showToast('Please complete your profile to continue.');
+          }
+        }}
         initialProfile={currentOrganiserProfile}
         onSaveProfile={async (updated) => {
           const merged = { ...currentOrganiserProfile, ...updated };
@@ -1221,7 +1300,13 @@ export default function App() {
           try {
             await EvencifyApi.updateOrganiserProfile(targetId, updated);
             await syncDatabase();
-            showToast('Organiser profile saved & synced live to Supabase!');
+            if (isOrganiserProfileComplete(merged)) {
+              setOrganiserOnboardingMandatory(false);
+              setOrganiserOnboardingOpen(false);
+              showToast('Organiser profile saved & verified!');
+            } else {
+              showToast('Profile updated. Please complete remaining required fields.');
+            }
           } catch (err) {
             console.error('Failed to save organiser profile to Supabase:', err);
             showToast('Organiser profile updated.');

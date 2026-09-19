@@ -132,6 +132,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     try {
       if (mode === 'signup') {
+        if (!fullName.trim()) {
+          setAuthError(
+            selectedRole === 'crew'
+              ? 'Please enter your full name.'
+              : 'Please enter your company or organiser name.'
+          );
+          setIsLoading(false);
+          return;
+        }
+
         if (password.length < 6) {
           setAuthError('Password must be at least 6 characters long.');
           setIsLoading(false);
@@ -141,13 +151,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         // Send 6-digit verification code via Brevo SMTP relay
         const sendResult = await BrevoClient.sendVerificationCode({
           email: cleanEmail,
-          name: fullName.trim() || (selectedRole === 'crew' ? 'Crew Member' : 'Organiser'),
+          name: fullName.trim(),
           role: selectedRole,
           purpose: 'signup',
         });
 
         if (!sendResult.success) {
-          setAuthError(sendResult.error || 'Failed to dispatch verification email via Brevo.');
+          setAuthError(sendResult.error || 'Failed to dispatch verification email.');
           setIsLoading(false);
           return;
         }
@@ -279,7 +289,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
       setResendTimer(45);
       setPreviewCode(sendResult.previewCode || null);
-      setAuthSuccess('Fresh 6-digit verification code sent via Brevo!');
+      setAuthSuccess('Fresh 6-digit verification code sent to your email!');
       setTimeout(() => setAuthSuccess(null), 3000);
     } catch (err: any) {
       setAuthError(err.message || 'Failed to resend code.');
@@ -289,7 +299,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   /**
-   * Verify Brevo OTP code and complete Signup registration
+   * Verify OTP code and complete Signup registration
    */
   const handleVerifyOtpCode = async (codeToVerify?: string) => {
     const code = codeToVerify || otpDigits.join('');
@@ -302,7 +312,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setAuthError(null);
 
     try {
-      // Step 1: Verify 6-digit code with Brevo verification server
+      // Step 1: Verify 6-digit code with verification server
       const verifyRes = await BrevoClient.verifyCode(email.trim(), code);
       if (!verifyRes.verified) {
         setAuthError(verifyRes.error || 'Invalid or expired verification code.');
@@ -311,12 +321,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
 
       // Step 2: Code verified! Complete user account creation in Supabase
-      const fallbackName = selectedRole === 'crew' ? 'Aarav Mehta' : 'Singhania Events';
       const signUpRes = await EvencifyApi.signUp({
         email: email.trim(),
         password,
         role: selectedRole,
-        fullName: fullName.trim() || fallbackName,
+        fullName: fullName.trim(),
       });
 
       if (signUpRes.error) {
@@ -325,7 +334,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         return;
       }
 
-      setAuthSuccess('Email verified with Brevo! Welcome to Evencify.');
+      setAuthSuccess('Email verified! Welcome to Evencify.');
       setIsLoading(false);
 
       setTimeout(() => {
@@ -582,7 +591,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </h3>
               <p className="mt-1 text-xs sm:text-sm text-neutral-500">
                 {showForgotPassword
-                  ? 'Enter your email to receive a Brevo verification code'
+                  ? 'Enter your email to receive a 6-digit verification code'
                   : mode === 'signup'
                   ? `Sign up to continue as ${selectedRole === 'crew' ? 'Crew' : 'Organiser'}`
                   : `Log in to your ${selectedRole === 'crew' ? 'Crew' : 'Organiser'} account`}
@@ -621,7 +630,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   disabled={isLoading}
                   className="w-full rounded-xl bg-neutral-900 hover:bg-neutral-800 text-[#FED000] py-2.5 text-sm font-semibold transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-50"
                 >
-                  {isLoading ? 'Dispatching Brevo Code...' : 'Send Reset Verification Code'}
+                  {isLoading ? 'Sending Verification Code...' : 'Send Reset Verification Code'}
                 </button>
 
                 <button

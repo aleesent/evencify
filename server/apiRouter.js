@@ -70,6 +70,8 @@ apiRouter.post('/auth/send-verification', async (req, res) => {
     const protocol = req.protocol === 'https' || protoHeader === 'https' ? 'https' : 'http';
     const origin = getReqHeader(req, 'origin') || `${protocol}://${host}`;
 
+    console.log(`[Brevo Auth] Dispatching OTP request for: ${email} (${purpose || 'signup'}, role: ${role || 'crew'})`);
+
     const result = await sendVerificationEmail({
       email,
       name,
@@ -78,9 +80,10 @@ apiRouter.post('/auth/send-verification', async (req, res) => {
       origin,
     });
 
+    console.log(`[Brevo Auth] Dispatch result for ${email}: method=${result.deliveryMethod}, simulated=${result.simulated}`);
     return res.json(result);
   } catch (err) {
-    console.error('Error in /api/auth/send-verification:', err);
+    console.error(`[Brevo Auth] Error dispatching OTP to ${req.body?.email}:`, err.message || err);
     return res.status(400).json({
       success: false,
       error: err.message || 'Failed to send verification code.',
@@ -96,14 +99,17 @@ apiRouter.post('/auth/verify-code', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Email and code are required.' });
     }
 
+    console.log(`[Brevo Auth] Verifying OTP code for ${email}`);
     const result = await verifyOtpCode({ email, code });
     if (!result.verified) {
+      console.warn(`[Brevo Auth] Code rejected for ${email}: ${result.error}`);
       return res.status(400).json(result);
     }
 
+    console.log(`[Brevo Auth] Code successfully verified for ${email}`);
     return res.json(result);
   } catch (err) {
-    console.error('Error in /api/auth/verify-code:', err);
+    console.error(`[Brevo Auth] Verification error for ${req.body?.email}:`, err.message || err);
     return res.status(500).json({
       success: false,
       error: err.message || 'Internal verification error.',

@@ -80,6 +80,7 @@ export interface OrganiserProfile {
   city: string;
   email: string;
   phone: string;
+  photoUrl?: string;
   activeEventsCount?: number;
 }
 
@@ -89,6 +90,7 @@ export interface AdminProfile {
   email: string;
   role: 'admin';
   lastLogin?: string;
+  avatarUrl?: string;
 }
 
 export interface UserAccount {
@@ -103,6 +105,8 @@ export interface UserAccount {
   createdAt: string;
   verificationBadge?: string;
   isVerified?: boolean;
+  avatarUrl?: string;
+  isProfileCompleted?: boolean;
   companyName?: string;
   systemRating?: number;
   completedEventsCount?: number;
@@ -111,6 +115,28 @@ export interface UserAccount {
   hasUdyam?: boolean;
   udyamNumber?: string;
   address?: string;
+}
+
+export function isCrewProfileComplete(profile?: Partial<CrewProfile> | null): boolean {
+  if (!profile) return false;
+  const hasName = Boolean(profile.name && profile.name.trim());
+  const hasPhone = Boolean(profile.phone && profile.phone.trim());
+  const hasCity = Boolean(profile.city && profile.city.trim());
+  const hasCategories = Array.isArray(profile.categories) && profile.categories.length > 0;
+  const hasPhoto = Boolean(profile.photoUrl && profile.photoUrl.trim());
+  const hasAge = Boolean(profile.age && Number(profile.age) > 0);
+  const hasExperience = Boolean(profile.experienceLevel && profile.experienceLevel.trim());
+  return Boolean(hasName && hasPhone && hasCity && hasCategories && hasPhoto && hasAge && hasExperience);
+}
+
+export function isOrganiserProfileComplete(profile?: Partial<OrganiserProfile> | null): boolean {
+  if (!profile) return false;
+  const hasName = Boolean(profile.name && profile.name.trim());
+  const hasCompany = Boolean(profile.companyName && profile.companyName.trim());
+  const hasPhone = Boolean(profile.phone && profile.phone.trim());
+  const hasCity = Boolean(profile.city && profile.city.trim());
+  const hasAddress = Boolean(profile.address && profile.address.trim());
+  return Boolean(hasName && hasCompany && hasPhone && hasCity && hasAddress);
 }
 
 export type EventStatus =

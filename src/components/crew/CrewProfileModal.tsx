@@ -71,11 +71,18 @@ export const CrewProfileModal: React.FC<CrewProfileModalProps> = ({
 
           {/* Profile Header */}
           <div className="flex items-start gap-4">
-            <img
-              src={crew.photoUrl}
-              alt={crew.name}
-              className="h-20 w-20 rounded-2xl object-cover border-2 border-black shadow-xs"
-            />
+            {crew.photoUrl ? (
+              <img
+                src={crew.photoUrl}
+                alt={crew.name}
+                referrerPolicy="no-referrer"
+                className="h-20 w-20 rounded-2xl object-cover border-2 border-black shadow-xs shrink-0"
+              />
+            ) : (
+              <div className="h-20 w-20 rounded-2xl bg-black text-[#FED000] border-2 border-black flex items-center justify-center text-2xl font-black shrink-0 shadow-xs">
+                {(crew.name || 'C')[0].toUpperCase()}
+              </div>
+            )}
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-2xl font-black text-black">{crew.name}</h3>
