@@ -217,21 +217,22 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
           onClick={() => {
             if (!isMandatory) onClose();
           }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 bg-neutral-950/50 backdrop-blur-xs"
         />
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          initial={{ opacity: 0, scale: 0.96, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative my-6 sm:my-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[28px] border-2 border-black bg-white p-5 sm:p-8 z-10 shadow-2xl"
+          exit={{ opacity: 0, scale: 0.96, y: 16 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          className="relative my-6 sm:my-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-neutral-200/80 bg-white p-6 sm:p-8 z-10 shadow-2xl shadow-neutral-900/10"
         >
           {/* Close button only visible if NOT mandatory */}
           {!isMandatory && (
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-5 right-5 rounded-full p-2 text-black hover:bg-neutral-100 transition-colors cursor-pointer"
+              className="absolute top-5 right-5 rounded-full p-2 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer"
               aria-label="Close"
             >
               <X className="h-5 w-5" />
@@ -240,31 +241,31 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
 
           {/* Header & Mandatory Notice */}
           <div className="mb-6">
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-black bg-[#FED000] px-3 py-0.5 text-[11px] font-black text-black uppercase tracking-wider">
-                CREW ONBOARDING
+            <div className="flex flex-wrap items-center gap-2 mb-2.5">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-800">
+                Crew Onboarding
               </span>
               {isMandatory && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-red-300 bg-red-50 px-2.5 py-0.5 text-[11px] font-bold text-red-700">
-                  <AlertCircle className="h-3.5 w-3.5" />
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200/80 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                  <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
                   Mandatory Profile Setup
                 </span>
               )}
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900">
               Complete Your Crew Profile
             </h2>
-            <p className="mt-1 text-xs sm:text-sm font-medium text-neutral-600">
+            <p className="mt-1 text-sm font-normal text-neutral-500 leading-relaxed">
               {isMandatory
-                ? 'Please complete your profile details and upload your profile picture to unlock your shift dashboard.'
+                ? 'Please complete your profile details and upload your photo to unlock your shift dashboard.'
                 : 'Update your verified credentials, categories, and contact details.'}
             </p>
           </div>
 
           {/* Validation Banner */}
           {formError && (
-            <div className="mb-5 rounded-xl border-2 border-red-500 bg-red-50 p-3.5 flex items-start gap-2.5 text-xs font-bold text-red-800">
+            <div className="mb-5 rounded-2xl bg-red-50 border border-red-200/80 p-3.5 flex items-start gap-2.5 text-xs font-medium text-red-700">
               <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
               <span>{formError}</span>
             </div>
@@ -272,12 +273,12 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* 1. PROFILE PICTURE UPLOAD ZONE (Drag & Drop or Selection) */}
-            <div className="rounded-2xl border-2 border-black bg-neutral-50/80 p-4 sm:p-5">
+            <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-black text-black uppercase tracking-wide">
+                <label className="text-xs font-semibold text-neutral-700">
                   Profile Picture <span className="text-red-500">*</span>
                 </label>
-                <span className="inline-flex items-center gap-1 rounded-full bg-black text-[#FED000] px-2 py-0.5 text-[10px] font-black">
+                <span className="inline-flex items-center rounded-full bg-neutral-100 text-neutral-600 px-2.5 py-0.5 text-[11px] font-medium">
                   Max 250 KB • Required
                 </span>
               </div>
@@ -287,12 +288,12 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className={`relative rounded-xl border-2 border-dashed p-4 sm:p-6 text-center cursor-pointer transition-all ${
+                className={`relative rounded-2xl border border-dashed p-5 text-center cursor-pointer transition-all duration-200 group ${
                   isDragging
-                    ? 'border-black bg-[#FED000]/20 scale-[0.99]'
+                    ? 'border-amber-500 bg-amber-50/40 scale-[0.99]'
                     : photoUrl
-                    ? 'border-neutral-300 bg-white hover:border-black'
-                    : 'border-neutral-400 bg-white hover:border-black hover:bg-[#FFFDE6]/40'
+                    ? 'border-neutral-200 bg-white hover:border-neutral-300'
+                    : 'border-neutral-300 bg-neutral-50/50 hover:bg-neutral-50 hover:border-neutral-400'
                 }`}
               >
                 <input
@@ -309,14 +310,14 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                       src={photoUrl}
                       alt="Uploaded Avatar"
                       referrerPolicy="no-referrer"
-                      className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl object-cover border-2 border-black shadow-md shrink-0 bg-neutral-100"
+                      className="h-20 w-20 sm:h-22 sm:w-22 rounded-2xl object-cover border border-neutral-200 shadow-sm shrink-0 bg-neutral-100"
                     />
                     <div className="text-center sm:text-left space-y-1">
-                      <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-black text-emerald-700">
+                      <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-semibold text-emerald-700">
                         <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                         <span>Photo Uploaded Successfully</span>
                       </div>
-                      <p className="text-[11px] font-medium text-neutral-500">
+                      <p className="text-xs text-neutral-500 font-normal">
                         Click or drag another image here to replace (max 250 KB)
                       </p>
                       <button
@@ -325,7 +326,7 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                           e.stopPropagation();
                           setPhotoUrl('');
                         }}
-                        className="text-[11px] font-bold text-red-600 hover:underline cursor-pointer"
+                        className="text-xs font-medium text-neutral-500 hover:text-red-600 transition-colors cursor-pointer"
                       >
                         Remove Photo
                       </button>
@@ -333,18 +334,18 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-2 space-y-2">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-black text-[#FED000] border-2 border-black shadow-xs">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-600 group-hover:bg-neutral-200/80 group-hover:text-neutral-900 transition-colors">
                       {isUploadingPhoto ? (
-                        <Loader2 className="h-6 w-6 animate-spin text-[#FED000]" />
+                        <Loader2 className="h-5 w-5 animate-spin text-neutral-900" />
                       ) : (
-                        <Upload className="h-6 w-6 text-[#FED000]" />
+                        <Upload className="h-5 w-5" />
                       )}
                     </div>
                     <div className="text-center">
-                      <p className="text-xs sm:text-sm font-black text-black">
+                      <p className="text-sm font-semibold text-neutral-800">
                         {isUploadingPhoto ? 'Uploading & Validating Photo...' : 'Click to Upload or Drag & Drop'}
                       </p>
-                      <p className="text-[11px] font-medium text-neutral-500 mt-0.5">
+                      <p className="text-xs text-neutral-500 mt-0.5 font-normal">
                         JPG, PNG, or WebP up to <strong>250 KB</strong>
                       </p>
                     </div>
@@ -353,7 +354,7 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
               </div>
 
               {uploadError && (
-                <div className="mt-2.5 rounded-lg bg-red-100/90 border border-red-300 p-2.5 text-xs font-bold text-red-700 flex items-center gap-2">
+                <div className="mt-2.5 rounded-xl bg-red-50 border border-red-200 p-2.5 text-xs font-medium text-red-700 flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
                   <span>{uploadError}</span>
                 </div>
@@ -361,9 +362,9 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
             </div>
 
             {/* 2. BASIC DETAILS: Full Name, Phone, Email */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <div>
-                <label className="block text-xs font-black text-black mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
                   Full Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -372,12 +373,12 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Rahul Sharma"
-                  className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
+                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-black mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
                   Phone Number <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -386,12 +387,12 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+91 98000 00000"
-                  className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
+                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-black mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
                   Email Address <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -400,15 +401,15 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
+                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
             </div>
 
             {/* 3. AGE, GENDER, EXPERIENCE LEVEL */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <div>
-                <label className="block text-xs font-black text-black mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
                   Age (18+) <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -419,18 +420,18 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   value={age}
                   onChange={(e) => setAge(e.target.value ? Number(e.target.value) : '')}
                   placeholder="e.g. 22"
-                  className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
+                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-black mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
                   Gender
                 </label>
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value as any)}
-                  className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-xs sm:text-sm font-bold text-black focus:bg-[#FFFDE6] focus:outline-hidden"
+                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 >
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
@@ -439,7 +440,7 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-black text-black mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
                   Experience Level
                 </label>
                 <select
@@ -451,7 +452,7 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                     else if (val === 'Experienced') setExperienceYears(2);
                     else if (val === 'Veteran') setExperienceYears(5);
                   }}
-                  className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-xs sm:text-sm font-bold text-black focus:bg-[#FFFDE6] focus:outline-hidden"
+                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 >
                   <option value="Fresher">Fresher (0 - 1 yr)</option>
                   <option value="Experienced">Experienced (2 - 4 yrs)</option>
@@ -461,9 +462,9 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
             </div>
 
             {/* 4. ADDRESS, CITY, PIN CODE */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-black text-black mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
                   Residential Address <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -472,12 +473,12 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Apartment, Street, Locality"
-                  className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
+                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-black mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
                   City <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -486,14 +487,14 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="e.g. Surat"
-                  className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
+                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-black text-black mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
                   PIN Code <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -503,12 +504,12 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   value={pincode}
                   onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="e.g. 395007"
-                  className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
+                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-black mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
                   Expected Pay per Shift
                 </label>
                 <input
@@ -516,18 +517,18 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   value={expectedPay}
                   onChange={(e) => setExpectedPay(e.target.value)}
                   placeholder="e.g. ₹1,500 / shift"
-                  className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
+                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
             </div>
 
             {/* 5. PRIMARY CATEGORIES (Select at least 1) */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-black text-black">
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-semibold text-neutral-700">
                   Primary Roles & Categories (Select all that apply) <span className="text-red-500">*</span>
                 </label>
-                <span className="text-[11px] font-bold text-neutral-500">
+                <span className="text-xs text-neutral-500 font-medium">
                   {selectedCategories.length} selected
                 </span>
               </div>
@@ -539,14 +540,14 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                       key={cat}
                       type="button"
                       onClick={() => toggleCategory(cat)}
-                      className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-black text-left border-2 border-black transition-all cursor-pointer ${
+                      className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs text-left border transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-black text-[#FED000] shadow-xs'
-                          : 'bg-white text-black hover:bg-[#FFFDE6]'
+                          ? 'border-neutral-900 bg-neutral-900 text-white font-semibold shadow-xs'
+                          : 'border-neutral-200 bg-white hover:border-neutral-300 text-neutral-700 font-medium'
                       }`}
                     >
                       <span className="truncate">{cat}</span>
-                      {isSelected && <CheckCircle2 className="h-4 w-4 text-[#FED000] shrink-0 ml-1" />}
+                      {isSelected && <CheckCircle2 className="h-4 w-4 text-[#FED000] shrink-0 ml-1.5" />}
                     </button>
                   );
                 })}
@@ -554,10 +555,10 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
             </div>
 
             {/* System Rating Information */}
-            <div className="rounded-xl border-2 border-black bg-[#FFFDE6] p-3.5 flex items-start gap-2.5 text-xs text-black font-medium">
-              <Lock className="h-4 w-4 text-black shrink-0 mt-0.5" />
+            <div className="rounded-2xl bg-neutral-50 border border-neutral-200/80 p-3.5 flex items-start gap-3 text-xs text-neutral-600 leading-relaxed">
+              <Lock className="h-4 w-4 text-neutral-500 shrink-0 mt-0.5" />
               <span>
-                <strong>System-Calculated Rating:</strong> Rating starts verified at 4.9★ and evolves automatically based on organizer reviews and completed shifts. Manual self-rating is prohibited.
+                <strong className="text-neutral-800 font-semibold">System-Calculated Rating:</strong> Rating starts verified at 4.9★ and evolves automatically based on organizer reviews and completed shifts. Manual self-rating is prohibited.
               </span>
             </div>
 
@@ -565,17 +566,17 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
             <button
               type="submit"
               disabled={isSaving || isUploadingPhoto}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-[#FED000] py-3.5 text-sm font-black text-black hover:bg-[#E5BB00] transition-all cursor-pointer shadow-md disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-950 hover:bg-neutral-800 text-white py-3.5 text-sm font-semibold transition-all cursor-pointer shadow-sm disabled:opacity-50 active:scale-[0.99]"
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin text-black" />
+                  <Loader2 className="h-4 w-4 animate-spin text-white" />
                   <span>Saving Profile to Database...</span>
                 </>
               ) : (
                 <>
                   <span>Save Profile & Continue</span>
-                  <ArrowRight className="h-4 w-4 text-black" />
+                  <ArrowRight className="h-4 w-4 text-white" />
                 </>
               )}
             </button>
