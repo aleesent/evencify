@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CrewProfile, CrewCategory, CREW_CATEGORIES } from '../../types';
-import { X, CheckCircle2, Upload, ArrowRight, Lock, Loader2, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { X, CheckCircle2, Upload, ArrowRight, Loader2, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EvencifyApi } from '../../services/api';
 
@@ -196,7 +196,8 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
         categories: selectedCategories,
         photoUrl: photoUrl.trim(),
         expectedPay: expectedPay.trim() || '₹1,500 / shift',
-        systemRating: initialProfile?.systemRating || 4.9,
+        systemRating: initialProfile?.systemRating || 0,
+        reviewsCount: initialProfile?.reviewsCount || 0,
       });
       onClose();
     } catch (err: any) {
@@ -552,14 +553,6 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   );
                 })}
               </div>
-            </div>
-
-            {/* System Rating Information */}
-            <div className="rounded-2xl bg-neutral-50 border border-neutral-200/80 p-3.5 flex items-start gap-3 text-xs text-neutral-600 leading-relaxed">
-              <Lock className="h-4 w-4 text-neutral-500 shrink-0 mt-0.5" />
-              <span>
-                <strong className="text-neutral-800 font-semibold">System-Calculated Rating:</strong> Rating starts verified at 4.9★ and evolves automatically based on organizer reviews and completed shifts. Manual self-rating is prohibited.
-              </span>
             </div>
 
             {/* Submit Button */}

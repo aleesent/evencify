@@ -664,6 +664,61 @@ export default function App() {
     );
   };
 
+  // Organiser: Complete event and rate event crew
+  const handleCompleteEventAndRateCrew = async (
+    eventId: string,
+    ratings: { crewId: string; rating: number; feedback?: string; tags?: string[] }[]
+  ) => {
+    setEvents((prev) =>
+      prev.map((e) => (e.id === eventId ? { ...e, status: 'completed' } : e))
+    );
+    EvencifyApi.updateEvent(eventId, { status: 'completed' }).catch((err) =>
+      console.error('Supabase updateEvent status error:', err)
+    );
+
+    for (const r of ratings) {
+      try {
+        const res = await EvencifyApi.rateCrewMember(r.crewId, r.rating, r.feedback, eventId);
+        const newRating = res.newRating;
+        const newReviews = res.newReviewsCount;
+
+        setCrewList((prev) =>
+          prev.map((crew) => {
+            if (crew.id === r.crewId) {
+              const updatedCrew: CrewProfile = {
+                ...crew,
+                systemRating: newRating,
+                reviewsCount: newReviews,
+                completedEventsCount: (crew.completedEventsCount || 0) + 1,
+              };
+              if (currentCrewProfile.id === r.crewId) {
+                setCurrentCrewProfile(updatedCrew);
+              }
+              return updatedCrew;
+            }
+            return crew;
+          })
+        );
+
+        setApplications((prev) =>
+          prev.map((app) => {
+            if (app.crewId === r.crewId) {
+              return {
+                ...app,
+                systemRating: newRating,
+              };
+            }
+            return app;
+          })
+        );
+      } catch (err) {
+        console.error('Error rating crew member:', err);
+      }
+    }
+
+    showToast('Event marked completed & crew evaluated successfully!');
+  };
+
   // Admin user status toggle
   const handleToggleUserStatus = (userId: string) => {
     setUsers(
@@ -773,7 +828,7 @@ export default function App() {
               age: 23,
               address: updatedData.city || 'Surat',
               photoUrl: updatedData.avatarUrl || '',
-              systemRating: updatedData.systemRating || 4.8,
+              systemRating: updatedData.systemRating || 0,
               completedEventsCount: updatedData.completedEventsCount || 0,
               expectedPay: updatedData.expectedPay || '₹2,000 / shift',
             },
@@ -824,7 +879,7 @@ export default function App() {
           age: 23,
           address: newUser.city || 'Surat',
           photoUrl: newUser.avatarUrl || '',
-          systemRating: newUser.systemRating || 4.8,
+          systemRating: newUser.systemRating || 0,
           completedEventsCount: newUser.completedEventsCount || 0,
           expectedPay: newUser.expectedPay || '₹2,000 / shift',
         },
@@ -1163,6 +1218,7 @@ export default function App() {
             onUpdateApplicationStatus={handleUpdateAppStatus}
             onUpdateEventStatus={handleUpdateEventStatus}
             onDeleteEvent={handleDeleteEvent}
+            onCompleteEventAndRateCrew={handleCompleteEventAndRateCrew}
             activeTab={activeOrganiserTab}
             onTabChange={setActiveOrganiserTab}
           />

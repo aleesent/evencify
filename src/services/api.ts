@@ -993,7 +993,7 @@ export const EvencifyApi = {
           crewPhone: d.crew_phone || pr.phone || '+91 98000 00000',
           crewCategory: (d.crew_category || d.category || cp.categories?.[0] || 'Event Helper') as CrewCategory,
           experienceYears: d.experience_years || (cp.experience === 'Veteran' ? 5 : cp.experience === 'Experienced' ? 2 : 1),
-          systemRating: Number(d.system_rating || cp.rating || 4.9),
+          systemRating: Number(d.system_rating || cp.rating || 0),
           city: d.city || pr.city || ev.city || 'Surat',
           status: (d.status ? d.status.charAt(0).toUpperCase() + d.status.slice(1) : 'Pending') as CrewApplication['status'],
           appliedAt: d.applied_at ? new Date(d.applied_at).toLocaleDateString('en-IN', {
@@ -1070,7 +1070,7 @@ export const EvencifyApi = {
         crew_photo: effectiveCrewPhoto,
         crew_category: effectiveCategory,
         experience_years: crewInfo?.experienceYears || 2,
-        system_rating: crewInfo?.systemRating || 4.9,
+        system_rating: crewInfo?.systemRating || 0,
         city: crewInfo?.city || 'Surat',
         category: effectiveCategory,
         status: 'pending',
@@ -1105,7 +1105,7 @@ export const EvencifyApi = {
       crewPhoto: effectiveCrewPhoto,
       crewCategory: effectiveCategory,
       experienceYears: crewInfo?.experienceYears || 2,
-      systemRating: crewInfo?.systemRating || 4.9,
+      systemRating: crewInfo?.systemRating || 0,
       city: crewInfo?.city || 'Surat',
       status: 'Pending',
       appliedAt: 'Just now',
@@ -1214,7 +1214,7 @@ export const EvencifyApi = {
         address: pr.address || d.address || 'City Center',
         pinCode: pr.pincode || d.pincode || '395007',
         photoUrl: d.profile_photo_url || pr.avatar_url || '',
-        systemRating: Number(d.rating || 4.9),
+        systemRating: Number(d.rating || 0),
         reviewsCount: d.total_reviews || 0,
         completedEventsCount: d.completed_events || 0,
         availability: d.availability_status || 'Available for Shifts',
@@ -1281,7 +1281,7 @@ export const EvencifyApi = {
             address: pr.address || d.address || 'City Center',
             pinCode: pr.pincode || d.pincode || '395007',
             photoUrl: d.profile_photo_url || pr.avatar_url || '',
-            systemRating: Number(d.rating || 4.9),
+            systemRating: Number(d.rating || 0),
             reviewsCount: d.total_reviews || 0,
             completedEventsCount: d.completed_events || 0,
             availability: d.availability_status || 'Available for Shifts',
@@ -1312,7 +1312,7 @@ export const EvencifyApi = {
             address: pr.address || d.address || 'City Center',
             pinCode: pr.pincode || d.pincode || '395007',
             photoUrl: d.profile_photo_url || pr.avatar_url || '',
-            systemRating: Number(d.rating || 4.9),
+            systemRating: Number(d.rating || 0),
             reviewsCount: d.total_reviews || 0,
             completedEventsCount: d.completed_events || 0,
             availability: d.availability_status || 'Available for Shifts',
@@ -1425,6 +1425,9 @@ export const EvencifyApi = {
     if (data.city !== undefined) crewUpdates.city = data.city;
     if (data.address !== undefined) crewUpdates.address = data.address;
     if (data.pinCode || data.pincode) crewUpdates.pincode = data.pinCode || data.pincode;
+    if (data.systemRating !== undefined) crewUpdates.rating = data.systemRating;
+    if (data.reviewsCount !== undefined) crewUpdates.total_reviews = data.reviewsCount;
+    if (data.completedEventsCount !== undefined) crewUpdates.completed_events = data.completedEventsCount;
 
     const { error } = await supabase.from('crew_profiles').upsert(crewUpdates, { onConflict: 'user_id' });
     if (error) {
@@ -1448,6 +1451,63 @@ export const EvencifyApi = {
     }
 
     return true;
+  },
+
+  /**
+   * Rate a crew member after an event is completed
+   */
+  async rateCrewMember(
+    crewId: string,
+    rating: number,
+    feedback?: string,
+    eventId?: string
+  ): Promise<{ success: boolean; newRating: number; newReviewsCount: number }> {
+    if (!isSupabaseConfigured()) {
+      return { success: true, newRating: rating, newReviewsCount: 1 };
+    }
+
+    try {
+      // Fetch current crew stats
+      const { data: crew } = await supabase
+        .from('crew_profiles')
+        .select('rating, total_reviews, completed_events')
+        .eq('user_id', crewId)
+        .maybeSingle();
+
+      const currentRating = Number(crew?.rating || 0);
+      const currentReviews = Number(crew?.total_reviews || 0);
+      const currentCompleted = Number(crew?.completed_events || 0);
+
+      const newReviewsCount = currentReviews + 1;
+      const newRating = currentReviews > 0
+        ? Number(((currentRating * currentReviews + rating) / newReviewsCount).toFixed(1))
+        : Number(rating.toFixed(1));
+      const newCompleted = currentCompleted + 1;
+
+      await supabase
+        .from('crew_profiles')
+        .update({
+          rating: newRating,
+          total_reviews: newReviewsCount,
+          completed_events: newCompleted,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', crewId);
+
+      // Notify the crew member
+      await supabase.from('notifications').insert({
+        user_id: crewId,
+        title: 'New Rating & Review Received!',
+        message: `An event organiser awarded you ${rating}★ for completing your shift! Your verified rating is now ${newRating}★.`,
+        type: 'system',
+        is_read: false,
+      });
+
+      return { success: true, newRating, newReviewsCount };
+    } catch (err) {
+      console.error('rateCrewMember error:', err);
+      return { success: false, newRating: rating, newReviewsCount: 1 };
+    }
   },
 
   // ==========================================================================
@@ -1699,7 +1759,7 @@ export const EvencifyApi = {
 
         if (p.role === 'crew') {
           user.categories = (crew?.categories && crew.categories.length > 0 ? crew.categories : ['Event Helper']) as CrewCategory[];
-          user.systemRating = Number(crew?.rating || 4.9);
+          user.systemRating = Number(crew?.rating || 0);
           user.completedEventsCount = crew?.completed_events || 0;
           user.expectedPay = crew?.expected_pay || '₹1,500 / shift';
         } else if (p.role === 'organiser') {
@@ -1770,7 +1830,7 @@ export const EvencifyApi = {
         email: cleanEmail,
         phone: newUser.phone || null,
         city: newUser.city || 'Surat',
-        rating: newUser.systemRating || 4.9,
+        rating: newUser.systemRating || 0,
         completed_events: newUser.completedEventsCount || 0,
         expected_pay: newUser.expectedPay || '₹1,500 / shift',
         categories: newUser.categories && newUser.categories.length > 0 ? newUser.categories : ['Event Helper'],
@@ -1846,7 +1906,7 @@ export const EvencifyApi = {
         email: updated.email.trim().toLowerCase(),
         phone: updated.phone || null,
         city: updated.city || 'Surat',
-        rating: updated.systemRating || 4.9,
+        rating: updated.systemRating || 0,
         completed_events: updated.completedEventsCount || 0,
         expected_pay: updated.expectedPay || '₹1,500 / shift',
         categories: updated.categories || ['Event Helper'],

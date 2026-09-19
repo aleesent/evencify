@@ -34,6 +34,7 @@ import {
   Sparkles,
   XCircle,
 } from 'lucide-react';
+import { EventCompletionReviewModal } from './EventCompletionReviewModal';
 
 interface OrganiserDashboardProps {
   events: EventItem[];
@@ -49,6 +50,10 @@ interface OrganiserDashboardProps {
   onUpdateApplicationStatus: (appId: string, status: CrewApplication['status']) => void;
   onUpdateEventStatus: (eventId: string, status: EventItem['status']) => void;
   onDeleteEvent: (eventId: string) => void;
+  onCompleteEventAndRateCrew?: (
+    eventId: string,
+    ratings: { crewId: string; rating: number; feedback?: string; tags?: string[] }[]
+  ) => void;
   activeTab?: 'overview' | 'events' | 'crew' | 'applications' | 'profile';
   onTabChange?: (tab: 'overview' | 'events' | 'crew' | 'applications' | 'profile') => void;
 }
@@ -67,6 +72,7 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
   onUpdateApplicationStatus,
   onUpdateEventStatus,
   onDeleteEvent,
+  onCompleteEventAndRateCrew,
   activeTab: propActiveTab,
   onTabChange,
 }) => {
@@ -85,6 +91,7 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
   >('all');
 
   const [selectedEventForDetail, setSelectedEventForDetail] = useState<EventItem | null>(null);
+  const [ratingModalEvent, setRatingModalEvent] = useState<EventItem | null>(null);
   const [expandedCardIds, setExpandedCardIds] = useState<string[]>([]);
 
   const toggleCardExpansion = (id: string) => {
@@ -509,6 +516,26 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                       return null;
                     })()}
 
+                    {selectedEventForDetail.status === 'completed' || selectedEventForDetail.status === 'Completed' ? (
+                      <button
+                        type="button"
+                        onClick={() => setRatingModalEvent(selectedEventForDetail)}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-300 px-4 py-2.5 text-xs font-bold text-amber-900 hover:bg-amber-100 cursor-pointer"
+                      >
+                        <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+                        <span>Rate Crew</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setRatingModalEvent(selectedEventForDetail)}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 text-white px-4 py-2.5 text-xs font-bold hover:bg-emerald-800 cursor-pointer shadow-xs"
+                      >
+                        <CheckCircle2 className="h-4 w-4 text-emerald-200" />
+                        <span>Mark Done & Rate Crew</span>
+                      </button>
+                    )}
+
                     {selectedEventForDetail.status === 'Open' ? (
                       <button
                         type="button"
@@ -619,7 +646,8 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                                   {app.crewName}
                                 </div>
                                 <div className="text-xs text-neutral-500 mt-0.5">
-                                  {app.crewCategory} • {app.experienceYears} yrs exp • ⭐ {app.systemRating}
+                                  {app.crewCategory} • {app.experienceYears} yrs exp
+                                  {app.systemRating && app.systemRating > 0 ? ` • ⭐ ${app.systemRating}` : ''}
                                 </div>
                               </div>
                             </div>
@@ -806,6 +834,26 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                                   </button>
                                 )}
 
+                                {evt.status === 'completed' || evt.status === 'Completed' ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setRatingModalEvent(evt)}
+                                    className="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-300 px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 cursor-pointer"
+                                  >
+                                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
+                                    <span>Rate Crew</span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setRatingModalEvent(evt)}
+                                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 px-3 py-1.5 text-xs font-bold hover:bg-emerald-100 cursor-pointer shadow-2xs"
+                                  >
+                                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                                    <span>Mark Done & Rate</span>
+                                  </button>
+                                )}
+
                                 {evt.status === 'Open' ? (
                                   <button
                                     type="button"
@@ -920,10 +968,12 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-extrabold text-base text-neutral-900">{app.crewName}</h3>
-                          <span className="flex items-center gap-1 text-xs font-bold text-amber-900 bg-amber-100/70 border border-amber-200 px-2 py-0.2 rounded-md">
-                            <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
-                            <span>{app.systemRating}</span>
-                          </span>
+                          {app.systemRating && app.systemRating > 0 ? (
+                            <span className="flex items-center gap-1 text-xs font-bold text-amber-900 bg-amber-100/70 border border-amber-200 px-2 py-0.2 rounded-md">
+                              <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                              <span>{app.systemRating}</span>
+                            </span>
+                          ) : null}
                         </div>
                         <p className="text-xs text-neutral-600 mt-0.5 font-medium">
                           Role: <strong className="text-neutral-900">{app.crewCategory}</strong> • {app.experienceYears} Years Exp • {app.city}
@@ -1035,7 +1085,11 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                   </div>
 
                   <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs">
-                    <span className="font-bold text-neutral-800">⭐ {crew.systemRating} Rating</span>
+                    {crew.systemRating && crew.systemRating > 0 ? (
+                      <span className="font-bold text-neutral-800">⭐ {crew.systemRating} Rating</span>
+                    ) : (
+                      <span className="text-neutral-500 font-medium">Unrated (New Crew)</span>
+                    )}
                     <button
                       type="button"
                       onClick={() => onViewCrewProfile(crew)}
@@ -1121,6 +1175,24 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
             </div>
           </div>
         )}
+
+        {/* Event Completion & Crew Rating Modal */}
+        <EventCompletionReviewModal
+          isOpen={!!ratingModalEvent}
+          onClose={() => setRatingModalEvent(null)}
+          event={ratingModalEvent}
+          applications={applications}
+          crewList={crewList}
+          onSubmitRatings={(eventId, ratings) => {
+            onCompleteEventAndRateCrew?.(eventId, ratings);
+            if (selectedEventForDetail && selectedEventForDetail.id === eventId) {
+              setSelectedEventForDetail({
+                ...selectedEventForDetail,
+                status: 'completed',
+              });
+            }
+          }}
+        />
 
       </div>
     </div>
