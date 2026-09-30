@@ -990,11 +990,11 @@ export const EvencifyApi = {
           crewName: d.crew_name || pr.full_name || 'Crew Member',
           crewEmail: d.crew_email || pr.email,
           crewPhoto: d.crew_photo || pr.avatar_url || '',
-          crewPhone: d.crew_phone || pr.phone || '+91 98000 00000',
-          crewCategory: (d.crew_category || d.category || cp.categories?.[0] || 'Event Helper') as CrewCategory,
-          experienceYears: d.experience_years || (cp.experience === 'Veteran' ? 5 : cp.experience === 'Experienced' ? 2 : 1),
+          crewPhone: d.crew_phone || pr.phone || '',
+          crewCategory: (d.crew_category || d.category || cp.categories?.[0] || 'Hospitality Staff') as CrewCategory,
+          experienceYears: d.experience_years || 0,
           systemRating: Number(d.system_rating || cp.rating || 0),
-          city: d.city || pr.city || ev.city || 'Surat',
+          city: d.city || pr.city || ev.city || '',
           status: (d.status ? d.status.charAt(0).toUpperCase() + d.status.slice(1) : 'Pending') as CrewApplication['status'],
           appliedAt: d.applied_at ? new Date(d.applied_at).toLocaleDateString('en-IN', {
             month: 'short',
@@ -1038,8 +1038,8 @@ export const EvencifyApi = {
     const { data: { user } } = await supabase.auth.getUser();
     const effectiveCrewId = crewInfo?.crewId || user?.id || `crew-${Date.now()}`;
     const effectiveCrewName = crewInfo?.crewName || user?.user_metadata?.full_name || 'Verified Crew Member';
-    const effectiveCrewEmail = crewInfo?.crewEmail || user?.email || 'crew@example.com';
-    const effectiveCrewPhone = crewInfo?.crewPhone || user?.user_metadata?.phone || '+91 98000 00000';
+    const effectiveCrewEmail = crewInfo?.crewEmail || user?.email || '';
+    const effectiveCrewPhone = crewInfo?.crewPhone || user?.user_metadata?.phone || '';
     const effectiveCrewPhoto = crewInfo?.crewPhoto || user?.user_metadata?.avatar_url || '';
     const effectiveCategory = category || crewInfo?.crewCategory || 'Event Helper';
 
@@ -1202,25 +1202,25 @@ export const EvencifyApi = {
 
       return {
         id: targetId,
-        name: pr.full_name || d.name || 'Verified Crew Member',
+        name: pr.full_name || d.name || '',
         email: pr.email || d.email || '',
-        phone: pr.phone || d.phone || '+91 98000 00000',
-        experienceYears: d.experience_years || (d.experience === 'Veteran' ? 6 : d.experience === 'Experienced' ? 3 : 1),
-        experienceLevel: (d.experience || 'Experienced') as 'Fresher' | 'Experienced' | 'Veteran',
-        categories: (d.categories && d.categories.length > 0 ? d.categories : ['Event Helper']) as CrewCategory[],
-        age: d.age || 23,
-        gender: d.gender || 'Other',
-        city: pr.city || d.city || 'Surat',
-        address: pr.address || d.address || 'City Center',
-        pinCode: pr.pincode || d.pincode || '395007',
+        phone: pr.phone || d.phone || '',
+        experienceYears: d.experience_years || 0,
+        experienceLevel: (d.experience || 'Fresher') as 'Fresher' | 'Experienced' | 'Veteran',
+        categories: (d.categories && d.categories.length > 0 ? d.categories : []) as CrewCategory[],
+        age: d.age || 0,
+        gender: d.gender || 'Male',
+        city: pr.city || d.city || '',
+        address: pr.address || d.address || '',
+        pinCode: pr.pincode || d.pincode || '',
         photoUrl: d.profile_photo_url || pr.avatar_url || '',
         systemRating: Number(d.rating || 0),
         reviewsCount: d.total_reviews || 0,
         completedEventsCount: d.completed_events || 0,
         availability: d.availability_status || 'Available for Shifts',
-        expectedPay: d.expected_pay || '₹1,500 / shift',
-        bio: d.bio || 'Professional event crew member registered on Evencify.',
-        profileCompletionPercentage: 90,
+        expectedPay: d.expected_pay || '',
+        bio: d.bio || '',
+        profileCompletionPercentage: 0,
       };
     } catch (err) {
       console.error('getCrewProfile failure:', err);
@@ -1269,25 +1269,25 @@ export const EvencifyApi = {
 
           crewProfilesList.push({
             id: pr.id,
-            name: pr.full_name || d.name || 'Verified Crew Member',
+            name: pr.full_name || d.name || '',
             email: pr.email || d.email || '',
-            phone: pr.phone || d.phone || '+91 98000 00000',
-            experienceYears: d.experience === 'Veteran' ? 6 : d.experience === 'Experienced' ? 3 : 1,
-            experienceLevel: (d.experience || 'Experienced') as 'Fresher' | 'Experienced' | 'Veteran',
-            categories: (d.categories && d.categories.length > 0 ? d.categories : ['Event Helper']) as CrewCategory[],
-            age: d.age || 23,
-            gender: d.gender || 'Other',
-            city: pr.city || d.city || 'Surat',
-            address: pr.address || d.address || 'City Center',
-            pinCode: pr.pincode || d.pincode || '395007',
+            phone: pr.phone || d.phone || '',
+            experienceYears: d.experience_years || 0,
+            experienceLevel: (d.experience || 'Fresher') as 'Fresher' | 'Experienced' | 'Veteran',
+            categories: (d.categories && d.categories.length > 0 ? d.categories : []) as CrewCategory[],
+            age: d.age || 0,
+            gender: d.gender || 'Male',
+            city: pr.city || d.city || '',
+            address: pr.address || d.address || '',
+            pinCode: pr.pincode || d.pincode || '',
             photoUrl: d.profile_photo_url || pr.avatar_url || '',
             systemRating: Number(d.rating || 0),
             reviewsCount: d.total_reviews || 0,
             completedEventsCount: d.completed_events || 0,
             availability: d.availability_status || 'Available for Shifts',
-            expectedPay: d.expected_pay || '₹1,500 / shift',
-            bio: d.bio || 'Professional event crew member registered on Evencify.',
-            profileCompletionPercentage: 85,
+            expectedPay: d.expected_pay || '',
+            bio: d.bio || '',
+            profileCompletionPercentage: 0,
           });
         }
       });
@@ -1300,25 +1300,25 @@ export const EvencifyApi = {
 
           crewProfilesList.push({
             id: d.user_id,
-            name: pr.full_name || d.name || 'Verified Crew Member',
+            name: pr.full_name || d.name || '',
             email: pr.email || d.email || '',
-            phone: pr.phone || d.phone || '+91 98000 00000',
-            experienceYears: d.experience === 'Veteran' ? 6 : d.experience === 'Experienced' ? 3 : 1,
-            experienceLevel: (d.experience || 'Experienced') as 'Fresher' | 'Experienced' | 'Veteran',
-            categories: (d.categories && d.categories.length > 0 ? d.categories : ['Event Helper']) as CrewCategory[],
-            age: d.age || 23,
-            gender: d.gender || 'Other',
-            city: pr.city || d.city || 'Surat',
-            address: pr.address || d.address || 'City Center',
-            pinCode: pr.pincode || d.pincode || '395007',
+            phone: pr.phone || d.phone || '',
+            experienceYears: d.experience_years || 0,
+            experienceLevel: (d.experience || 'Fresher') as 'Fresher' | 'Experienced' | 'Veteran',
+            categories: (d.categories && d.categories.length > 0 ? d.categories : []) as CrewCategory[],
+            age: d.age || 0,
+            gender: d.gender || 'Male',
+            city: pr.city || d.city || '',
+            address: pr.address || d.address || '',
+            pinCode: pr.pincode || d.pincode || '',
             photoUrl: d.profile_photo_url || pr.avatar_url || '',
             systemRating: Number(d.rating || 0),
             reviewsCount: d.total_reviews || 0,
             completedEventsCount: d.completed_events || 0,
             availability: d.availability_status || 'Available for Shifts',
-            expectedPay: d.expected_pay || '₹1,500 / shift',
-            bio: d.bio || 'Professional event crew member registered on Evencify.',
-            profileCompletionPercentage: 85,
+            expectedPay: d.expected_pay || '',
+            bio: d.bio || '',
+            profileCompletionPercentage: 0,
           });
         }
       });
@@ -1554,12 +1554,12 @@ export const EvencifyApi = {
 
       return {
         id: targetId,
-        name: profile.full_name || data.name || 'Event Organiser',
-        companyName: data.company_name || `${profile.full_name || 'Organiser'} Events`,
+        name: profile.full_name || data.name || '',
+        companyName: data.company_name || '',
         hasUdyam: Boolean(data.udyam_registered),
         udyamNumber: data.udyam_number || '',
         address: data.address || profile.address || '',
-        city: data.city || profile.city || 'Surat',
+        city: data.city || profile.city || '',
         pinCode: data.pincode || profile.pincode || '',
         email: profile.email || data.email || '',
         phone: data.phone || profile.phone || '',
@@ -1747,10 +1747,10 @@ export const EvencifyApi = {
           id: p.id,
           name: p.full_name || 'User',
           email: p.email || '',
-          phone: p.phone || crew?.phone || org?.phone || '+91 98000 00000',
+          phone: p.phone || crew?.phone || org?.phone || '',
           role: p.role as 'crew' | 'organiser' | 'admin',
           status: p.is_active === false ? 'Suspended' : 'Active',
-          city: p.city || crew?.city || org?.city || 'Surat',
+          city: p.city || crew?.city || org?.city || '',
           address: p.address || org?.address || '',
           createdAt: formattedDate,
           isVerified: isVer,
@@ -1758,12 +1758,12 @@ export const EvencifyApi = {
         };
 
         if (p.role === 'crew') {
-          user.categories = (crew?.categories && crew.categories.length > 0 ? crew.categories : ['Event Helper']) as CrewCategory[];
+          user.categories = (crew?.categories && crew.categories.length > 0 ? crew.categories : []) as CrewCategory[];
           user.systemRating = Number(crew?.rating || 0);
           user.completedEventsCount = crew?.completed_events || 0;
-          user.expectedPay = crew?.expected_pay || '₹1,500 / shift';
+          user.expectedPay = crew?.expected_pay || '';
         } else if (p.role === 'organiser') {
-          user.companyName = org?.company_name || `${p.full_name || 'Organiser'} Events`;
+          user.companyName = org?.company_name || '';
           user.hasUdyam = Boolean(org?.udyam_registered ?? isVer);
           user.udyamNumber = org?.udyam_number || '';
         }

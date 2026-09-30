@@ -26,12 +26,12 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [age, setAge] = useState<number | ''>('');
-  const [gender, setGender] = useState<'Male' | 'Female' | 'Other'>('Male');
+  const [gender, setGender] = useState<'Male' | 'Female' | 'Other' | ''>('');
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [pincode, setPincode] = useState('');
   const [experienceYears, setExperienceYears] = useState<number>(0);
-  const [experienceLevel, setExperienceLevel] = useState<'Fresher' | 'Experienced' | 'Veteran'>('Fresher');
+  const [experienceLevel, setExperienceLevel] = useState<'Fresher' | 'Experienced' | 'Veteran' | ''>('');
   const [selectedCategories, setSelectedCategories] = useState<CrewCategory[]>([]);
   const [photoUrl, setPhotoUrl] = useState('');
   const [expectedPay, setExpectedPay] = useState('');
@@ -44,26 +44,26 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync with initialProfile when opened
+  // Always strictly completely blank on open for Crew Onboarding (all fields including phone number)
   useEffect(() => {
     if (isOpen) {
-      setName(initialProfile?.name || '');
-      setPhone(initialProfile?.phone || '');
-      setEmail(initialProfile?.email || '');
-      setAge(initialProfile?.age && initialProfile.age > 0 ? initialProfile.age : '');
-      setGender(initialProfile?.gender || 'Male');
-      setCity(initialProfile?.city || '');
-      setAddress(initialProfile?.address || '');
-      setPincode(initialProfile?.pincode || initialProfile?.pinCode || '');
-      setExperienceYears(initialProfile?.experienceYears ?? 0);
-      setExperienceLevel(initialProfile?.experienceLevel || 'Fresher');
-      setSelectedCategories(initialProfile?.categories && initialProfile.categories.length > 0 ? initialProfile.categories : []);
-      setPhotoUrl(initialProfile?.photoUrl || '');
-      setExpectedPay(initialProfile?.expectedPay || '');
+      setName('');
+      setPhone('');
+      setEmail('');
+      setAge('');
+      setGender('');
+      setCity('');
+      setAddress('');
+      setPincode('');
+      setExperienceYears(0);
+      setExperienceLevel('');
+      setSelectedCategories([]);
+      setPhotoUrl('');
+      setExpectedPay('');
       setUploadError(null);
       setFormError(null);
     }
-  }, [isOpen, initialProfile]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -272,7 +272,7 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} autoComplete="off" className="space-y-5">
             {/* 1. PROFILE PICTURE UPLOAD ZONE (Drag & Drop or Selection) */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -373,7 +373,9 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Rahul Sharma"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
@@ -387,7 +389,9 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 98000 00000"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
@@ -401,7 +405,9 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
@@ -420,7 +426,9 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   required
                   value={age}
                   onChange={(e) => setAge(e.target.value ? Number(e.target.value) : '')}
-                  placeholder="e.g. 22"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
@@ -434,6 +442,7 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   onChange={(e) => setGender(e.target.value as any)}
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 >
+                  <option value="">Select Gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
@@ -455,6 +464,7 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   }}
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 >
+                  <option value="">Select Experience Level</option>
                   <option value="Fresher">Fresher (0 - 1 yr)</option>
                   <option value="Experienced">Experienced (2 - 4 yrs)</option>
                   <option value="Veteran">Veteran (5+ yrs)</option>
@@ -473,7 +483,9 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   required
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Apartment, Street, Locality"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
@@ -487,7 +499,9 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   required
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="e.g. Surat"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
@@ -504,7 +518,9 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   maxLength={6}
                   value={pincode}
                   onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="e.g. 395007"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
@@ -517,7 +533,9 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
                   type="text"
                   value={expectedPay}
                   onChange={(e) => setExpectedPay(e.target.value)}
-                  placeholder="e.g. ₹1,500 / shift"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>

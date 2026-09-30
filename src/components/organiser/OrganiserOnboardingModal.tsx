@@ -41,22 +41,23 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Strict blank state for onboarding: completely blank, no auto-filled data
   useEffect(() => {
     if (isOpen) {
-      setName(initialProfile?.name || '');
-      setCompanyName(initialProfile?.companyName || '');
-      setEmail(initialProfile?.email || '');
-      setPhone(initialProfile?.phone || '');
-      setAddress(initialProfile?.address || '');
-      setPincode(initialProfile?.pincode || initialProfile?.pinCode || '');
-      setCity(initialProfile?.city || '');
-      setHasUdyam(initialProfile?.hasUdyam ?? false);
-      setUdyamNumber(initialProfile?.udyamNumber || '');
-      setPhotoUrl(initialProfile?.photoUrl || '');
+      setName('');
+      setCompanyName('');
+      setEmail('');
+      setPhone('');
+      setAddress('');
+      setPincode('');
+      setCity('');
+      setHasUdyam(false);
+      setUdyamNumber('');
+      setPhotoUrl('');
       setUploadError(null);
       setFormError(null);
     }
-  }, [isOpen, initialProfile]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -346,7 +347,9 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Vikram Singhania"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
@@ -360,7 +363,9 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
                   required
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="e.g. Acme Events & Media"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
@@ -377,7 +382,9 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="contact@agency.com"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
@@ -391,7 +398,9 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 98000 00000"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
@@ -407,7 +416,9 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
                 required
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="Office suite, building, street"
+                placeholder=""
+                autoComplete="off"
+                data-lpignore="true"
                 className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
               />
             </div>
@@ -422,7 +433,9 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
                   required
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="e.g. Mumbai"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
@@ -437,7 +450,9 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
                   maxLength={6}
                   value={pincode}
                   onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="e.g. 400001"
+                  placeholder=""
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50/40 hover:bg-white focus:bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-hidden transition-all shadow-2xs"
                 />
               </div>
