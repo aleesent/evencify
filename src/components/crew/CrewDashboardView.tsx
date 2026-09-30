@@ -826,11 +826,11 @@ export const CrewDashboardView: React.FC<CrewDashboardViewProps> = ({
               <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 flex items-start gap-3">
                 <Bell className="h-5 w-5 text-neutral-500 shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-sm text-neutral-900">Verified Crew Rating: 4.9★</div>
+                  <div className="font-bold text-sm text-neutral-900">Welcome to Evencify Crew Network</div>
                   <p className="text-neutral-600 mt-0.5">
-                    Your rating is high because you attend shifts on time. Keep it up to get picked first!
+                    Browse active shifts in your city, apply in 1-click, and build your verified reputation through completed events.
                   </p>
-                  <span className="text-[10px] text-neutral-400 mt-1 block">Updated today</span>
+                  <span className="text-[10px] text-neutral-400 mt-1 block">Active</span>
                 </div>
               </div>
             </div>

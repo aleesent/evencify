@@ -50,7 +50,7 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
       setName(initialProfile?.name || '');
       setPhone(initialProfile?.phone || '');
       setEmail(initialProfile?.email || '');
-      setAge(initialProfile?.age ? initialProfile.age : '');
+      setAge(initialProfile?.age && initialProfile.age > 0 ? initialProfile.age : '');
       setGender(initialProfile?.gender || 'Male');
       setCity(initialProfile?.city || '');
       setAddress(initialProfile?.address || '');
@@ -195,7 +195,7 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
         experienceLevel,
         categories: selectedCategories,
         photoUrl: photoUrl.trim(),
-        expectedPay: expectedPay.trim() || '₹1,500 / shift',
+        expectedPay: expectedPay.trim() || '',
         systemRating: initialProfile?.systemRating || 0,
         reviewsCount: initialProfile?.reviewsCount || 0,
       });

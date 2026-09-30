@@ -39,17 +39,17 @@ export const EventCompletionReviewModal: React.FC<EventCompletionReviewModalProp
     (app) => app.eventId === event.id && (app.status === 'Accepted' || app.status === 'Shortlisted')
   );
 
-  // Initialize rating state for each hired crew member
+  // Initialize rating state for each hired crew member (clean, unrated by default)
   const [crewRatings, setCrewRatings] = useState<
     Record<string, { rating: number; hoverRating: number; feedback: string; tags: string[] }>
   >(() => {
     const initial: Record<string, { rating: number; hoverRating: number; feedback: string; tags: string[] }> = {};
     hiredApplications.forEach((app) => {
       initial[app.crewId] = {
-        rating: 5,
+        rating: 0,
         hoverRating: 0,
         feedback: '',
-        tags: ['Punctual & On Time', 'Hardworking'],
+        tags: [],
       };
     });
     return initial;
@@ -227,8 +227,8 @@ export const EventCompletionReviewModal: React.FC<EventCompletionReviewModalProp
                               );
                             })}
                           </div>
-                          <span className="text-xs font-bold text-neutral-800 min-w-[28px] text-center">
-                            {ratingData.rating}.0
+                          <span className="text-xs font-bold text-neutral-800 min-w-[32px] text-center">
+                            {ratingData.rating > 0 ? `${ratingData.rating}.0` : 'Tap to rate'}
                           </span>
                         </div>
                       </div>

@@ -50,7 +50,7 @@ export const EMPTY_CREW_PROFILE: CrewProfile = {
   experienceYears: 0,
   experienceLevel: 'Fresher',
   categories: [],
-  age: 18,
+  age: 0,
   gender: 'Male',
   address: '',
   pincode: '',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   EventType,
   CrewCategory,
@@ -18,6 +18,7 @@ import {
   ArrowLeft,
   ShieldCheck,
   Building,
+  AlertCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -37,71 +38,146 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   organiserId,
 }) => {
   const [step, setStep] = useState(1);
+  const [stepError, setStepError] = useState<string | null>(null);
 
-  // STEP 1 — EVENT DETAILS
-  const [name, setName] = useState('Royal Heritage Sangeet & Reception');
+  // STEP 1 — EVENT DETAILS (Clean, no pre-filled auto data)
+  const [name, setName] = useState('');
   const [eventType, setEventType] = useState<EventType>('Wedding');
-  const [date, setDate] = useState('2026-10-20');
-  const [startTime, setStartTime] = useState('17:00');
-  const [endTime, setEndTime] = useState('23:30');
-  const [venue, setVenue] = useState('Avadh Utopia Grand Ballroom, Dumas Road');
-  const [city, setCity] = useState('Surat');
-  const [expectedAttendance, setExpectedAttendance] = useState<number | ''>(350);
+  const [date, setDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [venue, setVenue] = useState('');
+  const [city, setCity] = useState('');
+  const [expectedAttendance, setExpectedAttendance] = useState<number | ''>('');
 
   // STEP 2 — CREW REQUIREMENTS
-  const [crewPositionsTotal, setCrewPositionsTotal] = useState<number>(10);
+  const [crewPositionsTotal, setCrewPositionsTotal] = useState<number | ''>('');
   const [requiredCategory, setRequiredCategory] = useState<CrewCategory>('Hospitality Staff');
   const [showGenderRequirement, setShowGenderRequirement] = useState(false);
   const [genderRequirement, setGenderRequirement] = useState<'Male' | 'Female' | 'Any'>('Any');
   const [showAgeRequirement, setShowAgeRequirement] = useState(false);
-  const [ageRequirement, setAgeRequirement] = useState('20 - 30 years');
-  const [experienceRequirement, setExperienceRequirement] = useState<'Fresher' | 'Experienced' | 'Both'>('Experienced');
-  const [dressCode, setDressCode] = useState('Black formal trousers, crisp white shirt & black waistcoats');
-  const [specialRequirements, setSpecialRequirements] = useState(
-    'Bilingual (Hindi/Gujarati/English), guest registration and escorting VIPs.'
-  );
+  const [ageRequirement, setAgeRequirement] = useState('');
+  const [experienceRequirement, setExperienceRequirement] = useState<'Fresher' | 'Experienced' | 'Both'>('Fresher');
+  const [dressCode, setDressCode] = useState('');
+  const [specialRequirements, setSpecialRequirements] = useState('');
 
   // STEP 3 — PAYMENT
-  const [payAmount, setPayAmount] = useState<number>(1500);
+  const [payAmount, setPayAmount] = useState<number | ''>('');
   const [payBasis, setPayBasis] = useState<'Per Day' | 'Per Hour' | 'Per Shift'>('Per Shift');
-  const [paymentMethod, setPaymentMethod] = useState('Direct UPI / Bank Transfer');
+  const [paymentMethod, setPaymentMethod] = useState('');
   const [paymentTimeline, setPaymentTimeline] = useState<'Same Day' | 'Within 24 Hours' | 'Within 3 Days'>('Same Day');
   const [advanceRequired, setAdvanceRequired] = useState(false);
+
+  const resetForm = () => {
+    setStep(1);
+    setStepError(null);
+    setName('');
+    setEventType('Wedding');
+    setDate('');
+    setStartTime('');
+    setEndTime('');
+    setVenue('');
+    setCity('');
+    setExpectedAttendance('');
+    setCrewPositionsTotal('');
+    setRequiredCategory('Hospitality Staff');
+    setShowGenderRequirement(false);
+    setGenderRequirement('Any');
+    setShowAgeRequirement(false);
+    setAgeRequirement('');
+    setExperienceRequirement('Fresher');
+    setDressCode('');
+    setSpecialRequirements('');
+    setPayAmount('');
+    setPayBasis('Per Shift');
+    setPaymentMethod('');
+    setPaymentTimeline('Same Day');
+    setAdvanceRequired(false);
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleNext = () => {
+    setStepError(null);
+    if (step === 1) {
+      if (!name.trim()) {
+        setStepError('Please enter an event name to continue.');
+        return;
+      }
+      if (!date) {
+        setStepError('Please select the event date.');
+        return;
+      }
+      if (!venue.trim()) {
+        setStepError('Please enter the venue or address.');
+        return;
+      }
+      if (!city.trim()) {
+        setStepError('Please enter the event city.');
+        return;
+      }
+    } else if (step === 2) {
+      if (!crewPositionsTotal || Number(crewPositionsTotal) < 1) {
+        setStepError('Please enter the total number of crew required (at least 1).');
+        return;
+      }
+    } else if (step === 3) {
+      if (!payAmount || Number(payAmount) <= 0) {
+        setStepError('Please enter a valid pay amount per crew member.');
+        return;
+      }
+      if (!paymentMethod.trim()) {
+        setStepError('Please specify the payment method (e.g. UPI / Bank Transfer / Cash).');
+        return;
+      }
+    }
+
     if (step < 4) setStep(step + 1);
   };
 
   const handlePrev = () => {
+    setStepError(null);
     if (step > 1) setStep(step - 1);
   };
 
+  const handleCloseModal = () => {
+    resetForm();
+    onClose();
+  };
+
   const handleSubmit = () => {
+    const totalCrew = Number(crewPositionsTotal) || 1;
+    const amount = Number(payAmount) || 0;
+
     const newEvent: EventItem = {
       id: `evt-${Date.now()}`,
-      name,
+      name: name.trim(),
       eventType,
       date,
       startTime,
       endTime,
-      venue,
-      city,
+      venue: venue.trim(),
+      city: city.trim(),
       expectedAttendance: expectedAttendance ? Number(expectedAttendance) : undefined,
       organiserId: organiserId || 'org-1',
-      organiserName: organiserName || 'Singhania Events',
-      crewPositionsTotal,
-      crewPositionsAvailable: crewPositionsTotal,
+      organiserName: organiserName || 'Organiser',
+      crewPositionsTotal: totalCrew,
+      crewPositionsAvailable: totalCrew,
       requiredCategory,
       genderRequirement: showGenderRequirement ? genderRequirement : 'Any',
       ageRequirement: showAgeRequirement ? ageRequirement : undefined,
       experienceRequirement,
-      dressCode,
-      specialRequirements,
-      payAmount,
+      dressCode: dressCode.trim(),
+      specialRequirements: specialRequirements.trim(),
+      payAmount: amount,
       payBasis,
-      paymentMethod,
+      paymentMethod: paymentMethod.trim(),
       paymentTimeline,
       advanceRequired,
       createdAt: new Date().toISOString().split('T')[0],
@@ -109,8 +185,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
     };
 
     onEventCreated(newEvent);
-    onClose();
-    setStep(1);
+    handleCloseModal();
   };
 
   return (
@@ -132,8 +207,9 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
         >
           {/* Close button */}
           <button
-            onClick={onClose}
+            onClick={handleCloseModal}
             className="absolute top-6 right-6 rounded-full p-2 text-black hover:bg-black/10 transition-colors cursor-pointer"
+            aria-label="Close"
           >
             <X className="h-5 w-5" />
           </button>
@@ -170,6 +246,13 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 />
               ))}
             </div>
+
+            {stepError && (
+              <div className="mt-3.5 flex items-center gap-2 rounded-xl border-2 border-black bg-red-100 p-2.5 text-xs font-black text-red-900 animate-in fade-in">
+                <AlertCircle className="h-4 w-4 shrink-0 text-red-700" />
+                <span>{stepError}</span>
+              </div>
+            )}
           </div>
 
           {/* STEP 1: EVENT DETAILS */}
@@ -270,6 +353,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                     required
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
+                    placeholder="e.g. Surat"
                     className="w-full rounded-xl border-2 border-black bg-white px-3.5 py-2.5 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
                   />
                 </div>
@@ -302,7 +386,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                     min={1}
                     required
                     value={crewPositionsTotal}
-                    onChange={(e) => setCrewPositionsTotal(Number(e.target.value))}
+                    onChange={(e) => setCrewPositionsTotal(e.target.value ? Number(e.target.value) : '')}
+                    placeholder="e.g. 10"
                     className="w-full rounded-xl border-2 border-black bg-white px-3.5 py-2.5 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
                   />
                 </div>
@@ -449,9 +534,11 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                   </label>
                   <input
                     type="number"
+                    min={100}
                     required
                     value={payAmount}
-                    onChange={(e) => setPayAmount(Number(e.target.value))}
+                    onChange={(e) => setPayAmount(e.target.value ? Number(e.target.value) : '')}
+                    placeholder="e.g. 1500"
                     className="w-full rounded-xl border-2 border-black bg-white px-3.5 py-2.5 text-xs sm:text-sm font-black text-black focus:bg-[#FFFDE6] focus:outline-hidden"
                   />
                 </div>
@@ -478,9 +565,10 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 </label>
                 <input
                   type="text"
+                  required
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  placeholder="e.g. Direct UPI / Bank Transfer"
+                  placeholder="e.g. Direct UPI / Bank Transfer / Cash"
                   className="w-full rounded-xl border-2 border-black bg-white px-3.5 py-2.5 text-xs sm:text-sm font-medium text-black focus:bg-[#FFFDE6] focus:outline-hidden"
                 />
               </div>
@@ -519,9 +607,9 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
               {/* Total Estimated Spend Callout */}
               <div className="rounded-2xl border-2 border-black bg-[#FFFDE6] p-4">
                 <div className="flex items-center justify-between text-xs font-bold text-black">
-                  <span>Estimated Total Crew Spend ({crewPositionsTotal} staff × ₹{payAmount})</span>
+                  <span>Estimated Total Crew Spend ({crewPositionsTotal || 0} staff × ₹{payAmount || 0})</span>
                   <span className="text-base font-black text-black bg-[#FED000] border-2 border-black px-2 py-0.5 rounded-lg">
-                    ₹{(crewPositionsTotal * payAmount).toLocaleString('en-IN')}
+                    ₹{(Number(crewPositionsTotal || 0) * Number(payAmount || 0)).toLocaleString('en-IN')}
                   </span>
                 </div>
               </div>
@@ -533,7 +621,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
             <div className="space-y-4">
               <div className="rounded-2xl border-2 border-black bg-white p-5 space-y-3 text-xs">
                 <div className="flex items-center justify-between border-b-2 border-black/15 pb-2">
-                  <span className="font-black text-sm text-black">{name}</span>
+                  <span className="font-black text-sm text-black">{name || 'Untitled Event'}</span>
                   <span className="rounded-md border border-black bg-[#FED000] px-2 py-0.5 text-[11px] font-black text-black">
                     {eventType}
                   </span>
@@ -541,13 +629,13 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
                 <div className="grid grid-cols-2 gap-2 text-black font-semibold">
                   <div>
-                    <span className="font-black">Date:</span> {date}
+                    <span className="font-black">Date:</span> {date || 'Not specified'}
                   </div>
                   <div>
-                    <span className="font-black">Timing:</span> {startTime} - {endTime}
+                    <span className="font-black">Timing:</span> {startTime || '--:--'} - {endTime || '--:--'}
                   </div>
                   <div className="col-span-2">
-                    <span className="font-black">Venue:</span> {venue}, {city}
+                    <span className="font-black">Venue:</span> {venue || 'Not specified'}{city ? `, ${city}` : ''}
                   </div>
                 </div>
 
@@ -555,7 +643,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                   <div className="flex justify-between">
                     <span className="font-bold text-black">Crew Positions:</span>
                     <span className="font-black text-black">
-                      {crewPositionsTotal} × {requiredCategory}
+                      {crewPositionsTotal || 0} × {requiredCategory}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -564,7 +652,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                   </div>
                   <div className="flex justify-between">
                     <span className="font-bold text-black">Payout per Crew:</span>
-                    <span className="font-black text-black bg-[#FED000] border border-black px-1 rounded">₹{payAmount} {payBasis}</span>
+                    <span className="font-black text-black bg-[#FED000] border border-black px-1 rounded">₹{payAmount || 0} {payBasis}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-bold text-black">Disbursement:</span>
@@ -572,7 +660,9 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                   </div>
                   <div className="flex justify-between font-black text-black pt-1 border-t-2 border-black/15">
                     <span>Total Crew Budget:</span>
-                    <span className="bg-[#FED000] border-2 border-black px-2 rounded">₹{(crewPositionsTotal * payAmount).toLocaleString('en-IN')}</span>
+                    <span className="bg-[#FED000] border-2 border-black px-2 rounded">
+                      ₹{(Number(crewPositionsTotal || 0) * Number(payAmount || 0)).toLocaleString('en-IN')}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -580,7 +670,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
               <div className="rounded-xl border-2 border-black bg-[#FED000] p-3 text-xs font-black text-black flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-black shrink-0" />
                 <span>
-                  Once published, qualified crew members in {city} will be notified to apply.
+                  Once published, qualified crew members in {city || 'your area'} will be notified to apply.
                 </span>
               </div>
             </div>

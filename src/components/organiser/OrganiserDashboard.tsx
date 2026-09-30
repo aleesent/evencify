@@ -1117,12 +1117,12 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div className="rounded-xl bg-neutral-50 p-4 border border-neutral-200">
                 <div className="text-neutral-500 font-bold uppercase text-[11px] tracking-wider">Company Name</div>
-                <div className="text-base font-extrabold text-neutral-900 mt-1">{organiserProfile.companyName}</div>
+                <div className="text-base font-extrabold text-neutral-900 mt-1">{organiserProfile.companyName || 'Not configured yet'}</div>
               </div>
 
               <div className="rounded-xl bg-neutral-50 p-4 border border-neutral-200">
                 <div className="text-neutral-500 font-bold uppercase text-[11px] tracking-wider">Authorized Lead</div>
-                <div className="text-base font-extrabold text-neutral-900 mt-1">{organiserProfile.name}</div>
+                <div className="text-base font-extrabold text-neutral-900 mt-1">{organiserProfile.name || 'Not configured yet'}</div>
               </div>
 
               <div className="rounded-xl bg-neutral-50 p-4 border border-neutral-200">
@@ -1142,7 +1142,11 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
               <div className="rounded-xl bg-neutral-50 p-4 border border-neutral-200">
                 <div className="text-neutral-500 font-bold uppercase text-[11px] tracking-wider">Location & Address</div>
                 <div className="text-neutral-900 font-medium mt-1">
-                  {organiserProfile.address}, {organiserProfile.city} ({organiserProfile.pincode})
+                  {organiserProfile.address || organiserProfile.city ? (
+                    `${organiserProfile.address ? organiserProfile.address + ', ' : ''}${organiserProfile.city || ''}${organiserProfile.pincode ? ` (${organiserProfile.pincode})` : ''}`
+                  ) : (
+                    <span className="text-neutral-400 italic font-normal">Not configured yet</span>
+                  )}
                 </div>
               </div>
 
@@ -1154,11 +1158,11 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 text-xs">
                   <div>
                     <span className="text-neutral-500">Email:</span>{' '}
-                    <span className="font-semibold text-neutral-900">{organiserProfile.email}</span>
+                    <span className="font-semibold text-neutral-900">{organiserProfile.email || 'Not configured'}</span>
                   </div>
                   <div>
                     <span className="text-neutral-500">Phone:</span>{' '}
-                    <span className="font-semibold text-neutral-900">{organiserProfile.phone}</span>
+                    <span className="font-semibold text-neutral-900">{organiserProfile.phone || 'Not configured'}</span>
                   </div>
                 </div>
               </div>

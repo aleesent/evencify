@@ -79,9 +79,9 @@ export default function App() {
   const currentSeo = useMemo(() => getSEOData({ type: 'homepage' }), []);
 
   // Active Profiles
-  const [currentCrewProfile, setCurrentCrewProfile] = useState<CrewProfile>(INITIAL_CREW_PROFILES[0]);
+  const [currentCrewProfile, setCurrentCrewProfile] = useState<CrewProfile>(EMPTY_CREW_PROFILE);
   const [currentOrganiserProfile, setCurrentOrganiserProfile] = useState<OrganiserProfile>(
-    INITIAL_ORGANISER_PROFILE
+    EMPTY_ORGANISER_PROFILE
   );
   const [currentAdminProfile, setCurrentAdminProfile] = useState<AdminProfile>(INITIAL_ADMIN_PROFILE);
 
@@ -503,7 +503,7 @@ export default function App() {
       showToast(`Welcome! Signed in as ${finalName} (Crew)`);
     } else if (role === 'organiser') {
       const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.role === 'organiser');
-      const finalName = name || existing?.name || currentOrganiserProfile.companyName || defaultName;
+      const finalName = name || existing?.name || defaultName;
       setActiveUserName(finalName);
       const initialOrg: OrganiserProfile = {
         ...EMPTY_ORGANISER_PROFILE,
@@ -540,6 +540,8 @@ export default function App() {
     setActiveUserEmail('');
     setActiveUserName('');
     setAuthenticatedRole('visitor');
+    setCurrentCrewProfile(EMPTY_CREW_PROFILE);
+    setCurrentOrganiserProfile(EMPTY_ORGANISER_PROFILE);
     setCrewOnboardingMandatory(false);
     setCrewOnboardingOpen(false);
     setOrganiserOnboardingMandatory(false);

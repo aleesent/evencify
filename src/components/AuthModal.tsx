@@ -874,37 +874,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
 
-            {/* Instant Code / Auto-Fill Option */}
-            {previewCode && (
-              <div className="mt-2.5 rounded-xl border border-amber-300 bg-amber-50/95 p-3 text-left shadow-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                    <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wide">
-                      Instant Verification Helper
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const digits = previewCode.split('');
-                      setOtpDigits(digits);
-                      handleVerifyOtpCode(previewCode);
-                    }}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-900 text-[#FED000] text-[11px] font-bold hover:bg-neutral-800 transition-colors cursor-pointer shadow-2xs"
-                  >
-                    <span>Auto-fill Code</span>
-                  </button>
-                </div>
-                <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-amber-200/70 text-xs text-amber-900">
-                  <span className="text-amber-800">Your 6-digit OTP:</span>
-                  <span className="font-mono font-black tracking-widest text-base text-neutral-950 bg-white px-2.5 py-0.5 rounded border border-amber-200">
-                    {previewCode}
-                  </span>
-                </div>
-              </div>
-            )}
-
             {/* Feedback messages */}
             {authError && (
               <div className="mt-3.5 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-800 flex items-start gap-2 text-left">
@@ -1040,32 +1009,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <p className="mt-1 text-xs sm:text-sm text-neutral-500">
               Enter the 6-digit code sent to <strong className="text-neutral-900">{email}</strong>
             </p>
-
-            {previewCode && (
-              <div className="mt-2.5 rounded-xl border border-amber-300 bg-amber-50/95 p-3 text-left shadow-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wide">
-                    Instant Reset Helper
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const digits = previewCode.split('');
-                      setOtpDigits(digits);
-                    }}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-900 text-[#FED000] text-[11px] font-bold hover:bg-neutral-800 transition-colors cursor-pointer shadow-2xs"
-                  >
-                    <span>Auto-fill Code</span>
-                  </button>
-                </div>
-                <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-amber-200/70 text-xs text-amber-900">
-                  <span className="text-amber-800">Your 6-digit OTP:</span>
-                  <span className="font-mono font-black tracking-widest text-base text-neutral-950 bg-white px-2.5 py-0.5 rounded border border-amber-200">
-                    {previewCode}
-                  </span>
-                </div>
-              </div>
-            )}
 
             {authError && (
               <div className="mt-3.5 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-800 flex items-start gap-2 text-left">
