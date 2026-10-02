@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   UserRole,
   EventItem,
@@ -67,6 +67,14 @@ export default function App() {
   const [authenticatedRole, setAuthenticatedRole] = useState<UserRole>('visitor');
   const [activeUserEmail, setActiveUserEmail] = useState<string>('');
   const [activeUserName, setActiveUserName] = useState<string>('');
+
+  const activeUserEmailRef = useRef<string>('');
+  activeUserEmailRef.current = activeUserEmail;
+
+  const currentRoleRef = useRef<UserRole>(currentRole);
+  currentRoleRef.current = currentRole;
+
+  const isLoggingOutRef = useRef<boolean>(false);
 
   // Domain State
   const [events, setEvents] = useState<EventItem[]>(INITIAL_EVENTS);
@@ -486,6 +494,7 @@ export default function App() {
 
     // Check active session immediately on mount
     EvencifyApi.getCurrentSession().then((sessionUser) => {
+      if (isLoggingOutRef.current) return;
       if (sessionUser && isMounted) {
         setActiveUserEmail(sessionUser.email);
         setActiveUserName(sessionUser.name);
@@ -493,14 +502,14 @@ export default function App() {
         setCurrentRole(sessionUser.role);
         if (sessionUser.role === 'organiser') {
           EvencifyApi.getOrganiserProfile(sessionUser.email).then((org) => {
-            if (isMounted) {
+            if (isMounted && !isLoggingOutRef.current) {
               if (org) setCurrentOrganiserProfile(org);
               verifyOrganiserProfileCompleteness(org);
             }
           });
         } else if (sessionUser.role === 'crew') {
           EvencifyApi.getCrewProfile(sessionUser.email).then((cr) => {
-            if (isMounted) {
+            if (isMounted && !isLoggingOutRef.current) {
               if (cr) setCurrentCrewProfile(cr);
               verifyCrewProfileCompleteness(cr);
             }
@@ -535,23 +544,24 @@ export default function App() {
         if (isMounted && freshUsers && freshUsers.length > 0) setUsers(freshUsers);
 
         // Check if the changed profile belongs to the active user
-        const targetEmail = activeUserEmail || (() => {
+        const targetEmail = activeUserEmailRef.current || (() => {
           try {
             return JSON.parse(localStorage.getItem('evencify_active_user') || '{}')?.email || '';
           } catch { return ''; }
         })();
 
-        if (targetEmail && isMounted) {
+        if (targetEmail && isMounted && !isLoggingOutRef.current) {
           const updated = payload.new as any;
           if (updated && updated.email?.toLowerCase() === targetEmail.toLowerCase()) {
             if (updated.full_name) setActiveUserName(updated.full_name);
           }
-          if (currentRole === 'crew') {
+          const role = currentRoleRef.current;
+          if (role === 'crew') {
             const freshCrew = await EvencifyApi.getCrewProfile(targetEmail);
-            if (freshCrew && isMounted) setCurrentCrewProfile(freshCrew);
-          } else if (currentRole === 'organiser') {
+            if (freshCrew && isMounted && !isLoggingOutRef.current) setCurrentCrewProfile(freshCrew);
+          } else if (role === 'organiser') {
             const freshOrg = await EvencifyApi.getOrganiserProfile(targetEmail);
-            if (freshOrg && isMounted) setCurrentOrganiserProfile(freshOrg);
+            if (freshOrg && isMounted && !isLoggingOutRef.current) setCurrentOrganiserProfile(freshOrg);
           }
         }
       })
@@ -559,30 +569,30 @@ export default function App() {
         const freshCrew = await EvencifyApi.getCrewProfiles();
         if (freshCrew.length > 0 && isMounted) setCrewList(freshCrew);
 
-        const targetEmail = activeUserEmail || (() => {
+        const targetEmail = activeUserEmailRef.current || (() => {
           try {
             return JSON.parse(localStorage.getItem('evencify_active_user') || '{}')?.email || '';
           } catch { return ''; }
         })();
 
-        if (targetEmail && isMounted) {
+        if (targetEmail && isMounted && !isLoggingOutRef.current) {
           const freshCrewProf = await EvencifyApi.getCrewProfile(targetEmail);
-          if (freshCrewProf && isMounted) setCurrentCrewProfile(freshCrewProf);
+          if (freshCrewProf && isMounted && !isLoggingOutRef.current) setCurrentCrewProfile(freshCrewProf);
         }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'organiser_profiles' }, async () => {
         const freshUsers = await EvencifyApi.getUsers();
         if (freshUsers.length > 0 && isMounted) setUsers(freshUsers);
 
-        const targetEmail = activeUserEmail || (() => {
+        const targetEmail = activeUserEmailRef.current || (() => {
           try {
             return JSON.parse(localStorage.getItem('evencify_active_user') || '{}')?.email || '';
           } catch { return ''; }
         })();
 
-        if (targetEmail && isMounted) {
+        if (targetEmail && isMounted && !isLoggingOutRef.current) {
           const freshOrgProf = await EvencifyApi.getOrganiserProfile(targetEmail);
-          if (freshOrgProf && isMounted) setCurrentOrganiserProfile(freshOrgProf);
+          if (freshOrgProf && isMounted && !isLoggingOutRef.current) setCurrentOrganiserProfile(freshOrgProf);
         }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, async () => {
@@ -609,6 +619,7 @@ export default function App() {
 
     // Check for active Supabase Auth session (such as returning from OAuth redirect)
     supabase.auth.getSession().then(({ data }) => {
+      if (isLoggingOutRef.current) return;
       if (data?.session?.user && isMounted) {
         const u = data.session.user;
         const userRole = (u.user_metadata?.role as UserRole) || 'crew';
@@ -626,14 +637,14 @@ export default function App() {
         if (userEmail) {
           if (userRole === 'organiser') {
             EvencifyApi.getOrganiserProfile(userEmail).then((org) => {
-              if (isMounted) {
+              if (isMounted && !isLoggingOutRef.current) {
                 if (org) setCurrentOrganiserProfile(org);
                 verifyOrganiserProfileCompleteness(org);
               }
             });
           } else if (userRole === 'crew') {
             EvencifyApi.getCrewProfile(userEmail).then((cr) => {
-              if (isMounted) {
+              if (isMounted && !isLoggingOutRef.current) {
                 if (cr) setCurrentCrewProfile(cr);
                 verifyCrewProfileCompleteness(cr);
               }
@@ -644,6 +655,9 @@ export default function App() {
     });
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (isLoggingOutRef.current || _event === 'SIGNED_OUT' || !session?.user) {
+        return;
+      }
       if (session?.user && isMounted) {
         const u = session.user;
         const userRole = (u.user_metadata?.role as UserRole) || 'crew';
@@ -661,14 +675,14 @@ export default function App() {
         if (userEmail) {
           if (userRole === 'organiser') {
             EvencifyApi.getOrganiserProfile(userEmail).then((org) => {
-              if (isMounted) {
+              if (isMounted && !isLoggingOutRef.current) {
                 if (org) setCurrentOrganiserProfile(org);
                 verifyOrganiserProfileCompleteness(org);
               }
             });
           } else if (userRole === 'crew') {
             EvencifyApi.getCrewProfile(userEmail).then((cr) => {
-              if (isMounted) {
+              if (isMounted && !isLoggingOutRef.current) {
                 if (cr) setCurrentCrewProfile(cr);
                 verifyCrewProfileCompleteness(cr);
               }
@@ -686,7 +700,7 @@ export default function App() {
       supabase.removeChannel(channel);
       authListener?.subscription?.unsubscribe();
     };
-  }, [activeUserEmail]);
+  }, []);
 
   // Role switching
   const handleSelectRole = (role: UserRole) => {
@@ -774,6 +788,20 @@ export default function App() {
   };
 
   const handleLogout = async () => {
+    isLoggingOutRef.current = true;
+
+    // 1. Immediately remove localStorage and session data synchronously
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('evencify_active_user');
+        localStorage.removeItem('evencify_user_role');
+        sessionStorage.clear();
+      } catch (err) {
+        console.error('Storage clear error:', err);
+      }
+    }
+
+    // 2. Immediately reset state synchronously to unauthenticated visitor
     setCurrentRole('visitor');
     setActiveUserEmail('');
     setActiveUserName('');
@@ -784,7 +812,55 @@ export default function App() {
     setCrewOnboardingOpen(false);
     setOrganiserOnboardingMandatory(false);
     setOrganiserOnboardingOpen(false);
-    await EvencifyApi.signOut();
+    setAuthModalOpen(false);
+    setNotificationDrawerOpen(false);
+
+    // 3. Clear auth query params or auth hashes from browser URL instantly
+    if (typeof window !== 'undefined') {
+      try {
+        const url = new URL(window.location.href);
+        let changed = false;
+        ['auth', 'login', 'signup', 'role'].forEach((p) => {
+          if (url.searchParams.has(p)) {
+            url.searchParams.delete(p);
+            changed = true;
+          }
+        });
+        if (
+          [
+            '#crew',
+            '#crew-portal',
+            '#crew-login',
+            '#crew-signup',
+            '#events',
+            '#organiser',
+            '#organiser-portal',
+            '#event-login',
+            '#event-signup',
+            '#admin',
+            '#admin-login',
+          ].includes(url.hash)
+        ) {
+          url.hash = '';
+          changed = true;
+        }
+        if (changed) {
+          window.history.replaceState(null, '', url.pathname + (url.search ? url.search : '') + (url.hash ? url.hash : ''));
+        }
+      } catch {}
+    }
+
+    // 4. Terminate active sessions in Supabase
+    try {
+      await EvencifyApi.signOut();
+    } catch (err) {
+      console.error('Sign out error:', err);
+    } finally {
+      setTimeout(() => {
+        isLoggingOutRef.current = false;
+      }, 1000);
+    }
+
     showToast('Signed out successfully.');
   };
 

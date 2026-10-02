@@ -170,7 +170,7 @@ export const Footer: React.FC<FooterProps> = ({
             </ul>
           </div>
 
-          {/* Column 3: Platform Governance & Admin Portal (3 cols on lg) */}
+          {/* Column 3: Platform Governance (3 cols on lg) */}
           <div className="lg:col-span-3 space-y-4">
             <div className="text-xs font-bold text-neutral-200 uppercase tracking-widest flex items-center gap-1.5">
               <span>Governance</span>

@@ -254,20 +254,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* ================= RIGHT CONTROLS: DYNAMIC AUTH STATE ================= */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* 1. NOT LOGGED IN: SHOW 'LOG IN' & 'GET STARTED' */}
+            {/* 1. NOT LOGGED IN: SHOW ONLY 'GET STARTED' */}
             {!isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => onOpenAuthModal(undefined, 'login')}
-                  className="inline-flex items-center rounded-full border border-neutral-200/90 bg-white hover:bg-neutral-50 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-neutral-800 shadow-2xs transition-colors cursor-pointer"
-                >
-                  Log In
-                </button>
+              <div className="flex items-center">
                 <button
                   type="button"
                   onClick={() => onOpenAuthModal(undefined, 'signup')}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-black px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-[#FED000] hover:bg-neutral-800 shadow-xs transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-black px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-[#FED000] hover:bg-neutral-800 shadow-xs transition-all cursor-pointer"
                 >
                   <span>Get Started</span>
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -506,7 +499,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                         <div className="my-1 border-t border-neutral-100" />
 
                         <button
-                          onClick={() => {
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             setUserMenuOpen(false);
                             onLogout();
                           }}
@@ -578,7 +574,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               </>
             ) : (
-              <div className="pb-2 space-y-2">
+              <div className="pb-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -587,18 +583,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-black py-3 text-sm font-bold text-[#FED000] shadow-xs cursor-pointer hover:bg-neutral-800 transition-colors"
                 >
-                  <span>Get Started (Create Account)</span>
+                  <span>Get Started</span>
                   <ArrowRight className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onOpenAuthModal(undefined, 'login');
-                  }}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white py-2.5 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 transition-colors cursor-pointer"
-                >
-                  <span>Sign In / Log In</span>
                 </button>
               </div>
             )}
@@ -628,7 +614,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             {isAuthenticated ? (
               <div className="pt-2 border-t border-neutral-100">
                 <button
-                  onClick={() => {
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     setMobileMenuOpen(false);
                     onLogout();
                   }}
