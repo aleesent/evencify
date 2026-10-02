@@ -36,6 +36,7 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { RoleSelectorModal } from './components/RoleSelectorModal';
 import { AuthModal } from './components/AuthModal';
+import { DirectLinksModal } from './components/DirectLinksModal';
 import { NotificationDrawer } from './components/NotificationDrawer';
 import { EventCoordinationChatModal } from './components/EventCoordinationChatModal';
 
@@ -75,9 +76,6 @@ export default function App() {
   const [users, setUsers] = useState<UserAccount[]>(INITIAL_USERS);
   const [notifications, setNotifications] = useState<AppNotification[]>(INITIAL_NOTIFICATIONS);
 
-  // SEO Metadata
-  const currentSeo = useMemo(() => getSEOData({ type: 'homepage' }), []);
-
   // Active Profiles
   const [currentCrewProfile, setCurrentCrewProfile] = useState<CrewProfile>(EMPTY_CREW_PROFILE);
   const [currentOrganiserProfile, setCurrentOrganiserProfile] = useState<OrganiserProfile>(
@@ -99,6 +97,48 @@ export default function App() {
   const [organiserOnboardingOpen, setOrganiserOnboardingOpen] = useState(false);
   const [organiserOnboardingMandatory, setOrganiserOnboardingMandatory] = useState(false);
   const [createEventModalOpen, setCreateEventModalOpen] = useState(false);
+  const [pendingPostAuthAction, setPendingPostAuthAction] = useState<string | null>(null);
+  const [directLinksOpen, setDirectLinksOpen] = useState(false);
+
+  // Dynamic SEO Metadata reactively tuned to active view & route
+  const currentSeo = useMemo(() => {
+    if (authModalOpen) {
+      if (authInitialMode === 'login') {
+        if (authTargetRole === 'crew') return getSEOData({ type: 'crew-login' });
+        if (authTargetRole === 'organiser') return getSEOData({ type: 'organiser-login' });
+        return getSEOData({ type: 'login' });
+      } else {
+        if (authTargetRole === 'crew') return getSEOData({ type: 'crew-signup' });
+        if (authTargetRole === 'organiser') return getSEOData({ type: 'organiser-signup' });
+        return getSEOData({ type: 'signup' });
+      }
+    }
+    if (createEventModalOpen) {
+      return getSEOData({ type: 'create-event' });
+    }
+    if (directLinksOpen) {
+      return getSEOData({ type: 'direct-links' });
+    }
+    if (adminLoginOpen) {
+      return getSEOData({ type: 'login' });
+    }
+    if (currentRole === 'crew') {
+      return getSEOData({ type: 'crew-portal' });
+    }
+    if (currentRole === 'organiser') {
+      return getSEOData({ type: 'organiser-portal' });
+    }
+    return getSEOData({ type: 'homepage', eventCount: events.length });
+  }, [
+    authModalOpen,
+    authInitialMode,
+    authTargetRole,
+    createEventModalOpen,
+    directLinksOpen,
+    adminLoginOpen,
+    currentRole,
+    events.length,
+  ]);
 
   // Active subtabs for persistent navigation
   const [activeCrewTab, setActiveCrewTab] = useState<
@@ -186,18 +226,234 @@ export default function App() {
     }
   };
 
-  // Secure Admin Access: via /admin or /admin-login URL or discrete shortcut (Ctrl+Shift+A / Cmd+Shift+A)
+  // Open authentication modal with targeted role and mode
+  const handleOpenAuth = (role?: UserRole, initialMode: 'login' | 'signup' = 'signup') => {
+    setAuthTargetRole(role);
+    setAuthInitialMode(initialMode);
+    setAuthModalOpen(true);
+  };
+
+  // Direct URL Links & Deep Linking Listener
+  // Supports:
+  // - Direct Crew Login: ?auth=login&role=crew, ?login=crew, #crew-login, /crew/login
+  // - Direct Crew Signup / Create Account: ?auth=signup&role=crew, ?signup=crew, #crew-signup, /crew/signup
+  // - Direct Event/Organiser Login: ?auth=login&role=organiser, ?login=event, #event-login, /event/login
+  // - Direct Event/Organiser Signup / Create Account: ?auth=signup&role=organiser, ?signup=event, #event-signup, /event/signup
+  // - Direct Create Event: ?action=create-event, ?create-event=true, #create-event, /create-event
+  // - Direct Crew Portal: ?role=crew, #crew, /crew
+  // - Direct Organiser Portal: ?role=organiser, #events, /events, /organiser
+  // - Admin Portal: /admin, /admin-login, ?admin=true, #admin
   useEffect(() => {
-    const checkAdminRoute = () => {
+    const handleUrlRouting = () => {
       const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
       const params = new URLSearchParams(window.location.search);
-      if (path === '/admin' || path === '/admin-login' || path === '/operator' || params.get('admin') === 'true') {
+
+      // 1. Admin Portal
+      if (
+        path === '/admin' ||
+        path === '/admin-login' ||
+        path === '/operator' ||
+        params.get('admin') === 'true' ||
+        hash === '#admin' ||
+        hash === '#admin-login'
+      ) {
         setAdminLoginOpen(true);
+        return;
+      }
+
+      // Check Direct Links Modal
+      if (
+        params.get('modal') === 'direct-links' ||
+        params.get('links') === 'true' ||
+        hash === '#links' ||
+        hash === '#direct-links'
+      ) {
+        setDirectLinksOpen(true);
+        return;
+      }
+
+      // 2. Direct Create Event Modal
+      const actionParam = params.get('action')?.toLowerCase() || params.get('modal')?.toLowerCase();
+      const isCreateEvent =
+        actionParam === 'create-event' ||
+        actionParam === 'new-event' ||
+        params.get('create-event') === 'true' ||
+        params.get('new-event') === 'true' ||
+        hash === '#create-event' ||
+        hash === '#new-event' ||
+        path === '/create-event' ||
+        path === '/events/new';
+
+      if (isCreateEvent) {
+        if (activeUserEmail && authenticatedRole === 'organiser') {
+          setCurrentRole('organiser');
+          setCreateEventModalOpen(true);
+        } else {
+          setPendingPostAuthAction('create-event');
+          handleOpenAuth('organiser', 'login');
+          showToast('Sign in or register as an Organiser to create your event.');
+        }
+        return;
+      }
+
+      // 3. Resolve Target Role & Mode
+      const authParam = params.get('auth')?.toLowerCase() || params.get('mode')?.toLowerCase();
+      const roleParam = params.get('role')?.toLowerCase() || params.get('type')?.toLowerCase();
+      const loginParam = params.get('login')?.toLowerCase();
+      const signupParam = params.get('signup')?.toLowerCase();
+      const viewParam = params.get('view')?.toLowerCase() || params.get('portal')?.toLowerCase();
+
+      let targetRole: UserRole | undefined = undefined;
+      let targetMode: 'login' | 'signup' | undefined = undefined;
+
+      // URL Query: ?auth=...
+      if (authParam === 'login' || authParam === 'signup') {
+        targetMode = authParam;
+      }
+
+      if (roleParam === 'crew' || roleParam === 'worker') {
+        targetRole = 'crew';
+      } else if (
+        roleParam === 'organiser' ||
+        roleParam === 'organizer' ||
+        roleParam === 'event' ||
+        roleParam === 'host'
+      ) {
+        targetRole = 'organiser';
+      }
+
+      // URL Query: ?login=crew / ?login=organiser / ?login=event
+      if (loginParam !== null) {
+        targetMode = 'login';
+        if (loginParam === 'crew') targetRole = 'crew';
+        if (loginParam === 'organiser' || loginParam === 'organizer' || loginParam === 'event') targetRole = 'organiser';
+      }
+
+      // URL Query: ?signup=crew / ?signup=organiser / ?signup=event
+      if (signupParam !== null) {
+        targetMode = 'signup';
+        if (signupParam === 'crew') targetRole = 'crew';
+        if (signupParam === 'organiser' || signupParam === 'organizer' || signupParam === 'event') targetRole = 'organiser';
+      }
+
+      // Hash Shortcuts
+      if (hash === '#crew-login' || hash === '#login-crew') {
+        targetRole = 'crew';
+        targetMode = 'login';
+      } else if (hash === '#crew-signup' || hash === '#signup-crew') {
+        targetRole = 'crew';
+        targetMode = 'signup';
+      } else if (
+        hash === '#event-login' ||
+        hash === '#organiser-login' ||
+        hash === '#login-organiser' ||
+        hash === '#login-event'
+      ) {
+        targetRole = 'organiser';
+        targetMode = 'login';
+      } else if (
+        hash === '#event-signup' ||
+        hash === '#organiser-signup' ||
+        hash === '#signup-organiser' ||
+        hash === '#signup-event'
+      ) {
+        targetRole = 'organiser';
+        targetMode = 'signup';
+      } else if (hash === '#login') {
+        targetMode = 'login';
+      } else if (hash === '#signup') {
+        targetMode = 'signup';
+      } else if (hash === '#crew' || hash === '#crew-portal') {
+        if (activeUserEmail && authenticatedRole === 'crew') {
+          setCurrentRole('crew');
+        } else {
+          targetRole = 'crew';
+          targetMode = 'login';
+        }
+      } else if (hash === '#organiser' || hash === '#events' || hash === '#organiser-portal') {
+        if (activeUserEmail && authenticatedRole === 'organiser') {
+          setCurrentRole('organiser');
+        } else {
+          targetRole = 'organiser';
+          targetMode = 'login';
+        }
+      }
+
+      // Pathname Shortcuts (SPA routes)
+      if (path === '/crew/login' || path === '/crew-login' || path === '/login/crew') {
+        targetRole = 'crew';
+        targetMode = 'login';
+      } else if (path === '/crew/signup' || path === '/crew-signup' || path === '/signup/crew') {
+        targetRole = 'crew';
+        targetMode = 'signup';
+      } else if (
+        path === '/organiser/login' ||
+        path === '/organizer/login' ||
+        path === '/event/login' ||
+        path === '/event-login' ||
+        path === '/login/organiser'
+      ) {
+        targetRole = 'organiser';
+        targetMode = 'login';
+      } else if (
+        path === '/organiser/signup' ||
+        path === '/organizer/signup' ||
+        path === '/event/signup' ||
+        path === '/event-signup' ||
+        path === '/signup/organiser'
+      ) {
+        targetRole = 'organiser';
+        targetMode = 'signup';
+      } else if (path === '/login') {
+        targetMode = 'login';
+      } else if (path === '/signup') {
+        targetMode = 'signup';
+      } else if (path === '/crew' || path === '/crew-dashboard') {
+        if (activeUserEmail && authenticatedRole === 'crew') {
+          setCurrentRole('crew');
+        } else {
+          targetRole = 'crew';
+          targetMode = 'login';
+        }
+      } else if (path === '/organiser' || path === '/organizer' || path === '/events') {
+        if (activeUserEmail && authenticatedRole === 'organiser') {
+          setCurrentRole('organiser');
+        } else {
+          targetRole = 'organiser';
+          targetMode = 'login';
+        }
+      }
+
+      // Dispatch modal or view update
+      if (targetMode) {
+        handleOpenAuth(targetRole, targetMode);
+      } else if (targetRole && !activeUserEmail) {
+        handleOpenAuth(targetRole, 'login');
+      } else if (viewParam === 'crew' || roleParam === 'crew') {
+        if (activeUserEmail && authenticatedRole === 'crew') {
+          setCurrentRole('crew');
+        } else {
+          handleOpenAuth('crew', 'login');
+        }
+      } else if (
+        viewParam === 'organiser' ||
+        viewParam === 'organizer' ||
+        roleParam === 'organiser' ||
+        roleParam === 'organizer' ||
+        roleParam === 'event'
+      ) {
+        if (activeUserEmail && authenticatedRole === 'organiser') {
+          setCurrentRole('organiser');
+        } else {
+          handleOpenAuth('organiser', 'login');
+        }
       }
     };
 
-    checkAdminRoute();
-    window.addEventListener('popstate', checkAdminRoute);
+    handleUrlRouting();
+    window.addEventListener('popstate', handleUrlRouting);
+    window.addEventListener('hashchange', handleUrlRouting);
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'a' || e.key === 'A')) {
@@ -209,10 +465,11 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('popstate', checkAdminRoute);
+      window.removeEventListener('popstate', handleUrlRouting);
+      window.removeEventListener('hashchange', handleUrlRouting);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [activeUserEmail, authenticatedRole]);
 
   const verifyCrewProfileCompleteness = (profile: CrewProfile | null) => {
     if (!profile || !isCrewProfileComplete(profile)) {
@@ -462,12 +719,6 @@ export default function App() {
     setCurrentRole(role);
   };
 
-  const handleOpenAuth = (role?: UserRole, initialMode: 'login' | 'signup' = 'signup') => {
-    setAuthTargetRole(role);
-    setAuthInitialMode(initialMode);
-    setAuthModalOpen(true);
-  };
-
   const handleAuthenticated = (role: UserRole, email: string, name?: string) => {
     setActiveUserEmail(email);
     setAuthenticatedRole(role);
@@ -521,6 +772,13 @@ export default function App() {
         }
       });
       showToast(`Welcome! Signed in as ${finalName} (Organiser)`);
+
+      if (pendingPostAuthAction === 'create-event') {
+        setTimeout(() => {
+          setCreateEventModalOpen(true);
+        }, 350);
+        setPendingPostAuthAction(null);
+      }
     } else if (role === 'admin') {
       setActiveUserName(currentAdminProfile.name);
       showToast(`Admin Console Unlocked: ${email}`);
@@ -1260,6 +1518,7 @@ export default function App() {
       <Footer
         onSelectRole={handleSelectRole}
         onNavigateSection={handleScrollToSection}
+        onOpenDirectLinks={() => setDirectLinksOpen(true)}
       />
 
       {/* Global Modals */}
@@ -1269,11 +1528,57 @@ export default function App() {
         onSelectRole={handleSelectRole}
       />
 
+      <DirectLinksModal
+        isOpen={directLinksOpen}
+        onClose={() => {
+          setDirectLinksOpen(false);
+          if (
+            window.location.search.includes('direct-links') ||
+            window.location.search.includes('links=') ||
+            window.location.hash.includes('links')
+          ) {
+            window.history.replaceState({}, '', window.location.pathname);
+          }
+        }}
+      />
+
       <AuthModal
         isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
+        onClose={() => {
+          setAuthModalOpen(false);
+          if (
+            window.location.search.includes('auth=') ||
+            window.location.search.includes('login=') ||
+            window.location.search.includes('signup=') ||
+            window.location.search.includes('role=') ||
+            window.location.hash.includes('login') ||
+            window.location.hash.includes('signup')
+          ) {
+            window.history.replaceState({}, '', window.location.pathname);
+          }
+        }}
         targetRole={authTargetRole}
         initialMode={authInitialMode}
+        onModeChange={(mode) => {
+          setAuthInitialMode(mode);
+          if (typeof window !== 'undefined') {
+            try {
+              const url = new URL(window.location.href);
+              url.searchParams.set('auth', mode);
+              window.history.replaceState({}, '', url.toString());
+            } catch (e) {}
+          }
+        }}
+        onRoleChange={(role) => {
+          setAuthTargetRole(role);
+          if (typeof window !== 'undefined') {
+            try {
+              const url = new URL(window.location.href);
+              url.searchParams.set('role', role);
+              window.history.replaceState({}, '', url.toString());
+            } catch (e) {}
+          }
+        }}
         onAuthenticated={handleAuthenticated}
       />
 
@@ -1375,7 +1680,16 @@ export default function App() {
       {/* Create Event Modal (Organiser) */}
       <CreateEventModal
         isOpen={createEventModalOpen}
-        onClose={() => setCreateEventModalOpen(false)}
+        onClose={() => {
+          setCreateEventModalOpen(false);
+          if (
+            window.location.search.includes('create-event') ||
+            window.location.search.includes('new-event') ||
+            window.location.hash.includes('create-event')
+          ) {
+            window.history.replaceState({}, '', window.location.pathname);
+          }
+        }}
         onEventCreated={handleEventCreated}
         organiserName={currentOrganiserProfile.companyName}
         organiserId={currentOrganiserProfile.id}

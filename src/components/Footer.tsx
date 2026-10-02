@@ -2,15 +2,17 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { EvencifyLogo } from './EvencifyLogo';
 import { UserRole } from '../types';
-import { ArrowUpRight, ShieldCheck } from 'lucide-react';
+import { ArrowUpRight, ShieldCheck, Share2 } from 'lucide-react';
 
 interface FooterProps {
   onSelectRole: (role: UserRole) => void;
   onNavigateSection: (id: string) => void;
+  onOpenDirectLinks?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   onNavigateSection,
+  onOpenDirectLinks,
 }) => {
   const currentYear = new Date().getFullYear();
 
@@ -246,6 +248,16 @@ export const Footer: React.FC<FooterProps> = ({
             >
               Terms
             </button>
+            {onOpenDirectLinks && (
+              <button
+                type="button"
+                onClick={onOpenDirectLinks}
+                className="inline-flex items-center gap-1.5 text-neutral-300 hover:text-[#FED000] font-semibold transition-colors cursor-pointer"
+              >
+                <Share2 className="h-3.5 w-3.5 text-[#FED000]" />
+                <span>Direct Open Links</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

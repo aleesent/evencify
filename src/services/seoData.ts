@@ -1062,6 +1062,16 @@ export function getSEOData(params: {
     | 'faq'
     | 'sitemap'
     | 'robots'
+    | 'login'
+    | 'crew-login'
+    | 'organiser-login'
+    | 'signup'
+    | 'crew-signup'
+    | 'organiser-signup'
+    | 'create-event'
+    | 'crew-portal'
+    | 'organiser-portal'
+    | 'direct-links'
     | 'not-found';
   city?: CityData;
   state?: StateData;
@@ -2077,6 +2087,353 @@ export function getSEOData(params: {
       };
     }
 
+    case 'login': {
+      const title = 'Evencify Login | Sign In to Your Crew or Organiser Account';
+      const description =
+        'Access your Evencify account. Sign in as an Event Crew Member to find shifts or as an Event Organiser to publish shifts and manage staff in Surat & Gujarat.';
+      const canonicalUrl = 'https://evencify.com/login';
+      const h1 = 'Sign In to Evencify';
+      const loginActionSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Evencify Login',
+        description,
+        url: canonicalUrl,
+        potentialAction: {
+          '@type': 'ConsumeAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: 'https://evencify.com/login',
+            actionPlatform: [
+              'http://schema.org/DesktopWebPlatform',
+              'http://schema.org/MobileWebPlatform',
+            ],
+          },
+        },
+      };
+      return {
+        title,
+        description,
+        canonicalUrl,
+        robots: 'index, follow',
+        ogTitle: title,
+        ogDescription: description,
+        ogImage: fallbackImage,
+        ogType: 'website',
+        twitterCard: 'summary_large_image',
+        twitterTitle: title,
+        twitterDescription: description,
+        twitterImage: fallbackImage,
+        h1,
+        keywords: 'evencify login, evencify sign in, crew login surat, event organiser login gujarat, evencify portal',
+        structuredData: [loginActionSchema],
+        breadcrumbItems: [
+          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Login', url: canonicalUrl },
+        ],
+      };
+    }
+
+    case 'crew-login': {
+      const title = 'Evencify Crew Login | Access Event Shifts & Daily Payouts';
+      const description =
+        'Sign in to your Evencify Crew account. Browse upcoming concerts, weddings & expos in Surat, confirm shifts, track attendance, and get paid instantly.';
+      const canonicalUrl = 'https://evencify.com/crew/login';
+      const h1 = 'Evencify Crew Member Login';
+      const crewLoginSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Evencify Crew Login',
+        description,
+        url: canonicalUrl,
+      };
+      return {
+        title,
+        description,
+        canonicalUrl,
+        robots: 'index, follow',
+        ogTitle: title,
+        ogDescription: description,
+        ogImage: fallbackImage,
+        ogType: 'website',
+        twitterCard: 'summary_large_image',
+        twitterTitle: title,
+        twitterDescription: description,
+        twitterImage: fallbackImage,
+        h1,
+        keywords: 'evencify crew login, event worker login, crew shifts login, surat event jobs sign in',
+        structuredData: [crewLoginSchema],
+        breadcrumbItems: [
+          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Crew Jobs', url: 'https://evencify.com/crew-jobs' },
+          { name: 'Crew Login', url: canonicalUrl },
+        ],
+      };
+    }
+
+    case 'organiser-login': {
+      const title = 'Evencify Organiser Login | Manage Events & Hire Verified Crew';
+      const description =
+        'Log in to your Evencify Organiser portal. Post event staffing requirements, review candidate profiles, coordinate rosters, and oversee escrow payments.';
+      const canonicalUrl = 'https://evencify.com/event/login';
+      const h1 = 'Evencify Event Organiser Login';
+      const organiserLoginSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Evencify Organiser Login',
+        description,
+        url: canonicalUrl,
+      };
+      return {
+        title,
+        description,
+        canonicalUrl,
+        robots: 'index, follow',
+        ogTitle: title,
+        ogDescription: description,
+        ogImage: fallbackImage,
+        ogType: 'website',
+        twitterCard: 'summary_large_image',
+        twitterTitle: title,
+        twitterDescription: description,
+        twitterImage: fallbackImage,
+        h1,
+        keywords: 'evencify organiser login, event manager login surat, post event shifts login gujarat',
+        structuredData: [organiserLoginSchema],
+        breadcrumbItems: [
+          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'For Organisers', url: 'https://evencify.com/organise-event' },
+          { name: 'Organiser Login', url: canonicalUrl },
+        ],
+      };
+    }
+
+    case 'signup': {
+      const title = 'Create Account | Join Evencify Event Workforce Network';
+      const description =
+        'Create your free Evencify account. Connect with leading event planners or hire verified, background-checked crew in Surat and across Gujarat.';
+      const canonicalUrl = 'https://evencify.com/signup';
+      const h1 = 'Create Your Evencify Account';
+      const signupSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Create Evencify Account',
+        description,
+        url: canonicalUrl,
+      };
+      return {
+        title,
+        description,
+        canonicalUrl,
+        robots: 'index, follow',
+        ogTitle: title,
+        ogDescription: description,
+        ogImage: fallbackImage,
+        ogType: 'website',
+        twitterCard: 'summary_large_image',
+        twitterTitle: title,
+        twitterDescription: description,
+        twitterImage: fallbackImage,
+        h1,
+        keywords: 'evencify signup, create evencify account, register evencify, join evencify surat',
+        structuredData: [signupSchema],
+        breadcrumbItems: [
+          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Sign Up', url: canonicalUrl },
+        ],
+      };
+    }
+
+    case 'crew-signup': {
+      const title = 'Evencify Crew Registration | Sign Up & Get Hired for Events';
+      const description =
+        'Register as a verified event crew member on Evencify. Free sign-up for hospitality, security, ticketing, stage management & VIP liaison shifts.';
+      const canonicalUrl = 'https://evencify.com/crew/signup';
+      const h1 = 'Join Evencify Verified Crew';
+      const crewSignupSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Evencify Crew Registration',
+        description,
+        url: canonicalUrl,
+      };
+      return {
+        title,
+        description,
+        canonicalUrl,
+        robots: 'index, follow',
+        ogTitle: title,
+        ogDescription: description,
+        ogImage: fallbackImage,
+        ogType: 'website',
+        twitterCard: 'summary_large_image',
+        twitterTitle: title,
+        twitterDescription: description,
+        twitterImage: fallbackImage,
+        h1,
+        keywords: 'evencify crew registration, sign up event crew, event jobs surat apply, register hospitality crew gujarat',
+        structuredData: [crewSignupSchema],
+        breadcrumbItems: [
+          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Crew Jobs', url: 'https://evencify.com/crew-jobs' },
+          { name: 'Crew Registration', url: canonicalUrl },
+        ],
+      };
+    }
+
+    case 'organiser-signup': {
+      const title = 'Evencify Organiser Registration | Post Events & Hire Crew in 60s';
+      const description =
+        'Sign up as an Event Organiser on Evencify. Post shifts in under a minute, hire background-checked event professionals, and streamline event workforce.';
+      const canonicalUrl = 'https://evencify.com/event/signup';
+      const h1 = 'Register as an Event Organiser';
+      const organiserSignupSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Evencify Organiser Registration',
+        description,
+        url: canonicalUrl,
+      };
+      return {
+        title,
+        description,
+        canonicalUrl,
+        robots: 'index, follow',
+        ogTitle: title,
+        ogDescription: description,
+        ogImage: fallbackImage,
+        ogType: 'website',
+        twitterCard: 'summary_large_image',
+        twitterTitle: title,
+        twitterDescription: description,
+        twitterImage: fallbackImage,
+        h1,
+        keywords: 'evencify organiser register, hire event crew surat, event management registration gujarat',
+        structuredData: [organiserSignupSchema],
+        breadcrumbItems: [
+          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'For Organisers', url: 'https://evencify.com/organise-event' },
+          { name: 'Organiser Sign Up', url: canonicalUrl },
+        ],
+      };
+    }
+
+    case 'create-event': {
+      const title = 'Post an Event & Hire Verified Crew in 60s | Evencify';
+      const description =
+        'Publish your event requirements on Evencify. Hire vetted event bouncers, hospitality staff, ticket coordinators, and technical crew with escrow protection in Surat & Gujarat.';
+      const canonicalUrl = 'https://evencify.com/create-event';
+      const h1 = 'Post an Event & Hire Crew';
+      return {
+        title,
+        description,
+        canonicalUrl,
+        robots: 'index, follow',
+        ogTitle: title,
+        ogDescription: description,
+        ogImage: fallbackImage,
+        ogType: 'website',
+        twitterCard: 'summary_large_image',
+        twitterTitle: title,
+        twitterDescription: description,
+        twitterImage: fallbackImage,
+        h1,
+        keywords: 'create event, post event shift, hire event staff surat, event crew booking gujarat',
+        structuredData: [],
+        breadcrumbItems: [
+          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Create Event', url: canonicalUrl },
+        ],
+      };
+    }
+
+    case 'crew-portal': {
+      const title = 'Evencify Crew Portal | Available Shifts, Roster & Earnings';
+      const description =
+        'Browse verified event shifts in Surat and Gujarat. View real-time pay rates, apply with one click, and access guaranteed prompt payouts.';
+      const canonicalUrl = 'https://evencify.com/crew';
+      const h1 = 'Evencify Crew Portal';
+      return {
+        title,
+        description,
+        canonicalUrl,
+        robots: 'index, follow',
+        ogTitle: title,
+        ogDescription: description,
+        ogImage: fallbackImage,
+        ogType: 'website',
+        twitterCard: 'summary_large_image',
+        twitterTitle: title,
+        twitterDescription: description,
+        twitterImage: fallbackImage,
+        h1,
+        keywords: 'evencify crew portal, event shift roster, gig shifts surat, crew earnings gujarat',
+        structuredData: [],
+        breadcrumbItems: [
+          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Crew Portal', url: canonicalUrl },
+        ],
+      };
+    }
+
+    case 'organiser-portal': {
+      const title = 'Evencify Organiser Portal | Event Roster & Workforce Management';
+      const description =
+        'Manage your events, staff schedules, crew applications, and on-site attendance with Evencify\'s event workforce operating system.';
+      const canonicalUrl = 'https://evencify.com/events';
+      const h1 = 'Evencify Organiser Portal';
+      return {
+        title,
+        description,
+        canonicalUrl,
+        robots: 'index, follow',
+        ogTitle: title,
+        ogDescription: description,
+        ogImage: fallbackImage,
+        ogType: 'website',
+        twitterCard: 'summary_large_image',
+        twitterTitle: title,
+        twitterDescription: description,
+        twitterImage: fallbackImage,
+        h1,
+        keywords: 'evencify organiser portal, manage event staff, event roster surat gujarat',
+        structuredData: [],
+        breadcrumbItems: [
+          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Organiser Portal', url: canonicalUrl },
+        ],
+      };
+    }
+
+    case 'direct-links': {
+      const title = 'Evencify Direct Access Links | Quick Sign In, Sign Up & Portals';
+      const description =
+        'Direct URL shortcuts for Evencify Crew Login, Organiser Sign In, Account Creation, Event Publishing, and Dashboard access.';
+      const canonicalUrl = 'https://evencify.com/direct-links';
+      const h1 = 'Evencify Direct Access Links';
+      return {
+        title,
+        description,
+        canonicalUrl,
+        robots: 'index, follow',
+        ogTitle: title,
+        ogDescription: description,
+        ogImage: fallbackImage,
+        ogType: 'website',
+        twitterCard: 'summary_large_image',
+        twitterTitle: title,
+        twitterDescription: description,
+        twitterImage: fallbackImage,
+        h1,
+        keywords: 'evencify direct links, evencify login link, evencify signup link, evencify quick access',
+        structuredData: [],
+        breadcrumbItems: [
+          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Direct Links', url: canonicalUrl },
+        ],
+      };
+    }
+
     case 'not-found':
     default: {
       const title = 'Page Not Found (404) | Evencify';
@@ -2208,6 +2565,26 @@ export function getSEODataFromRoute(
       return getSEOData({ type: 'sitemap' });
     case 'robots':
       return getSEOData({ type: 'robots' });
+    case 'login':
+      return getSEOData({ type: 'login' });
+    case 'crew-login':
+      return getSEOData({ type: 'crew-login' });
+    case 'organiser-login':
+      return getSEOData({ type: 'organiser-login' });
+    case 'signup':
+      return getSEOData({ type: 'signup' });
+    case 'crew-signup':
+      return getSEOData({ type: 'crew-signup' });
+    case 'organiser-signup':
+      return getSEOData({ type: 'organiser-signup' });
+    case 'create-event':
+      return getSEOData({ type: 'create-event' });
+    case 'crew':
+      return getSEOData({ type: 'crew-portal' });
+    case 'events':
+      return getSEOData({ type: 'organiser-portal' });
+    case 'direct-links':
+      return getSEOData({ type: 'direct-links' });
     default:
       return getSEOData({ type: 'not-found' });
   }

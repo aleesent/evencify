@@ -28,6 +28,8 @@ export interface AuthModalProps {
   targetRole?: 'crew' | 'organiser' | UserRole;
   initialTab?: 'signup' | 'login';
   initialMode?: 'signup' | 'login';
+  onModeChange?: (mode: 'signup' | 'login') => void;
+  onRoleChange?: (role: 'crew' | 'organiser') => void;
   onAuthenticated: (role: 'crew' | 'organiser', email: string, name?: string) => void;
 }
 
@@ -37,6 +39,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   targetRole,
   initialTab,
   initialMode = 'signup',
+  onModeChange,
+  onRoleChange,
   onAuthenticated,
 }) => {
   // Navigation steps: 'choose-role' -> 'auth' -> 'verify-email' | 'reset-password-verify'
@@ -84,13 +88,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       const resolvedMode = initialMode || initialTab || 'signup';
       setMode(resolvedMode === 'login' ? 'login' : 'signup');
 
-      if (resolvedMode === 'login' && targetRole && (targetRole === 'crew' || targetRole === 'organiser')) {
+      if (targetRole && (targetRole === 'crew' || targetRole === 'organiser')) {
         setSelectedRole(targetRole);
         setStep('auth');
       } else {
-        if (targetRole === 'crew' || targetRole === 'organiser') {
-          setSelectedRole(targetRole);
-        }
         setStep('choose-role');
       }
 
@@ -108,7 +109,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleSelectAccountType = (role: 'crew' | 'organiser') => {
     setSelectedRole(role);
+    onRoleChange?.(role);
     setMode('signup');
+    onModeChange?.('signup');
     setAuthError(null);
     setAuthSuccess(null);
     setStep('auth');
@@ -766,6 +769,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         type="button"
                         onClick={() => {
                           setMode('login');
+                          onModeChange?.('login');
                           setAuthError(null);
                         }}
                         className="font-semibold text-neutral-900 hover:underline cursor-pointer"
@@ -779,8 +783,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       <button
                         type="button"
                         onClick={() => {
-                          setStep('choose-role');
                           setMode('signup');
+                          onModeChange?.('signup');
                           setAuthError(null);
                         }}
                         className="font-semibold text-neutral-900 hover:underline cursor-pointer"
