@@ -60,7 +60,6 @@ import { OrganiserOnboardingModal } from './components/organiser/OrganiserOnboar
 
 // Authenticated Admin Components
 import { AdminDashboard } from './components/admin/AdminDashboard';
-import { AdminLoginModal } from './components/admin/AdminLoginModal';
 
 export default function App() {
   // Navigation & Role State (Only 3 active roles + visitor)
@@ -88,7 +87,6 @@ export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authTargetRole, setAuthTargetRole] = useState<UserRole | undefined>(undefined);
   const [authInitialMode, setAuthInitialMode] = useState<'login' | 'signup'>('signup');
-  const [adminLoginOpen, setAdminLoginOpen] = useState(false);
   const [notificationDrawerOpen, setNotificationDrawerOpen] = useState(false);
 
   // Specific role modals
@@ -119,9 +117,6 @@ export default function App() {
     if (directLinksOpen) {
       return getSEOData({ type: 'direct-links' });
     }
-    if (adminLoginOpen) {
-      return getSEOData({ type: 'login' });
-    }
     if (currentRole === 'crew') {
       return getSEOData({ type: 'crew-portal' });
     }
@@ -135,7 +130,6 @@ export default function App() {
     authTargetRole,
     createEventModalOpen,
     directLinksOpen,
-    adminLoginOpen,
     currentRole,
     events.length,
   ]);
@@ -249,7 +243,7 @@ export default function App() {
       const hash = window.location.hash.toLowerCase();
       const params = new URLSearchParams(window.location.search);
 
-      // 1. Admin Portal
+      // 1. Admin route: Admin can login from anywhere via standard auth
       if (
         path === '/admin' ||
         path === '/admin-login' ||
@@ -258,7 +252,11 @@ export default function App() {
         hash === '#admin' ||
         hash === '#admin-login'
       ) {
-        setAdminLoginOpen(true);
+        if (activeUserEmail && authenticatedRole === 'admin') {
+          setCurrentRole('admin');
+        } else {
+          handleOpenAuth(undefined, 'login');
+        }
         return;
       }
 
@@ -455,19 +453,9 @@ export default function App() {
     window.addEventListener('popstate', handleUrlRouting);
     window.addEventListener('hashchange', handleUrlRouting);
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'a' || e.key === 'A')) {
-        e.preventDefault();
-        setAdminLoginOpen((prev) => !prev);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-
     return () => {
       window.removeEventListener('popstate', handleUrlRouting);
       window.removeEventListener('hashchange', handleUrlRouting);
-      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [activeUserEmail, authenticatedRole]);
 
@@ -783,14 +771,6 @@ export default function App() {
       setActiveUserName(currentAdminProfile.name);
       showToast(`Admin Console Unlocked: ${email}`);
     }
-  };
-
-  const handleAdminAuthenticated = (email: string) => {
-    setActiveUserEmail(email);
-    setActiveUserName(currentAdminProfile.name);
-    setAuthenticatedRole('admin');
-    setCurrentRole('admin');
-    showToast(`Superadmin session active: ${email}`);
   };
 
   const handleLogout = async () => {
@@ -1580,12 +1560,6 @@ export default function App() {
           }
         }}
         onAuthenticated={handleAuthenticated}
-      />
-
-      <AdminLoginModal
-        isOpen={adminLoginOpen}
-        onClose={() => setAdminLoginOpen(false)}
-        onAuthenticated={handleAdminAuthenticated}
       />
 
       <NotificationDrawer

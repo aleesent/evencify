@@ -10,7 +10,7 @@ interface DirectLinksModalProps {
 interface DirectLinkItem {
   title: string;
   description: string;
-  category: 'crew' | 'event' | 'admin';
+  category: 'crew' | 'event' | 'auth';
   queryParam: string;
   hashParam: string;
   pathParam: string;
@@ -21,7 +21,7 @@ export const DIRECT_LINKS: DirectLinkItem[] = [
   {
     title: 'Evencify Unified Log In',
     description: 'Directly opens sign-in screen with role switcher for Crew Members and Organisers.',
-    category: 'admin',
+    category: 'auth',
     queryParam: '/?auth=login',
     hashParam: '/#login',
     pathParam: '/login',
@@ -29,7 +29,7 @@ export const DIRECT_LINKS: DirectLinkItem[] = [
   {
     title: 'Evencify Unified Create Account',
     description: 'Directly opens account registration with role selection.',
-    category: 'admin',
+    category: 'auth',
     queryParam: '/?auth=signup',
     hashParam: '/#signup',
     pathParam: '/signup',
@@ -93,16 +93,6 @@ export const DIRECT_LINKS: DirectLinkItem[] = [
     queryParam: '/?role=organiser',
     hashParam: '/#events',
     pathParam: '/events',
-  },
-
-  // Admin
-  {
-    title: 'Operator & Admin Portal',
-    description: 'Direct access to platform operations, Brevo SMTP settings, and audit logs.',
-    category: 'admin',
-    queryParam: '/?admin=true',
-    hashParam: '/#admin',
-    pathParam: '/admin',
   },
 ];
 
@@ -295,7 +285,7 @@ export const DirectLinksModal: React.FC<DirectLinksModalProps> = ({ isOpen, onCl
                                 ? 'bg-amber-100 text-amber-800'
                                 : item.category === 'event'
                                 ? 'bg-blue-100 text-blue-800'
-                                : 'bg-neutral-200 text-neutral-700'
+                                : 'bg-neutral-900 text-[#FED000]'
                             }`}
                           >
                             {item.category}
