@@ -580,9 +580,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <span>Change account type</span>
                 </button>
               ) : (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-semibold text-neutral-500">Universal Access</span>
-                </div>
+                <div />
               )}
 
               <button
@@ -594,15 +592,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
 
-            {/* Selected Role / Universal Access Pill */}
-            {mode === 'login' ? (
-              <div className="flex items-center justify-center mb-3">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-800">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                  <span>Universal Sign-In • Role Auto-Detected</span>
-                </div>
-              </div>
-            ) : (
+            {/* Selected Role Pill for Signup */}
+            {mode === 'signup' && (
               <div className="flex items-center justify-center mb-3">
                 <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">
                   {selectedRole === 'crew' ? (
@@ -634,65 +625,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   ? 'Enter your email to receive a 6-digit verification code'
                   : mode === 'signup'
                   ? `Sign up to continue as ${selectedRole === 'crew' ? 'Crew Member' : 'Event Organiser'}`
-                  : 'Sign in to access your portal. All roles (Admin, Organiser, Crew) are automatically detected.'}
+                  : 'Welcome back! Enter your credentials to continue.'}
               </p>
             </div>
-
-            {/* Fast Demo Logins for Quick Testing */}
-            {mode === 'login' && !showForgotPassword && (
-              <div className="mb-4 p-3 rounded-xl bg-neutral-50 border border-neutral-200">
-                <div className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider mb-2 flex items-center justify-between">
-                  <span>Fast Demo Logins (Click to Autofill)</span>
-                  <span className="text-[10px] text-neutral-400 font-normal">All Roles</span>
-                </div>
-                <div className="grid grid-cols-2 gap-1.5 text-[11px]">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail('admin@evencify.com');
-                      setPassword('admin123');
-                      setAuthError(null);
-                    }}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white text-neutral-800 font-bold hover:bg-neutral-100 transition-colors text-left cursor-pointer"
-                  >
-                    <span>👑 Admin</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail('singhania.events@gmail.com');
-                      setPassword('organiser123');
-                      setAuthError(null);
-                    }}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white text-neutral-800 font-bold hover:bg-neutral-100 transition-colors text-left cursor-pointer"
-                  >
-                    <span>🏢 Organiser 1</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail('rohan.events@gmail.com');
-                      setPassword('organiser123');
-                      setAuthError(null);
-                    }}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white text-neutral-800 font-bold hover:bg-neutral-100 transition-colors text-left cursor-pointer"
-                  >
-                    <span>🏢 Organiser 2</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail('sneha.verma@gmail.com');
-                      setPassword('crew123');
-                      setAuthError(null);
-                    }}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white text-neutral-800 font-bold hover:bg-neutral-100 transition-colors text-left cursor-pointer"
-                  >
-                    <span>🎧 Crew Member</span>
-                  </button>
-                </div>
-              </div>
-            )}
 
             {/* Forgot Password Sub-Flow */}
             {showForgotPassword ? (
