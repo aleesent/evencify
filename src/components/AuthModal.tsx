@@ -30,7 +30,7 @@ export interface AuthModalProps {
   initialMode?: 'signup' | 'login';
   onModeChange?: (mode: 'signup' | 'login') => void;
   onRoleChange?: (role: 'crew' | 'organiser') => void;
-  onAuthenticated: (role: UserRole, email: string, name?: string) => void;
+  onAuthenticated: (role: UserRole, email: string, name?: string, isNewRegistration?: boolean) => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -192,10 +192,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         setIsLoading(false);
         if (res.user.role === 'admin') {
-          onAuthenticated('admin' as any, res.user.email, res.user.name);
+          onAuthenticated('admin' as any, res.user.email, res.user.name, false);
         } else {
           const userRole = res.user.role === 'organiser' ? 'organiser' : 'crew';
-          onAuthenticated(userRole, res.user.email, res.user.name);
+          onAuthenticated(userRole, res.user.email, res.user.name, false);
         }
         onClose();
       }
@@ -344,7 +344,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setIsLoading(false);
 
       setTimeout(() => {
-        onAuthenticated(selectedRole, signUpRes.user.email, signUpRes.user.name);
+        onAuthenticated(selectedRole, signUpRes.user.email, signUpRes.user.name, true);
         onClose();
       }, 900);
     } catch (err: any) {

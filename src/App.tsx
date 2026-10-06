@@ -35,6 +35,10 @@ import {
   canCompleteAndRateEvent,
   canCreateEvent,
 } from './utils/permissions';
+import {
+  hasUserCompletedOnboarding,
+  markUserOnboardingCompleted,
+} from './utils/onboarding';
 
 // SEO Metadata
 import { getSEOData } from './services/seoData';
@@ -516,21 +520,13 @@ export default function App() {
   }, [activeUserEmail, authenticatedRole]);
 
   const verifyCrewProfileCompleteness = (profile: CrewProfile | null) => {
-    if (!profile || !isCrewProfileComplete(profile)) {
-      setCrewOnboardingMandatory(true);
-      setCrewOnboardingOpen(true);
-    } else {
-      setCrewOnboardingMandatory(false);
-    }
+    // Only updates completeness indicator state; does NOT force open modal
+    setCrewOnboardingMandatory(false);
   };
 
   const verifyOrganiserProfileCompleteness = (profile: OrganiserProfile | null) => {
-    if (!profile || !isOrganiserProfileComplete(profile)) {
-      setOrganiserOnboardingMandatory(true);
-      setOrganiserOnboardingOpen(true);
-    } else {
-      setOrganiserOnboardingMandatory(false);
-    }
+    // Only updates completeness indicator state; does NOT force open modal
+    setOrganiserOnboardingMandatory(false);
   };
 
   // Live Supabase auto-sync, polling timer, focus sync, & real-time Postgres updates
@@ -733,7 +729,12 @@ export default function App() {
     setCurrentRole(role);
   };
 
-  const handleAuthenticated = (role: UserRole, email: string, name?: string) => {
+  const handleAuthenticated = (
+    role: UserRole,
+    email: string,
+    name?: string,
+    isNewRegistration: boolean = false
+  ) => {
     setActiveUserEmail(email);
     setAuthenticatedRole(role);
     setCurrentRole(role);
@@ -748,7 +749,6 @@ export default function App() {
       setActiveUserName(finalName);
       if (existingCrew) {
         setCurrentCrewProfile(existingCrew);
-        verifyCrewProfileCompleteness(existingCrew);
       } else {
         const freshCrew: CrewProfile = {
           ...EMPTY_CREW_PROFILE,
@@ -757,15 +757,19 @@ export default function App() {
           email: email,
         };
         setCurrentCrewProfile(freshCrew);
-        verifyCrewProfileCompleteness(freshCrew);
       }
       EvencifyApi.getCrewProfile(email).then((cr) => {
         if (cr) {
           setCurrentCrewProfile(cr);
-          verifyCrewProfileCompleteness(cr);
         }
       });
       showToast(`Welcome! Signed in as ${finalName} (Crew)`);
+
+      // Show onboarding ONLY for first-time registered users if onboarding is not already completed
+      if (isNewRegistration && !hasUserCompletedOnboarding(email, 'crew', existingCrew)) {
+        setCrewOnboardingMandatory(false);
+        setCrewOnboardingOpen(true);
+      }
     } else if (role === 'organiser') {
       const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.role === 'organiser');
       const finalName = name || existing?.name || defaultName;
@@ -778,14 +782,18 @@ export default function App() {
         email: email,
       };
       setCurrentOrganiserProfile(initialOrg);
-      verifyOrganiserProfileCompleteness(initialOrg);
       EvencifyApi.getOrganiserProfile(email).then((org) => {
         if (org) {
           setCurrentOrganiserProfile(org);
-          verifyOrganiserProfileCompleteness(org);
         }
       });
       showToast(`Welcome! Signed in as ${finalName} (Organiser)`);
+
+      // Show onboarding ONLY for first-time registered users if onboarding is not already completed
+      if (isNewRegistration && !hasUserCompletedOnboarding(email, 'organiser', initialOrg)) {
+        setOrganiserOnboardingMandatory(false);
+        setOrganiserOnboardingOpen(true);
+      }
 
       if (pendingPostAuthAction === 'create-event') {
         setTimeout(() => {
@@ -1705,12 +1713,9 @@ export default function App() {
         isOpen={crewOnboardingOpen}
         isMandatory={crewOnboardingMandatory}
         onClose={() => {
-          if (!crewOnboardingMandatory || isCrewProfileComplete(currentCrewProfile)) {
-            setCrewOnboardingOpen(false);
-            setCrewOnboardingMandatory(false);
-          } else {
-            showToast('Please complete your profile to continue.');
-          }
+          setCrewOnboardingOpen(false);
+          setCrewOnboardingMandatory(false);
+          markUserOnboardingCompleted(activeUserEmail || currentCrewProfile.email);
         }}
         initialProfile={currentCrewProfile}
         onSaveProfile={async (updated) => {
@@ -1720,18 +1725,19 @@ export default function App() {
           if (updated.email) setActiveUserEmail(updated.email);
 
           const targetId = currentCrewProfile.id || activeUserEmail || updated.email || 'crew-1';
+          const targetEmail = activeUserEmail || currentCrewProfile.email || updated.email;
           try {
             await EvencifyApi.updateCrewProfile(targetId, updated);
             await syncDatabase();
-            if (isCrewProfileComplete(merged)) {
-              setCrewOnboardingMandatory(false);
-              setCrewOnboardingOpen(false);
-              showToast('Crew profile saved & verified!');
-            } else {
-              showToast('Profile updated. Please complete remaining required fields.');
-            }
+            markUserOnboardingCompleted(targetEmail);
+            setCrewOnboardingMandatory(false);
+            setCrewOnboardingOpen(false);
+            showToast('Crew profile saved & verified!');
           } catch (err) {
             console.error('Failed to save crew profile to Supabase:', err);
+            markUserOnboardingCompleted(targetEmail);
+            setCrewOnboardingMandatory(false);
+            setCrewOnboardingOpen(false);
             showToast('Crew profile updated.');
           }
         }}
@@ -1742,12 +1748,9 @@ export default function App() {
         isOpen={organiserOnboardingOpen}
         isMandatory={organiserOnboardingMandatory}
         onClose={() => {
-          if (!organiserOnboardingMandatory || isOrganiserProfileComplete(currentOrganiserProfile)) {
-            setOrganiserOnboardingOpen(false);
-            setOrganiserOnboardingMandatory(false);
-          } else {
-            showToast('Please complete your profile to continue.');
-          }
+          setOrganiserOnboardingOpen(false);
+          setOrganiserOnboardingMandatory(false);
+          markUserOnboardingCompleted(activeUserEmail || currentOrganiserProfile.email);
         }}
         initialProfile={currentOrganiserProfile}
         onSaveProfile={async (updated) => {
@@ -1758,18 +1761,19 @@ export default function App() {
           if (updated.email) setActiveUserEmail(updated.email);
 
           const targetId = currentOrganiserProfile.id || activeUserEmail || updated.email || 'org-1';
+          const targetEmail = activeUserEmail || currentOrganiserProfile.email || updated.email;
           try {
             await EvencifyApi.updateOrganiserProfile(targetId, updated);
             await syncDatabase();
-            if (isOrganiserProfileComplete(merged)) {
-              setOrganiserOnboardingMandatory(false);
-              setOrganiserOnboardingOpen(false);
-              showToast('Organiser profile saved & verified!');
-            } else {
-              showToast('Profile updated. Please complete remaining required fields.');
-            }
+            markUserOnboardingCompleted(targetEmail);
+            setOrganiserOnboardingMandatory(false);
+            setOrganiserOnboardingOpen(false);
+            showToast('Organiser profile saved & verified!');
           } catch (err) {
             console.error('Failed to save organiser profile to Supabase:', err);
+            markUserOnboardingCompleted(targetEmail);
+            setOrganiserOnboardingMandatory(false);
+            setOrganiserOnboardingOpen(false);
             showToast('Organiser profile updated.');
           }
         }}

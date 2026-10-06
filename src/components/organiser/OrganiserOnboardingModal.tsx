@@ -512,6 +512,18 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
                 </>
               )}
             </button>
+
+            {!isMandatory && (
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer py-1"
+                >
+                  Skip for now
+                </button>
+              </div>
+            )}
           </form>
         </motion.div>
       </div>
