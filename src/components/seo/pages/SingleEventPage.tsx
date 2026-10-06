@@ -40,6 +40,7 @@ export const SingleEventPage: React.FC<SingleEventPageProps> = ({
   onOpenAuthModal,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [passReserved, setPassReserved] = useState(false);
 
   // Find event matching slug
   const event = useMemo(() => {
@@ -336,13 +337,24 @@ export const SingleEventPage: React.FC<SingleEventPageProps> = ({
               </div>
 
               <div className="space-y-2.5 pt-2">
-                <button
-                  onClick={() => alert(`Registration details for ${event.name} sent to your inbox!`)}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#FED000] py-3 text-sm font-bold text-neutral-950 hover:bg-[#FED000]/90 transition-colors shadow-xs cursor-pointer"
-                >
-                  <Ticket className="h-4 w-4 text-neutral-950" />
-                  <span>Reserve Pass / Attend</span>
-                </button>
+                {passReserved ? (
+                  <div className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-50 border border-emerald-300 py-3 text-xs font-bold text-emerald-800">
+                    <Check className="h-4 w-4 text-emerald-600" />
+                    <span>Pass Reserved! Confirmation sent to your inbox.</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPassReserved(true);
+                      setTimeout(() => setPassReserved(false), 5000);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#FED000] py-3 text-sm font-bold text-neutral-950 hover:bg-[#FED000]/90 transition-colors shadow-xs cursor-pointer"
+                  >
+                    <Ticket className="h-4 w-4 text-neutral-950" />
+                    <span>Reserve Pass / Attend</span>
+                  </button>
+                )}
 
                 <a
                   href={`/events/${slugify(event.city)}`}

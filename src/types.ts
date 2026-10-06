@@ -180,6 +180,7 @@ export interface EventItem {
   expectedAttendance?: number;
   organiserId: string;
   organiserName: string;
+  organiserEmail?: string;
   crewPositionsTotal: number;
   crewPositionsAvailable: number;
   requiredCategory: CrewCategory;

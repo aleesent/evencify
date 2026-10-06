@@ -26,6 +26,15 @@ import {
 } from './mockData';
 import { EvencifyApi } from './services/api';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
+import {
+  checkEventOwnership,
+  canEditEvent,
+  canDeleteEvent,
+  canManageEventStatus,
+  canManageApplication,
+  canCompleteAndRateEvent,
+  canCreateEvent,
+} from './utils/permissions';
 
 // SEO Metadata
 import { getSEOData } from './services/seoData';
@@ -60,6 +69,43 @@ import { OrganiserOnboardingModal } from './components/organiser/OrganiserOnboar
 
 // Authenticated Admin Components
 import { AdminDashboard } from './components/admin/AdminDashboard';
+
+/**
+ * Checks whether an event was created by or belongs to the specified organiser.
+ * Evaluates organiser ID, profile email, active login email, and event metadata.
+ */
+export const isEventOwner = (
+  event: EventItem | null | undefined,
+  organiser: { id?: string; email?: string } | null | undefined,
+  activeEmail?: string
+): boolean => {
+  if (!event) return false;
+  const currentId = (organiser?.id || '').trim();
+  const currentEmail = (organiser?.email || activeEmail || '').toLowerCase().trim();
+  const activeUser = (activeEmail || '').toLowerCase().trim();
+
+  const eventOrgId = (event.organiserId || '').trim();
+  const eventOrgEmail = ((event as any).organiserEmail || '').toLowerCase().trim();
+
+  // 1. Direct ID matching
+  if (currentId && eventOrgId && currentId === eventOrgId) {
+    return true;
+  }
+
+  // 2. Profile email matching
+  if (currentEmail) {
+    if (eventOrgEmail && eventOrgEmail === currentEmail) return true;
+    if (eventOrgId && eventOrgId.toLowerCase() === currentEmail) return true;
+  }
+
+  // 3. Active session email matching
+  if (activeUser) {
+    if (eventOrgEmail && eventOrgEmail === activeUser) return true;
+    if (eventOrgId && eventOrgId.toLowerCase() === activeUser) return true;
+  }
+
+  return false;
+};
 
 export default function App() {
   // Navigation & Role State (Only 3 active roles + visitor)
@@ -247,6 +293,8 @@ export default function App() {
   // - Admin Portal: /admin, /admin-login, ?admin=true, #admin
   useEffect(() => {
     const handleUrlRouting = () => {
+      if (isLoggingOutRef.current) return;
+
       const path = window.location.pathname.toLowerCase();
       const hash = window.location.hash.toLowerCase();
       const params = new URLSearchParams(window.location.search);
@@ -487,36 +535,62 @@ export default function App() {
 
   // Live Supabase auto-sync, polling timer, focus sync, & real-time Postgres updates
   useEffect(() => {
-    if (!isSupabaseConfigured()) return;
-
     let isMounted = true;
-    syncDatabase();
 
-    // Check active session immediately on mount
-    EvencifyApi.getCurrentSession().then((sessionUser) => {
-      if (isLoggingOutRef.current) return;
-      if (sessionUser && isMounted) {
-        setActiveUserEmail(sessionUser.email);
-        setActiveUserName(sessionUser.name);
-        setAuthenticatedRole(sessionUser.role);
-        setCurrentRole(sessionUser.role);
-        if (sessionUser.role === 'organiser') {
-          EvencifyApi.getOrganiserProfile(sessionUser.email).then((org) => {
-            if (isMounted && !isLoggingOutRef.current) {
-              if (org) setCurrentOrganiserProfile(org);
-              verifyOrganiserProfileCompleteness(org);
-            }
-          });
-        } else if (sessionUser.role === 'crew') {
-          EvencifyApi.getCrewProfile(sessionUser.email).then((cr) => {
-            if (isMounted && !isLoggingOutRef.current) {
-              if (cr) setCurrentCrewProfile(cr);
-              verifyCrewProfileCompleteness(cr);
-            }
-          });
+    // Helper to safely apply verified session user & load profile
+    const applySessionUser = (sessionUser: any) => {
+      if (!sessionUser || !isMounted || isLoggingOutRef.current) return;
+      setActiveUserEmail(sessionUser.email);
+      setActiveUserName(sessionUser.name);
+      setAuthenticatedRole(sessionUser.role);
+      setCurrentRole(sessionUser.role);
+
+      if (sessionUser.role === 'organiser') {
+        EvencifyApi.getOrganiserProfile(sessionUser.email).then((org) => {
+          if (isMounted && !isLoggingOutRef.current) {
+            if (org) setCurrentOrganiserProfile(org);
+            verifyOrganiserProfileCompleteness(org);
+          }
+        });
+      } else if (sessionUser.role === 'crew') {
+        EvencifyApi.getCrewProfile(sessionUser.email).then((cr) => {
+          if (isMounted && !isLoggingOutRef.current) {
+            if (cr) setCurrentCrewProfile(cr);
+            verifyCrewProfileCompleteness(cr);
+          }
+        });
+      }
+    };
+
+    // 1. Immediately check cached session to prevent UI flash
+    try {
+      const cached = localStorage.getItem('evencify_active_user');
+      if (cached) {
+        const u = JSON.parse(cached);
+        if (u?.email && u?.role) {
+          applySessionUser(u);
         }
       }
+    } catch {
+      // ignore parse error
+    }
+
+    // 2. Perform initial background database sync
+    syncDatabase();
+
+    // 3. Verify session against database
+    EvencifyApi.getCurrentSession().then((sessionUser) => {
+      if (isLoggingOutRef.current || !isMounted) return;
+      if (sessionUser) {
+        applySessionUser(sessionUser);
+      }
     });
+
+    if (!isSupabaseConfigured()) {
+      return () => {
+        isMounted = false;
+      };
+    }
 
     // Setup Postgres realtime listeners across all live public tables
     const channel = supabase
@@ -617,77 +691,15 @@ export default function App() {
     window.addEventListener('focus', handleFocusSync);
     document.addEventListener('visibilitychange', handleFocusSync);
 
-    // Check for active Supabase Auth session (such as returning from OAuth redirect)
-    supabase.auth.getSession().then(({ data }) => {
-      if (isLoggingOutRef.current) return;
-      if (data?.session?.user && isMounted) {
-        const u = data.session.user;
-        const userRole = (u.user_metadata?.role as UserRole) || 'crew';
-        const userEmail = u.email || '';
-        const userName =
-          u.user_metadata?.full_name ||
-          u.user_metadata?.name ||
-          userEmail.split('@')[0];
-
-        setActiveUserEmail(userEmail);
-        setActiveUserName(userName);
-        setAuthenticatedRole(userRole);
-        setCurrentRole(userRole);
-
-        if (userEmail) {
-          if (userRole === 'organiser') {
-            EvencifyApi.getOrganiserProfile(userEmail).then((org) => {
-              if (isMounted && !isLoggingOutRef.current) {
-                if (org) setCurrentOrganiserProfile(org);
-                verifyOrganiserProfileCompleteness(org);
-              }
-            });
-          } else if (userRole === 'crew') {
-            EvencifyApi.getCrewProfile(userEmail).then((cr) => {
-              if (isMounted && !isLoggingOutRef.current) {
-                if (cr) setCurrentCrewProfile(cr);
-                verifyCrewProfileCompleteness(cr);
-              }
-            });
-          }
-        }
-      }
-    });
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listen to real-time auth state changes using full session resolution
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (isLoggingOutRef.current || _event === 'SIGNED_OUT' || !session?.user) {
         return;
       }
-      if (session?.user && isMounted) {
-        const u = session.user;
-        const userRole = (u.user_metadata?.role as UserRole) || 'crew';
-        const userEmail = u.email || '';
-        const userName =
-          u.user_metadata?.full_name ||
-          u.user_metadata?.name ||
-          userEmail.split('@')[0];
-
-        setActiveUserEmail(userEmail);
-        setActiveUserName(userName);
-        setAuthenticatedRole(userRole);
-        setCurrentRole(userRole);
-
-        if (userEmail) {
-          if (userRole === 'organiser') {
-            EvencifyApi.getOrganiserProfile(userEmail).then((org) => {
-              if (isMounted && !isLoggingOutRef.current) {
-                if (org) setCurrentOrganiserProfile(org);
-                verifyOrganiserProfileCompleteness(org);
-              }
-            });
-          } else if (userRole === 'crew') {
-            EvencifyApi.getCrewProfile(userEmail).then((cr) => {
-              if (isMounted && !isLoggingOutRef.current) {
-                if (cr) setCurrentCrewProfile(cr);
-                verifyCrewProfileCompleteness(cr);
-              }
-            });
-          }
+      if (isMounted) {
+        const verifiedUser = await EvencifyApi.getCurrentSession();
+        if (verifiedUser && isMounted && !isLoggingOutRef.current) {
+          applySessionUser(verifiedUser);
         }
       }
     });
@@ -790,7 +802,16 @@ export default function App() {
   const handleLogout = async () => {
     isLoggingOutRef.current = true;
 
-    // 1. Immediately remove localStorage and session data synchronously
+    // 1. Immediately reset browser address to root '/'
+    if (typeof window !== 'undefined') {
+      try {
+        window.history.replaceState(null, '', '/');
+      } catch (err) {
+        console.error('URL reset error:', err);
+      }
+    }
+
+    // 2. Immediately remove localStorage and session data synchronously
     if (typeof window !== 'undefined') {
       try {
         localStorage.removeItem('evencify_active_user');
@@ -801,7 +822,7 @@ export default function App() {
       }
     }
 
-    // 2. Immediately reset state synchronously to unauthenticated visitor
+    // 3. Immediately reset state synchronously to unauthenticated visitor
     setCurrentRole('visitor');
     setActiveUserEmail('');
     setActiveUserName('');
@@ -814,41 +835,9 @@ export default function App() {
     setOrganiserOnboardingOpen(false);
     setAuthModalOpen(false);
     setNotificationDrawerOpen(false);
-
-    // 3. Clear auth query params or auth hashes from browser URL instantly
-    if (typeof window !== 'undefined') {
-      try {
-        const url = new URL(window.location.href);
-        let changed = false;
-        ['auth', 'login', 'signup', 'role'].forEach((p) => {
-          if (url.searchParams.has(p)) {
-            url.searchParams.delete(p);
-            changed = true;
-          }
-        });
-        if (
-          [
-            '#crew',
-            '#crew-portal',
-            '#crew-login',
-            '#crew-signup',
-            '#events',
-            '#organiser',
-            '#organiser-portal',
-            '#event-login',
-            '#event-signup',
-            '#admin',
-            '#admin-login',
-          ].includes(url.hash)
-        ) {
-          url.hash = '';
-          changed = true;
-        }
-        if (changed) {
-          window.history.replaceState(null, '', url.pathname + (url.search ? url.search : '') + (url.hash ? url.hash : ''));
-        }
-      } catch {}
-    }
+    setCreateEventModalOpen(false);
+    setSelectedCrewForDetail(null);
+    setActiveChatGroup(null);
 
     // 4. Terminate active sessions in Supabase
     try {
@@ -928,19 +917,32 @@ export default function App() {
   };
 
   // Organiser actions
+  // Organiser actions
   const handleEventCreated = (newEvent: EventItem) => {
-    setEvents([newEvent, ...events]);
-    showToast(`Event "${newEvent.name}" published!`);
+    if (!canCreateEvent(authenticatedRole)) {
+      showToast('Access Denied: Only registered Organisers and Admins can create events.');
+      return;
+    }
+
+    const resolvedEvent: EventItem = {
+      ...newEvent,
+      organiserId: currentOrganiserProfile.id || activeUserEmail || newEvent.organiserId || 'org-1',
+      organiserEmail: activeUserEmail || currentOrganiserProfile.email || newEvent.organiserEmail,
+      organiserName: currentOrganiserProfile.companyName || currentOrganiserProfile.name || newEvent.organiserName || 'Singhania Live Events',
+    };
+
+    setEvents([resolvedEvent, ...events]);
+    showToast(`Event "${resolvedEvent.name}" published!`);
 
     // Auto store to Supabase
-    EvencifyApi.createEvent(newEvent, newEvent.requirements).catch((err) =>
+    EvencifyApi.createEvent(resolvedEvent, resolvedEvent.requirements).catch((err) =>
       console.error('Supabase createEvent error:', err)
     );
 
     const newNotif: AppNotification = {
       id: `notif-${Date.now()}`,
       title: 'New Event Live',
-      message: `"${newEvent.name}" is now open for crew applications in ${newEvent.city}.`,
+      message: `"${resolvedEvent.name}" is now open for crew applications in ${resolvedEvent.city}.`,
       time: 'Just now',
       read: false,
       type: 'system',
@@ -949,6 +951,14 @@ export default function App() {
   };
 
   const handleUpdateAppStatus = (appId: string, status: CrewApplication['status']) => {
+    const app = applications.find((a) => a.id === appId);
+    const event = events.find((e) => e.id === app?.eventId);
+
+    if (app && !canManageApplication(app, event, authenticatedRole, currentOrganiserProfile, activeUserEmail)) {
+      showToast('Access Denied: Only the creating Organiser can manage applicants for this event.');
+      return;
+    }
+
     setApplications(
       applications.map((a) => (a.id === appId ? { ...a, status } : a))
     );
@@ -961,6 +971,12 @@ export default function App() {
   };
 
   const handleUpdateEventStatus = (eventId: string, status: EventItem['status']) => {
+    const event = events.find((e) => e.id === eventId);
+    if (event && !canManageEventStatus(event, authenticatedRole, currentOrganiserProfile, activeUserEmail)) {
+      showToast('Access Denied: Only the creator of this event or an Administrator can modify its status.');
+      return;
+    }
+
     setEvents(events.map((e) => (e.id === eventId ? { ...e, status } : e)));
     showToast(`Event status set to ${status}.`);
 
@@ -971,6 +987,12 @@ export default function App() {
   };
 
   const handleDeleteEvent = (eventId: string) => {
+    const event = events.find((e) => e.id === eventId);
+    if (event && !canDeleteEvent(event, authenticatedRole, currentOrganiserProfile, activeUserEmail)) {
+      showToast('Access Denied: Only the creator of this event or an Administrator can delete it.');
+      return;
+    }
+
     setEvents(events.filter((e) => e.id !== eventId));
     showToast('Event removed.');
 
@@ -985,6 +1007,12 @@ export default function App() {
     eventId: string,
     ratings: { crewId: string; rating: number; feedback?: string; tags?: string[] }[]
   ) => {
+    const event = events.find((e) => e.id === eventId);
+    if (event && !canCompleteAndRateEvent(event, authenticatedRole, currentOrganiserProfile, activeUserEmail)) {
+      showToast('Access Denied: Only the creating Organiser can complete this event and submit reviews.');
+      return;
+    }
+
     setEvents((prev) =>
       prev.map((e) => (e.id === eventId ? { ...e, status: 'completed' } : e))
     );
@@ -1211,8 +1239,17 @@ export default function App() {
     });
   };
 
-  // Admin: Edit event
+  // Edit event (Organiser or Admin)
   const handleEditEvent = (updatedEvent: EventItem) => {
+    const originalEvent = events.find((e) => e.id === updatedEvent.id);
+    if (
+      originalEvent &&
+      !canEditEvent(originalEvent, authenticatedRole, currentOrganiserProfile, activeUserEmail)
+    ) {
+      showToast('Access Denied: You do not have permission to edit this event.');
+      return;
+    }
+
     setEvents((prev) =>
       prev.map((e) => (e.id === updatedEvent.id ? updatedEvent : e))
     );
@@ -1224,8 +1261,18 @@ export default function App() {
     );
   };
 
-  // Admin: Delete application
+  // Delete application
   const handleDeleteApplication = (appId: string) => {
+    const app = applications.find((a) => a.id === appId);
+    const event = events.find((e) => e.id === app?.eventId);
+    if (
+      app &&
+      !canManageApplication(app, event, authenticatedRole, currentOrganiserProfile, activeUserEmail)
+    ) {
+      showToast('Access Denied: You do not have permission to delete this applicant.');
+      return;
+    }
+
     setApplications((prev) => prev.filter((a) => a.id !== appId));
     showToast('Application deleted.');
 
@@ -1533,6 +1580,7 @@ export default function App() {
             onViewCrewProfile={(crew) => setSelectedCrewForDetail(crew)}
             onUpdateApplicationStatus={handleUpdateAppStatus}
             onUpdateEventStatus={handleUpdateEventStatus}
+            onEditEvent={handleEditEvent}
             onDeleteEvent={handleDeleteEvent}
             onCompleteEventAndRateCrew={handleCompleteEventAndRateCrew}
             activeTab={activeOrganiserTab}
@@ -1741,8 +1789,9 @@ export default function App() {
           }
         }}
         onEventCreated={handleEventCreated}
-        organiserName={currentOrganiserProfile.companyName}
-        organiserId={currentOrganiserProfile.id}
+        organiserName={currentOrganiserProfile.companyName || currentOrganiserProfile.name || 'Organiser'}
+        organiserId={currentOrganiserProfile.id || activeUserEmail}
+        organiserEmail={activeUserEmail || currentOrganiserProfile.email}
       />
 
       {/* Crew Profile Inspector Modal */}

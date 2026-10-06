@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { X, Calendar, MapPin, DollarSign, Users, Clock, AlertCircle } from 'lucide-react';
 import { EventItem, EVENT_TYPES, EventType, CREW_CATEGORIES, CrewCategory, EventStatus } from '../../types';
 
-interface AdminEventEditModalProps {
+export interface AdminEventEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   event: EventItem | null;
   onSave: (updatedEvent: EventItem) => void;
   onDelete?: (eventId: string) => void;
+  title?: string;
+  subtitle?: string;
 }
 
 export const AdminEventEditModal: React.FC<AdminEventEditModalProps> = ({
@@ -16,14 +18,18 @@ export const AdminEventEditModal: React.FC<AdminEventEditModalProps> = ({
   event,
   onSave,
   onDelete,
+  title,
+  subtitle,
 }) => {
   const [formData, setFormData] = useState<EventItem | null>(null);
   const [error, setError] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (event) {
       setFormData({ ...event });
       setError('');
+      setConfirmDelete(false);
     }
   }, [event, isOpen]);
 
@@ -46,10 +52,10 @@ export const AdminEventEditModal: React.FC<AdminEventEditModalProps> = ({
         <div className="flex items-center justify-between pb-4 border-b border-neutral-100">
           <div>
             <h3 className="text-base sm:text-lg font-bold text-neutral-900">
-              Admin: Edit Event Details
+              {title || 'Edit Event Details'}
             </h3>
             <p className="text-xs text-neutral-500">
-              Update event status, remuneration, dates, or positions needed.
+              {subtitle || 'Update event status, remuneration, dates, or positions needed.'}
             </p>
           </div>
           <button
@@ -218,18 +224,37 @@ export const AdminEventEditModal: React.FC<AdminEventEditModalProps> = ({
 
           <div className="flex items-center justify-between pt-4 border-t border-neutral-100">
             {onDelete && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm(`Permanently delete event "${formData.name}"?`)) {
-                    onDelete(formData.id);
-                    onClose();
-                  }
-                }}
-                className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors cursor-pointer"
-              >
-                Delete Event
-              </button>
+              <div>
+                {!confirmDelete ? (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(true)}
+                    className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors cursor-pointer"
+                  >
+                    Delete Event
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onDelete(formData.id);
+                        onClose();
+                      }}
+                      className="rounded-xl bg-red-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-red-700 transition-colors cursor-pointer"
+                    >
+                      Confirm Delete
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(false)}
+                      className="rounded-xl border border-neutral-200 px-2.5 py-2 text-xs font-medium text-neutral-600 hover:bg-neutral-50 cursor-pointer"
+                    >
+                      Keep
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
             <div className="flex items-center gap-2 ml-auto">
               <button
@@ -254,3 +279,5 @@ export const AdminEventEditModal: React.FC<AdminEventEditModalProps> = ({
     </div>
   );
 };
+
+export const EventEditModal = AdminEventEditModal;

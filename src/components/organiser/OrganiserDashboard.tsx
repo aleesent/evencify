@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   EventItem,
   CrewApplication,
@@ -6,6 +6,7 @@ import {
   OrganiserProfile,
   EventCoordinationGroup,
 } from '../../types';
+import { checkEventOwnership } from '../../utils/permissions';
 import {
   Plus,
   Calendar,
@@ -33,8 +34,10 @@ import {
   Filter,
   Sparkles,
   XCircle,
+  Edit2,
 } from 'lucide-react';
 import { EventCompletionReviewModal } from './EventCompletionReviewModal';
+import { EventEditModal } from '../admin/AdminEventEditModal';
 
 interface OrganiserDashboardProps {
   events: EventItem[];
@@ -49,6 +52,7 @@ interface OrganiserDashboardProps {
   onViewCrewProfile: (crew: CrewProfile) => void;
   onUpdateApplicationStatus: (appId: string, status: CrewApplication['status']) => void;
   onUpdateEventStatus: (eventId: string, status: EventItem['status']) => void;
+  onEditEvent?: (updatedEvent: EventItem) => void;
   onDeleteEvent: (eventId: string) => void;
   onCompleteEventAndRateCrew?: (
     eventId: string,
@@ -71,6 +75,7 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
   onViewCrewProfile,
   onUpdateApplicationStatus,
   onUpdateEventStatus,
+  onEditEvent,
   onDeleteEvent,
   onCompleteEventAndRateCrew,
   activeTab: propActiveTab,
@@ -79,6 +84,8 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
   const [internalActiveTab, setInternalActiveTab] = useState<
     'overview' | 'events' | 'crew' | 'applications' | 'profile'
   >('overview');
+
+  const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
 
   const activeTab = propActiveTab || internalActiveTab;
   const setActiveTab = (tab: 'overview' | 'events' | 'crew' | 'applications' | 'profile') => {
@@ -100,15 +107,48 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
     );
   };
 
-  // High-level Metrics
-  const activeEventsCount = events.filter((e) => e.status === 'Open').length;
-  const crewRequiredCount = events.reduce((acc, e) => acc + e.crewPositionsTotal, 0);
-  const totalApplicationsCount = applications.length;
-  const pendingCount = applications.filter((a) => a.status === 'Pending').length;
-  const shortlistedCount = applications.filter((a) => a.status === 'Shortlisted').length;
-  const confirmedCrewCount = applications.filter((a) => a.status === 'Accepted').length;
+  // Event Ownership Isolation: Only include events created/owned by this specific Organiser
+  const myEvents = useMemo(() => {
+    return events.filter((e) =>
+      checkEventOwnership(e, 'organiser', organiserProfile, organiserProfile.email)
+    );
+  }, [events, organiserProfile]);
 
-  const filteredApps = applications.filter((a) => {
+  const myEventIds = useMemo(() => new Set(myEvents.map((e) => e.id)), [myEvents]);
+
+  // Only include applications submitted to events owned by this Organiser
+  const myApplications = useMemo(
+    () => applications.filter((a) => myEventIds.has(a.eventId)),
+    [applications, myEventIds]
+  );
+
+  // Confirmed crew members hired for this Organiser's events
+  const hiredCrewList = useMemo(() => {
+    const acceptedCrewIds = new Set(
+      myApplications
+        .filter((a) => a.status === 'Accepted' || a.status === 'accepted')
+        .map((a) => a.crewId)
+    );
+    const acceptedEmails = new Set(
+      myApplications
+        .filter((a) => a.status === 'Accepted' || a.status === 'accepted')
+        .map((a) => a.crewEmail?.toLowerCase())
+        .filter(Boolean)
+    );
+    return crewList.filter(
+      (c) => acceptedCrewIds.has(c.id) || (c.email && acceptedEmails.has(c.email.toLowerCase()))
+    );
+  }, [crewList, myApplications]);
+
+  // High-level Metrics (strictly isolated to this Organiser)
+  const activeEventsCount = myEvents.filter((e) => e.status === 'Open').length;
+  const crewRequiredCount = myEvents.reduce((acc, e) => acc + e.crewPositionsTotal, 0);
+  const totalApplicationsCount = myApplications.length;
+  const pendingCount = myApplications.filter((a) => a.status === 'Pending').length;
+  const shortlistedCount = myApplications.filter((a) => a.status === 'Shortlisted').length;
+  const confirmedCrewCount = myApplications.filter((a) => a.status === 'Accepted').length;
+
+  const filteredApps = myApplications.filter((a) => {
     if (applicationFilter === 'all') return true;
     return a.status === applicationFilter;
   });
@@ -259,9 +299,9 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
         <div className="mt-5 flex overflow-x-auto rounded-xl border border-neutral-200 bg-white p-1.5 scrollbar-none gap-1.5 shadow-xs">
           {[
             { id: 'overview', label: 'Dashboard', icon: Home },
-            { id: 'events', label: `My Events (${events.length})`, icon: Calendar },
-            { id: 'applications', label: `Applicants (${applications.length})`, icon: Users },
-            { id: 'crew', label: `Hired Crew (${crewList.length})`, icon: CheckCircle2 },
+            { id: 'events', label: `My Events (${myEvents.length})`, icon: Calendar },
+            { id: 'applications', label: `Applicants (${myApplications.length})`, icon: Users },
+            { id: 'crew', label: `Hired Crew (${hiredCrewList.length})`, icon: CheckCircle2 },
             { id: 'profile', label: 'Company Profile', icon: Building2 },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -307,12 +347,12 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                     }}
                     className="text-xs font-bold text-neutral-900 hover:underline cursor-pointer"
                   >
-                    View All ({events.length}) →
+                    View All ({myEvents.length}) →
                   </button>
                 </div>
 
                 <div className="space-y-2.5">
-                  {events.length === 0 ? (
+                  {myEvents.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center">
                       <Calendar className="h-8 w-8 text-neutral-400 mx-auto mb-2" />
                       <p className="text-sm font-bold text-neutral-800">No active events yet</p>
@@ -327,7 +367,7 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                       </button>
                     </div>
                   ) : (
-                    events.slice(0, 3).map((e) => {
+                    myEvents.slice(0, 3).map((e) => {
                     const filledSlots = e.crewPositionsTotal - e.crewPositionsAvailable;
 
                     return (
@@ -391,12 +431,12 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                   </p>
 
                   <div className="space-y-3">
-                    {applications.filter((a) => a.status === 'Pending').length === 0 ? (
+                    {myApplications.filter((a) => a.status === 'Pending').length === 0 ? (
                       <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-6 text-center text-xs text-neutral-500">
                         No pending applications right now.
                       </div>
                     ) : (
-                      applications
+                      myApplications
                         .filter((a) => a.status === 'Pending')
                         .slice(0, 3)
                         .map((app) => (
@@ -445,7 +485,7 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                     onClick={() => setActiveTab('applications')}
                     className="w-full text-center text-xs font-bold text-neutral-800 hover:underline cursor-pointer py-1"
                   >
-                    See All Applicants ({applications.length}) →
+                    See All Applicants ({myApplications.length}) →
                   </button>
                 </div>
               </div>
@@ -458,6 +498,22 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
         {activeTab === 'events' && (
           <div className="mt-5 space-y-5">
             {selectedEventForDetail ? (
+              !checkEventOwnership(selectedEventForDetail, 'organiser', organiserProfile, organiserProfile.email) ? (
+                <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center space-y-3">
+                  <XCircle className="h-10 w-10 text-red-500 mx-auto" />
+                  <h3 className="text-base font-bold text-red-900">Permission Denied</h3>
+                  <p className="text-xs text-red-700 max-w-md mx-auto">
+                    You do not have permission to view or manage events created by another organiser.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedEventForDetail(null)}
+                    className="rounded-xl bg-neutral-900 text-white px-4 py-2 text-xs font-bold cursor-pointer hover:bg-neutral-800 transition-colors"
+                  >
+                    Return to My Events
+                  </button>
+                </div>
+              ) : (
               /* EVENT DETAIL & MANAGEMENT VIEW */
               <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-7 shadow-xs space-y-6">
                 <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
@@ -567,6 +623,15 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                         <span>Resume</span>
                       </button>
                     )}
+
+                    <button
+                      type="button"
+                      onClick={() => setEditingEvent(selectedEventForDetail)}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-xs font-bold text-neutral-800 hover:bg-neutral-50 cursor-pointer shadow-2xs"
+                    >
+                      <Edit2 className="h-4 w-4 text-neutral-700" />
+                      <span>Edit Event</span>
+                    </button>
 
                     <button
                       type="button"
@@ -698,6 +763,7 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                   </div>
                 </div>
               </div>
+              )
             ) : (
               /* EVENTS LIST WITH CONTROLS */
               <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xs">
@@ -717,7 +783,7 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                 </div>
 
                 <div className="space-y-3">
-                  {events.length === 0 ? (
+                  {myEvents.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-10 text-center">
                       <Calendar className="h-10 w-10 text-neutral-400 mx-auto mb-3" />
                       <h3 className="text-base font-bold text-neutral-900">You haven't posted any events yet</h3>
@@ -734,7 +800,7 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                       </button>
                     </div>
                   ) : (
-                    events.map((evt) => {
+                    myEvents.map((evt) => {
                     const filledSlots = evt.crewPositionsTotal - evt.crewPositionsAvailable;
                     const eventGroup = eventGroups.find((g) => g.eventId === evt.id);
                     const isExpanded = expandedCardIds.includes(evt.id);
@@ -873,6 +939,15 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                                     <span>Resume</span>
                                   </button>
                                 )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingEvent(evt)}
+                                  className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-bold text-neutral-800 hover:bg-neutral-50 cursor-pointer"
+                                >
+                                  <Edit2 className="h-3.5 w-3.5 text-neutral-600" />
+                                  <span>Edit</span>
+                                </button>
 
                                 <button
                                   type="button"
@@ -1054,53 +1129,59 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {crewList.map((crew) => (
-                <div
-                  key={crew.id}
-                  className="rounded-xl border border-neutral-200 bg-white p-4 space-y-3 hover:border-neutral-300 transition-colors shadow-2xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={crew.photoUrl}
-                      alt={crew.name}
-                      referrerPolicy="no-referrer"
-                      className="h-12 w-12 rounded-xl object-cover border border-neutral-200 shrink-0"
-                    />
-                    <div>
-                      <h3 className="font-extrabold text-sm text-neutral-900">{crew.name}</h3>
-                      <p className="text-xs text-neutral-500">{crew.city} • Verified Staff</p>
+            {hiredCrewList.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center text-xs text-neutral-500">
+                No crew members hired yet for your events. When you accept applications, verified crew members will appear here in your roster.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {hiredCrewList.map((crew) => (
+                  <div
+                    key={crew.id}
+                    className="rounded-xl border border-neutral-200 bg-white p-4 space-y-3 hover:border-neutral-300 transition-colors shadow-2xs"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={crew.photoUrl}
+                        alt={crew.name}
+                        referrerPolicy="no-referrer"
+                        className="h-12 w-12 rounded-xl object-cover border border-neutral-200 shrink-0"
+                      />
+                      <div>
+                        <h3 className="font-extrabold text-sm text-neutral-900">{crew.name}</h3>
+                        <p className="text-xs text-neutral-500">{crew.city} • Verified Staff</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1">
+                      {crew.categories.map((c) => (
+                        <span
+                          key={c}
+                          className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] font-bold text-neutral-700"
+                        >
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs">
+                      {crew.systemRating && crew.systemRating > 0 ? (
+                        <span className="font-bold text-neutral-800">⭐ {crew.systemRating} Rating</span>
+                      ) : (
+                        <span className="text-neutral-500 font-medium">Unrated (New Crew)</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => onViewCrewProfile(crew)}
+                        className="text-xs font-bold text-neutral-900 hover:underline cursor-pointer"
+                      >
+                        View Profile →
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex flex-wrap gap-1">
-                    {crew.categories.map((c) => (
-                      <span
-                        key={c}
-                        className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] font-bold text-neutral-700"
-                      >
-                        {c}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs">
-                    {crew.systemRating && crew.systemRating > 0 ? (
-                      <span className="font-bold text-neutral-800">⭐ {crew.systemRating} Rating</span>
-                    ) : (
-                      <span className="text-neutral-500 font-medium">Unrated (New Crew)</span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => onViewCrewProfile(crew)}
-                      className="text-xs font-bold text-neutral-900 hover:underline cursor-pointer"
-                    >
-                      View Profile →
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -1194,6 +1275,29 @@ export const OrganiserDashboard: React.FC<OrganiserDashboardProps> = ({
                 ...selectedEventForDetail,
                 status: 'completed',
               });
+            }
+          }}
+        />
+
+        {/* Edit Event Details Modal */}
+        <EventEditModal
+          isOpen={!!editingEvent}
+          onClose={() => setEditingEvent(null)}
+          event={editingEvent}
+          title="Edit Event Details"
+          subtitle="Update event schedule, crew requirements, pay terms, or description."
+          onSave={(updated) => {
+            onEditEvent?.(updated);
+            setEditingEvent(null);
+            if (selectedEventForDetail && selectedEventForDetail.id === updated.id) {
+              setSelectedEventForDetail(updated);
+            }
+          }}
+          onDelete={(id) => {
+            onDeleteEvent(id);
+            setEditingEvent(null);
+            if (selectedEventForDetail && selectedEventForDetail.id === id) {
+              setSelectedEventForDetail(null);
             }
           }}
         />

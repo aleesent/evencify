@@ -500,6 +500,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                         <button
                           type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -615,6 +619,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="pt-2 border-t border-neutral-100">
                 <button
                   type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();

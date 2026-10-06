@@ -30,7 +30,7 @@ export interface AuthModalProps {
   initialMode?: 'signup' | 'login';
   onModeChange?: (mode: 'signup' | 'login') => void;
   onRoleChange?: (role: 'crew' | 'organiser') => void;
-  onAuthenticated: (role: 'crew' | 'organiser', email: string, name?: string) => void;
+  onAuthenticated: (role: UserRole, email: string, name?: string) => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -88,7 +88,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       const resolvedMode = initialMode || initialTab || 'signup';
       setMode(resolvedMode === 'login' ? 'login' : 'signup');
 
-      if (targetRole && (targetRole === 'crew' || targetRole === 'organiser')) {
+      if (resolvedMode === 'login') {
+        // Direct login mode: all roles enter email & password directly
+        setStep('auth');
+      } else if (targetRole && (targetRole === 'crew' || targetRole === 'organiser')) {
         setSelectedRole(targetRole);
         setStep('auth');
       } else {
@@ -527,6 +530,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
               </button>
             </div>
+
+            {/* Bottom link to direct login */}
+            <div className="mt-6 pt-4 border-t border-neutral-100 text-center">
+              <p className="text-xs text-neutral-600">
+                Already registered or accessing as Admin?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('login');
+                    onModeChange?.('login');
+                    setStep('auth');
+                    setAuthError(null);
+                  }}
+                  className="font-bold text-neutral-900 underline hover:text-black cursor-pointer ml-1"
+                >
+                  Log In directly
+                </button>
+              </p>
+            </div>
           </motion.div>
         )}
 
@@ -543,19 +565,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             className="relative w-full max-w-md overflow-hidden rounded-2xl sm:rounded-3xl border border-neutral-200/80 bg-white p-6 sm:p-8 shadow-2xl z-10 my-auto"
           >
             {/* Top Bar: Change account type + Close button */}
-            <div className="flex items-center justify-between mb-5">
-              <button
-                type="button"
-                onClick={() => {
-                  setStep('choose-role');
-                  setAuthError(null);
-                  setAuthSuccess(null);
-                }}
-                className="group inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer py-1"
-              >
-                <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                <span>Change account type</span>
-              </button>
+            <div className="flex items-center justify-between mb-4">
+              {mode === 'signup' ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep('choose-role');
+                    setAuthError(null);
+                    setAuthSuccess(null);
+                  }}
+                  className="group inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer py-1"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                  <span>Change account type</span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-semibold text-neutral-500">Universal Access</span>
+                </div>
+              )}
 
               <button
                 onClick={onClose}
@@ -566,40 +594,105 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
 
-            {/* Selected Role Pill */}
-            <div className="flex items-center justify-center mb-3">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">
-                {selectedRole === 'crew' ? (
-                  <>
-                    <User className="h-3.5 w-3.5 text-neutral-600" />
-                    <span>Crew Member</span>
-                  </>
-                ) : (
-                  <>
-                    <Building className="h-3.5 w-3.5 text-neutral-600" />
-                    <span>Event Organiser</span>
-                  </>
-                )}
+            {/* Selected Role / Universal Access Pill */}
+            {mode === 'login' ? (
+              <div className="flex items-center justify-center mb-3">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-800">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>Universal Sign-In • Role Auto-Detected</span>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex items-center justify-center mb-3">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">
+                  {selectedRole === 'crew' ? (
+                    <>
+                      <User className="h-3.5 w-3.5 text-neutral-600" />
+                      <span>Crew Member Registration</span>
+                    </>
+                  ) : (
+                    <>
+                      <Building className="h-3.5 w-3.5 text-neutral-600" />
+                      <span>Event Organiser Registration</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Heading & Subtitle */}
-            <div className="text-center mb-6">
+            <div className="text-center mb-4">
               <h3 className="text-2xl font-bold tracking-tight text-neutral-900">
                 {showForgotPassword
                   ? 'Reset Password'
                   : mode === 'signup'
                   ? 'Create Account'
-                  : 'Welcome Back'}
+                  : 'Log In to Evencify'}
               </h3>
               <p className="mt-1 text-xs sm:text-sm text-neutral-500">
                 {showForgotPassword
                   ? 'Enter your email to receive a 6-digit verification code'
                   : mode === 'signup'
-                  ? `Sign up to continue as ${selectedRole === 'crew' ? 'Crew' : 'Organiser'}`
-                  : `Log in to your ${selectedRole === 'crew' ? 'Crew' : 'Organiser'} account`}
+                  ? `Sign up to continue as ${selectedRole === 'crew' ? 'Crew Member' : 'Event Organiser'}`
+                  : 'Sign in to access your portal. All roles (Admin, Organiser, Crew) are automatically detected.'}
               </p>
             </div>
+
+            {/* Fast Demo Logins for Quick Testing */}
+            {mode === 'login' && !showForgotPassword && (
+              <div className="mb-4 p-3 rounded-xl bg-neutral-50 border border-neutral-200">
+                <div className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider mb-2 flex items-center justify-between">
+                  <span>Fast Demo Logins (Click to Autofill)</span>
+                  <span className="text-[10px] text-neutral-400 font-normal">All Roles</span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('admin@evencify.com');
+                      setPassword('admin123');
+                      setAuthError(null);
+                    }}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white text-neutral-800 font-bold hover:bg-neutral-100 transition-colors text-left cursor-pointer"
+                  >
+                    <span>👑 Admin</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('singhania.events@gmail.com');
+                      setPassword('organiser123');
+                      setAuthError(null);
+                    }}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white text-neutral-800 font-bold hover:bg-neutral-100 transition-colors text-left cursor-pointer"
+                  >
+                    <span>🏢 Organiser 1</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('rohan.events@gmail.com');
+                      setPassword('organiser123');
+                      setAuthError(null);
+                    }}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white text-neutral-800 font-bold hover:bg-neutral-100 transition-colors text-left cursor-pointer"
+                  >
+                    <span>🏢 Organiser 2</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('sneha.verma@gmail.com');
+                      setPassword('crew123');
+                      setAuthError(null);
+                    }}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white text-neutral-800 font-bold hover:bg-neutral-100 transition-colors text-left cursor-pointer"
+                  >
+                    <span>🎧 Crew Member</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Forgot Password Sub-Flow */}
             {showForgotPassword ? (
