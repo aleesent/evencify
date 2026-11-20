@@ -144,11 +144,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const pendingApprovals = applications.filter((a) => a.status === 'Pending').length;
   const verifiedUsersCount = users.filter((u) => u.isVerified !== false).length;
 
+  const [copiedPasswordId, setCopiedPasswordId] = useState<string | null>(null);
+
   const togglePasswordVisibility = (userId: string) => {
     setVisiblePasswords((prev) => ({
       ...prev,
       [userId]: !prev[userId],
     }));
+  };
+
+  const handleCopyPassword = (userId: string, pass: string) => {
+    if (!pass) return;
+    navigator.clipboard?.writeText(pass).catch(() => {});
+    setCopiedPasswordId(userId);
+    setTimeout(() => {
+      setCopiedPasswordId((prev) => (prev === userId ? null : prev));
+    }, 1800);
   };
 
   const filteredUsers = users.filter((u) => {
@@ -187,11 +198,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         name: crew.name,
         email: crew.email,
         phone: crew.phone,
-        password: 'crewpass123',
+        password: '',
         role: 'crew',
         status: 'Active',
         city: crew.city,
-        createdAt: '2026-08-20',
+        createdAt: new Date().toISOString().split('T')[0],
         isVerified: true,
         verificationBadge: `${crew.systemRating} ★ Crew Lead`,
         systemRating: crew.systemRating,
@@ -212,11 +223,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         name: org.name,
         email: org.email,
         phone: org.phone,
-        password: 'organiser123',
+        password: '',
         role: 'organiser',
         status: 'Active',
         city: org.city,
-        createdAt: '2026-08-15',
+        createdAt: new Date().toISOString().split('T')[0],
         isVerified: org.hasUdyam,
         verificationBadge: 'Business Verified',
         companyName: org.companyName,
@@ -418,7 +429,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     filteredUsers.map((u) => {
                       const isVer = u.isVerified !== false;
                       const isPassVisible = !!visiblePasswords[u.id];
-                      const userPass = u.password || 'pass123';
+                      const userPass = (u.password || '').trim();
+                      const hasRealPass = userPass.length > 0;
+                      const isCopied = copiedPasswordId === u.id;
 
                       return (
                         <tr key={u.id} className="hover:bg-neutral-50/70 transition-colors">
@@ -436,25 +449,60 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             </div>
                           </td>
 
-                          {/* Password / Pass Column with View Toggle */}
+                          {/* Real Password / Pass Column with View Toggle & Copy */}
                           <td className="px-4 py-3.5">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-mono text-[11px] bg-neutral-50 border border-neutral-200 px-2 py-0.5 rounded text-neutral-800">
-                                {isPassVisible ? userPass : '••••••••'}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => togglePasswordVisibility(u.id)}
-                                className="text-neutral-400 hover:text-neutral-700 p-1 rounded cursor-pointer"
-                                title={isPassVisible ? 'Hide passcode' : 'Show passcode'}
-                              >
-                                {isPassVisible ? (
-                                  <EyeOff className="h-3.5 w-3.5" />
-                                ) : (
-                                  <Eye className="h-3.5 w-3.5" />
-                                )}
-                              </button>
-                            </div>
+                            {hasRealPass ? (
+                              <div className="flex items-center gap-1.5">
+                                <span
+                                  className="font-mono text-[11px] bg-neutral-50 border border-neutral-200 px-2 py-0.5 rounded text-neutral-800 max-w-[160px] truncate"
+                                  title={isPassVisible ? userPass : 'Click eye icon to reveal actual password'}
+                                >
+                                  {isPassVisible ? userPass : '•'.repeat(Math.min(Math.max(userPass.length, 6), 12))}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => togglePasswordVisibility(u.id)}
+                                  className="text-neutral-400 hover:text-neutral-700 p-1 rounded cursor-pointer"
+                                  title={isPassVisible ? 'Hide password' : 'Show actual password'}
+                                >
+                                  {isPassVisible ? (
+                                    <EyeOff className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <Eye className="h-3.5 w-3.5" />
+                                  )}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyPassword(u.id, userPass)}
+                                  className={`p-1 rounded cursor-pointer transition-colors ${
+                                    isCopied
+                                      ? 'text-emerald-600'
+                                      : 'text-neutral-400 hover:text-neutral-700'
+                                  }`}
+                                  title={isCopied ? 'Copied!' : 'Copy actual password'}
+                                >
+                                  {isCopied ? (
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <Copy className="h-3.5 w-3.5" />
+                                  )}
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[11px] text-neutral-400 italic">
+                                  Not synced yet
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingUser(u)}
+                                  className="rounded-md border border-neutral-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer"
+                                  title="Assign or reset a real password for this user"
+                                >
+                                  Set Pass
+                                </button>
+                              </div>
+                            )}
                           </td>
 
                           {/* Role */}

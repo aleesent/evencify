@@ -26,6 +26,168 @@ export interface AuthSessionUser {
   isVerified?: boolean;
 }
 
+// ============================================================================
+// REAL USER CREDENTIAL PERSISTENCE & COLUMN-SAFE SUPABASE SYNC
+// ============================================================================
+
+const CREDENTIAL_STORE_KEY = 'evencify_user_credentials';
+
+interface StoredCredentialEntry {
+  password: string;
+  overridden?: boolean;
+  updatedAt: string;
+}
+
+interface CredentialRegistry {
+  byEmail: Record<string, StoredCredentialEntry>;
+  byId: Record<string, StoredCredentialEntry>;
+}
+
+let profilesPasswordColumnSupported: boolean | null = null;
+
+function readCredentialRegistry(): CredentialRegistry {
+  if (typeof window === 'undefined') {
+    return { byEmail: {}, byId: {} };
+  }
+  try {
+    const raw = localStorage.getItem(CREDENTIAL_STORE_KEY);
+    if (!raw) return { byEmail: {}, byId: {} };
+    const parsed = JSON.parse(raw);
+    return {
+      byEmail: parsed?.byEmail && typeof parsed.byEmail === 'object' ? parsed.byEmail : {},
+      byId: parsed?.byId && typeof parsed.byId === 'object' ? parsed.byId : {},
+    };
+  } catch {
+    return { byEmail: {}, byId: {} };
+  }
+}
+
+function writeCredentialRegistry(registry: CredentialRegistry): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(CREDENTIAL_STORE_KEY, JSON.stringify(registry));
+  } catch {
+    // ignore storage quota issues
+  }
+}
+
+function saveStoredPassword(
+  email?: string,
+  userId?: string,
+  password?: string,
+  options?: { overridden?: boolean }
+): void {
+  const realPass = (password || '').trim();
+  if (!realPass) return;
+
+  const registry = readCredentialRegistry();
+  const entry: StoredCredentialEntry = {
+    password: realPass,
+    overridden: Boolean(options?.overridden),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const cleanEmail = (email || '').trim().toLowerCase();
+  if (cleanEmail) {
+    registry.byEmail[cleanEmail] = entry;
+  }
+  if (userId) {
+    registry.byId[userId] = entry;
+  }
+
+  writeCredentialRegistry(registry);
+}
+
+function getStoredCredential(email?: string, userId?: string): StoredCredentialEntry | null {
+  const registry = readCredentialRegistry();
+  const cleanEmail = (email || '').trim().toLowerCase();
+  if (cleanEmail && registry.byEmail[cleanEmail]?.password) {
+    return registry.byEmail[cleanEmail];
+  }
+  if (userId && registry.byId[userId]?.password) {
+    return registry.byId[userId];
+  }
+  return null;
+}
+
+function removeStoredPassword(email?: string, userId?: string): void {
+  const registry = readCredentialRegistry();
+  const cleanEmail = (email || '').trim().toLowerCase();
+  if (cleanEmail) delete registry.byEmail[cleanEmail];
+  if (userId) delete registry.byId[userId];
+  writeCredentialRegistry(registry);
+}
+
+async function syncPasswordToProfile(
+  userId?: string,
+  email?: string,
+  password?: string
+): Promise<void> {
+  const realPass = (password || '').trim();
+  if (!realPass || !isSupabaseConfigured() || profilesPasswordColumnSupported === false) {
+    return;
+  }
+
+  const cleanEmail = (email || '').trim().toLowerCase();
+  if (!userId && !cleanEmail) return;
+
+  try {
+    const query = supabase.from('profiles').update({
+      password: realPass,
+      updated_at: new Date().toISOString(),
+    });
+
+    const { error } = userId
+      ? await query.eq('id', userId)
+      : await query.eq('email', cleanEmail);
+
+    if (error) {
+      const msg = (error.message || '').toLowerCase();
+      const code = (error as any).code || '';
+      if (
+        code === '42703' ||
+        code === 'PGRST204' ||
+        msg.includes('column') && msg.includes('password')
+      ) {
+        profilesPasswordColumnSupported = false;
+      }
+      return;
+    }
+
+    profilesPasswordColumnSupported = true;
+  } catch {
+    // Non-fatal: local credential store remains authoritative fallback
+  }
+}
+
+function resolveUserPassword(profile?: any, email?: string, userId?: string): string {
+  const dbPass = typeof profile?.password === 'string' ? profile.password.trim() : '';
+  const stored = getStoredCredential(email || profile?.email, userId || profile?.id);
+
+  // If password was explicitly updated/overridden locally and DB column wasn't updated yet, prefer newer local override
+  if (stored?.overridden && stored.password && !dbPass) {
+    return stored.password;
+  }
+  if (dbPass) {
+    return dbPass;
+  }
+  if (stored?.password) {
+    return stored.password;
+  }
+
+  const cleanEmail = (email || profile?.email || '').trim().toLowerCase();
+  const seed = INITIAL_USERS.find(
+    (u) =>
+      (cleanEmail && u.email.toLowerCase() === cleanEmail) ||
+      (userId && u.id === userId)
+  );
+  if (seed?.password) {
+    return seed.password;
+  }
+
+  return '';
+}
+
 export const EvencifyApi = {
   // ==========================================================================
   // AUTHENTICATION
@@ -199,15 +361,22 @@ export const EvencifyApi = {
     }
 
     const cleanEmail = params.email.trim().toLowerCase();
+    const realPassword = (params.password || '').trim();
+
+    if (!realPassword || realPassword.length < 6) {
+      return { user: null as any, error: 'Password must be at least 6 characters long.' };
+    }
 
     if (!isSupabaseConfigured()) {
+      const offlineUserId = `usr-${Date.now()}`;
       const offlineUser: AuthSessionUser = {
-        id: `usr-${Date.now()}`,
+        id: offlineUserId,
         email: cleanEmail,
         name: params.fullName || (params.role === 'crew' ? 'Aarav Mehta' : 'Singhania Events'),
         role: params.role,
         isVerified: true,
       };
+      saveStoredPassword(cleanEmail, offlineUserId, realPassword);
       if (typeof window !== 'undefined') {
         localStorage.setItem('evencify_active_user', JSON.stringify(offlineUser));
       }
@@ -217,7 +386,7 @@ export const EvencifyApi = {
     try {
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
-        password: params.password || 'EvencifySecure123!',
+        password: realPassword,
         options: {
           data: {
             role: params.role,
@@ -252,6 +421,9 @@ export const EvencifyApi = {
                 is_active: true,
               })
               .eq('id', existingProfile.id);
+
+            saveStoredPassword(cleanEmail, existingProfile.id, realPassword, { overridden: true });
+            await syncPasswordToProfile(existingProfile.id, cleanEmail, realPassword);
 
             const verifiedUser: AuthSessionUser = {
               id: existingProfile.id,
@@ -288,6 +460,10 @@ export const EvencifyApi = {
       if (profileUpsertError) {
         console.warn('Profile upsert note:', profileUpsertError.message);
       }
+
+      // Persist the user's actual real password
+      saveStoredPassword(cleanEmail, userId, realPassword);
+      await syncPasswordToProfile(userId, cleanEmail, realPassword);
 
       // Ensure role specific profile table is initialized
       if (params.role === 'crew') {
@@ -327,136 +503,167 @@ export const EvencifyApi = {
   },
 
   /**
-   * Log into Evencify with email and password via Supabase Auth (with built-in admin & demo accounts)
+   * Log into Evencify with email and real password verification
    */
   async signIn(email: string, password?: string): Promise<{ user: AuthSessionUser; error?: string }> {
     const cleanEmail = (email || '').trim().toLowerCase();
-    const cleanPassword = (password || '').trim();
+    const rawPassword = (password || '').trim();
 
-    // 1. BUILT-IN ADMIN ACCOUNT RECOGNITION
-    if (cleanEmail === 'admin@evencify.com' || cleanEmail === 'admin') {
-      const allowedAdminPasswords = ['adminpass123', 'admin123', 'admin', 'admin@123', 'admin2026'];
-      if (!cleanPassword || allowedAdminPasswords.includes(cleanPassword) || cleanPassword.length >= 4) {
+    if (!cleanEmail) {
+      return { user: null as any, error: 'Please enter your email address.' };
+    }
+    if (!rawPassword) {
+      return { user: null as any, error: 'Please enter your password.' };
+    }
+
+    const persistSession = (user: AuthSessionUser) => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('evencify_active_user', JSON.stringify(user));
+      }
+    };
+
+    // Fetch existing DB profile (if Supabase is configured) to get real role, status, and stored password
+    let dbProfile: any = null;
+    if (isSupabaseConfigured()) {
+      try {
+        const lookupEmail = cleanEmail === 'admin' ? 'admin@evencify.com' : cleanEmail;
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', lookupEmail)
+          .maybeSingle();
+        dbProfile = data || null;
+      } catch {
+        // continue with auth check
+      }
+    }
+
+    if (dbProfile && dbProfile.is_active === false) {
+      return {
+        user: null as any,
+        error: 'Your account has been deactivated by an administrator. Please contact support.',
+      };
+    }
+
+    const effectiveEmail = cleanEmail === 'admin' ? 'admin@evencify.com' : cleanEmail;
+    const seedUser = INITIAL_USERS.find((u) => u.email.toLowerCase() === effectiveEmail);
+    const storedCred = getStoredCredential(effectiveEmail, dbProfile?.id || seedUser?.id);
+    const dbPassword = typeof dbProfile?.password === 'string' ? dbProfile.password.trim() : '';
+    const knownRealPassword =
+      (storedCred?.overridden && storedCred.password) ||
+      dbPassword ||
+      storedCred?.password ||
+      '';
+
+    // 1. BUILT-IN ADMIN ACCOUNT (strict real password verification)
+    if (effectiveEmail === 'admin@evencify.com') {
+      const expectedAdminPass = knownRealPassword || seedUser?.password || 'admin123';
+      const isLegacyAdminAlias = !knownRealPassword && rawPassword === 'adminpass123';
+
+      if (rawPassword === expectedAdminPass || isLegacyAdminAlias) {
         const adminUser: AuthSessionUser = {
-          id: 'usr-admin',
+          id: dbProfile?.id || 'usr-admin',
           email: 'admin@evencify.com',
-          name: 'Evencify Operations Admin',
+          name: dbProfile?.full_name || 'Evencify Operations Admin',
           role: 'admin',
           isVerified: true,
         };
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('evencify_active_user', JSON.stringify(adminUser));
-        }
+        saveStoredPassword('admin@evencify.com', adminUser.id, rawPassword);
+        await syncPasswordToProfile(adminUser.id, 'admin@evencify.com', rawPassword);
+        persistSession(adminUser);
         return { user: adminUser };
       }
+
+      return {
+        user: null as any,
+        error: 'Invalid email or password. Please verify your administrator credentials.',
+      };
     }
 
-    // 2. BUILT-IN DEMO SEED USERS (Rajesh Singhania, Sneha Verma, Rohan Mehta, etc.)
-    const seedUser = INITIAL_USERS.find(
-      (u) => u.email.toLowerCase() === cleanEmail
-    );
-
+    // 2. BUILT-IN SEED USERS (verify against updated real password or seed password strictly)
     if (seedUser) {
-      if (!cleanPassword || cleanPassword === seedUser.password || cleanPassword.length >= 4) {
+      const expectedSeedPass = knownRealPassword || seedUser.password || '';
+      if (expectedSeedPass && rawPassword === expectedSeedPass) {
         const sessionUser: AuthSessionUser = {
-          id: seedUser.id,
-          email: seedUser.email,
-          name: seedUser.name,
-          role: seedUser.role,
-          isVerified: seedUser.isVerified,
+          id: dbProfile?.id || seedUser.id,
+          email: dbProfile?.email || seedUser.email,
+          name: dbProfile?.full_name || seedUser.name,
+          role: (dbProfile?.role || seedUser.role) as 'crew' | 'organiser' | 'admin',
+          isVerified: Boolean(dbProfile?.is_verified ?? seedUser.isVerified),
         };
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('evencify_active_user', JSON.stringify(sessionUser));
-        }
+        saveStoredPassword(sessionUser.email, sessionUser.id, rawPassword);
+        await syncPasswordToProfile(sessionUser.id, sessionUser.email, rawPassword);
+        persistSession(sessionUser);
         return { user: sessionUser };
       }
+
+      // If this seed user also has no Supabase Auth account, reject immediately on wrong password
+      if (!isSupabaseConfigured()) {
+        return {
+          user: null as any,
+          error: 'Invalid email or password. Please verify your credentials and try again.',
+        };
+      }
     }
 
+    // 3. OFFLINE MODE (verify against stored credentials only)
     if (!isSupabaseConfigured()) {
-      let offlineUser: AuthSessionUser;
-      if (cleanEmail.includes('singhania') || cleanEmail.includes('org')) {
-        offlineUser = {
-          id: 'org-singhania',
-          email: email.trim(),
-          name: 'Rajesh Singhania',
-          role: 'organiser',
+      if (knownRealPassword && rawPassword === knownRealPassword) {
+        const offlineUser: AuthSessionUser = {
+          id: `usr-${effectiveEmail}`,
+          email: effectiveEmail,
+          name: effectiveEmail.split('@')[0],
+          role: effectiveEmail.includes('org') ? 'organiser' : 'crew',
           isVerified: true,
         };
-      } else {
-        offlineUser = {
-          id: `usr-${Date.now()}`,
-          email: email.trim(),
-          name: email.split('@')[0],
-          role: 'crew',
-          isVerified: true,
-        };
+        persistSession(offlineUser);
+        return { user: offlineUser };
       }
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('evencify_active_user', JSON.stringify(offlineUser));
-      }
-      return { user: offlineUser };
+      return {
+        user: null as any,
+        error: 'Invalid email or password. Please verify your credentials and try again.',
+      };
     }
 
+    // 4. ONLINE SUPABASE AUTH + REAL STORED PASSWORD VERIFICATION
     try {
+      // If an admin or password-reset explicitly set a new real password, enforce it
+      if (knownRealPassword && storedCred?.overridden && rawPassword !== knownRealPassword) {
+        return {
+          user: null as any,
+          error: 'Invalid email or password. Please verify your credentials and try again.',
+        };
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: password || 'EvencifySecure123!',
+        email: effectiveEmail,
+        password: rawPassword,
       });
 
       if (error) {
-        // If Supabase returned 'Email not confirmed', allow Brevo-verified users to log in
-        if (
-          error.message?.toLowerCase().includes('email not confirmed') ||
-          (error as any).code === 'email_not_confirmed'
-        ) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('email', cleanEmail)
-            .maybeSingle();
-
-          if (profile && profile.is_active) {
-            const user: AuthSessionUser = {
-              id: profile.id,
-              email: profile.email || cleanEmail,
-              name: profile.full_name || 'Evencify User',
-              role: profile.role as 'crew' | 'organiser' | 'admin',
-              isVerified: true,
+        // Allow sign-in if the user has a valid active profile AND their entered password strictly matches
+        // the real password saved via Admin creation/edit, Forgot Password reset, or Brevo OTP signup
+        if (dbProfile && knownRealPassword && rawPassword === knownRealPassword) {
+          if (dbProfile.is_active === false) {
+            return {
+              user: null as any,
+              error: 'Your account has been deactivated by an administrator. Please contact support.',
             };
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('evencify_active_user', JSON.stringify(user));
-            }
-            return { user };
           }
-        }
 
-        // If Supabase returned 'Invalid login credentials', check if it's admin or seed user
-        if (cleanEmail === 'admin@evencify.com' || cleanEmail.startsWith('admin')) {
-          const fallbackAdmin: AuthSessionUser = {
-            id: 'usr-admin',
-            email: 'admin@evencify.com',
-            name: 'Evencify Operations Admin',
-            role: 'admin',
-            isVerified: true,
+          const verifiedUser: AuthSessionUser = {
+            id: dbProfile.id,
+            email: dbProfile.email || effectiveEmail,
+            name: dbProfile.full_name || 'Evencify User',
+            role: dbProfile.role as 'crew' | 'organiser' | 'admin',
+            isVerified: Boolean(dbProfile.is_verified ?? true),
           };
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('evencify_active_user', JSON.stringify(fallbackAdmin));
-          }
-          return { user: fallbackAdmin };
-        }
-
-        if (seedUser) {
-          const fallbackSeed: AuthSessionUser = {
-            id: seedUser.id,
-            email: seedUser.email,
-            name: seedUser.name,
-            role: seedUser.role,
-            isVerified: seedUser.isVerified,
-          };
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('evencify_active_user', JSON.stringify(fallbackSeed));
-          }
-          return { user: fallbackSeed };
+          saveStoredPassword(verifiedUser.email, verifiedUser.id, rawPassword, {
+            overridden: Boolean(storedCred?.overridden),
+          });
+          await syncPasswordToProfile(verifiedUser.id, verifiedUser.email, rawPassword);
+          persistSession(verifiedUser);
+          return { user: verifiedUser };
         }
 
         let friendlyError = error.message;
@@ -467,6 +674,11 @@ export const EvencifyApi = {
           friendlyError = 'Invalid email or password. Please verify your credentials and try again.';
         } else if (error.message?.toLowerCase().includes('user not found')) {
           friendlyError = 'No account found with this email. Please click Create Account to get started.';
+        } else if (
+          error.message?.toLowerCase().includes('email not confirmed') ||
+          (error as any).code === 'email_not_confirmed'
+        ) {
+          friendlyError = 'Please verify your email or reset your password to activate your account.';
         }
 
         return { user: null as any, error: friendlyError };
@@ -476,21 +688,14 @@ export const EvencifyApi = {
         return { user: null as any, error: 'Authentication failed. Please check your credentials.' };
       }
 
-      let profile: any = null;
-      const { data: profById } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .maybeSingle();
-      profile = profById;
-
-      if (!profile && data.user.email) {
-        const { data: profByEmail } = await supabase
+      let profile: any = dbProfile;
+      if (!profile) {
+        const { data: profById } = await supabase
           .from('profiles')
           .select('*')
-          .eq('email', data.user.email.trim().toLowerCase())
+          .eq('id', data.user.id)
           .maybeSingle();
-        profile = profByEmail;
+        profile = profById;
       }
 
       if (!profile) {
@@ -505,7 +710,7 @@ export const EvencifyApi = {
         try {
           await supabase.from('profiles').upsert({
             id: data.user.id,
-            email: data.user.email || '',
+            email: (data.user.email || effectiveEmail).toLowerCase(),
             full_name: fallbackName,
             role: fallbackRole,
             is_active: true,
@@ -517,7 +722,7 @@ export const EvencifyApi = {
 
         profile = {
           id: data.user.id,
-          email: data.user.email || '',
+          email: data.user.email || effectiveEmail,
           full_name: fallbackName,
           role: fallbackRole,
           is_active: true,
@@ -525,7 +730,7 @@ export const EvencifyApi = {
         };
       }
 
-      if (!profile.is_active) {
+      if (profile.is_active === false) {
         await supabase.auth.signOut();
         return {
           user: null as any,
@@ -533,34 +738,83 @@ export const EvencifyApi = {
         };
       }
 
+      // Record the verified real password so Admin Console shows the user's real password
+      saveStoredPassword(profile.email || data.user.email || effectiveEmail, profile.id, rawPassword);
+      await syncPasswordToProfile(profile.id, profile.email || data.user.email || effectiveEmail, rawPassword);
+
       const authenticatedUser: AuthSessionUser = {
         id: profile.id,
-        email: profile.email || data.user.email || '',
+        email: profile.email || data.user.email || effectiveEmail,
         name: profile.full_name || 'Evencify User',
         role: profile.role as 'crew' | 'organiser' | 'admin',
         isVerified: Boolean(profile.is_verified),
       };
 
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('evencify_active_user', JSON.stringify(authenticatedUser));
-      }
+      persistSession(authenticatedUser);
 
       return {
         user: authenticatedUser,
       };
     } catch (err: any) {
-      if (cleanEmail === 'admin@evencify.com' || cleanEmail.startsWith('admin')) {
-        return {
-          user: {
-            id: 'usr-admin',
-            email: 'admin@evencify.com',
-            name: 'Evencify Operations Admin',
-            role: 'admin',
-          },
-        };
-      }
       return { user: null as any, error: err.message || 'Login failed.' };
     }
+  },
+
+  /**
+   * Persist a user's newly reset real password (after Brevo OTP verification)
+   */
+  async resetUserPassword(
+    email: string,
+    newPassword: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const realPass = (newPassword || '').trim();
+
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return { success: false, error: 'Please provide a valid email address.' };
+    }
+    if (realPass.length < 6) {
+      return { success: false, error: 'New password must be at least 6 characters long.' };
+    }
+
+    let targetUserId: string | undefined;
+
+    if (isSupabaseConfigured()) {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, email')
+          .eq('email', cleanEmail)
+          .maybeSingle();
+
+        const seedMatch = INITIAL_USERS.find((u) => u.email.toLowerCase() === cleanEmail);
+        if (!profile && !seedMatch) {
+          return {
+            success: false,
+            error: 'No registered account found for this email address.',
+          };
+        }
+
+        targetUserId = profile?.id || seedMatch?.id;
+
+        // If user currently has an active Supabase Auth session for this email, update Auth password too
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user && user.email?.toLowerCase() === cleanEmail) {
+            await supabase.auth.updateUser({ password: realPass });
+          }
+        } catch {
+          // Non-fatal
+        }
+      } catch (err: any) {
+        console.warn('Password reset lookup note:', err);
+      }
+    }
+
+    saveStoredPassword(cleanEmail, targetUserId, realPass, { overridden: true });
+    await syncPasswordToProfile(targetUserId, cleanEmail, realPass);
+
+    return { success: true };
   },
 
   /**
@@ -1870,7 +2124,10 @@ export const EvencifyApi = {
    */
   async getUsers(): Promise<UserAccount[]> {
     if (!isSupabaseConfigured()) {
-      return [];
+      return INITIAL_USERS.map((u) => ({
+        ...u,
+        password: resolveUserPassword(null, u.email, u.id),
+      }));
     }
 
     try {
@@ -1918,10 +2175,13 @@ export const EvencifyApi = {
           }
         }
 
+        const resolvedPassword = resolveUserPassword(p, cleanEmail, p.id);
+
         const user: UserAccount = {
           id: p.id,
           name: p.full_name || 'User',
           email: p.email || '',
+          password: resolvedPassword,
           phone: p.phone || crew?.phone || org?.phone || '',
           role: p.role as 'crew' | 'organiser' | 'admin',
           status: p.is_active === false ? 'Suspended' : 'Active',
@@ -1955,11 +2215,16 @@ export const EvencifyApi = {
    * Admin: Create a new user account across profiles and role tables in Supabase
    */
   async createUserAccount(newUser: UserAccount): Promise<UserAccount> {
+    const cleanEmail = newUser.email.trim().toLowerCase();
+    const realPassword = (newUser.password || '').trim();
+
     if (!isSupabaseConfigured()) {
-      return newUser;
+      if (realPassword) {
+        saveStoredPassword(cleanEmail, newUser.id, realPassword, { overridden: true });
+      }
+      return { ...newUser, password: realPassword };
     }
 
-    const cleanEmail = newUser.email.trim().toLowerCase();
     const { data: existingProf } = await supabase
       .from('profiles')
       .select('id')
@@ -1997,6 +2262,12 @@ export const EvencifyApi = {
       throw new Error(`Failed to create user profile: ${pErr.message}`);
     }
 
+    // Persist real password immediately so user can log in and Admin sees it
+    if (realPassword) {
+      saveStoredPassword(cleanEmail, userId, realPassword, { overridden: true });
+      await syncPasswordToProfile(userId, cleanEmail, realPassword);
+    }
+
     // 2. Insert into role-specific table
     if (newUser.role === 'crew') {
       await supabase.from('crew_profiles').upsert({
@@ -2028,6 +2299,7 @@ export const EvencifyApi = {
     return {
       ...newUser,
       id: userId,
+      password: realPassword,
       verificationBadge: finalBadge,
     };
   },
@@ -2036,6 +2308,16 @@ export const EvencifyApi = {
    * Admin: Update an existing user account across profiles and role tables
    */
   async updateUserAccount(originalUserId: string, updated: UserAccount): Promise<boolean> {
+    const cleanEmail = updated.email.trim().toLowerCase();
+    const realPassword = (updated.password || '').trim();
+
+    if (realPassword) {
+      saveStoredPassword(cleanEmail, originalUserId, realPassword, { overridden: true });
+      if (updated.id && updated.id !== originalUserId) {
+        saveStoredPassword(cleanEmail, updated.id, realPassword, { overridden: true });
+      }
+    }
+
     if (!isSupabaseConfigured()) {
       return true;
     }
@@ -2052,7 +2334,7 @@ export const EvencifyApi = {
     // 1. Update profiles
     const profileUpdates: any = {
       full_name: updated.name,
-      email: updated.email.trim().toLowerCase(),
+      email: cleanEmail,
       phone: updated.phone || null,
       city: updated.city || 'Surat',
       address: updated.address || null,
@@ -2073,12 +2355,25 @@ export const EvencifyApi = {
       throw new Error(`Failed to update profile: ${pErr.message}`);
     }
 
+    if (realPassword) {
+      await syncPasswordToProfile(originalUserId, cleanEmail, realPassword);
+      // If active auth session belongs to this same user, keep Supabase Auth password synced too
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && (user.id === originalUserId || user.email?.toLowerCase() === cleanEmail)) {
+          await supabase.auth.updateUser({ password: realPassword });
+        }
+      } catch {
+        // Non-fatal
+      }
+    }
+
     // 2. Update role tables
     if (updated.role === 'crew') {
       await supabase.from('crew_profiles').upsert({
         user_id: originalUserId,
         name: updated.name,
-        email: updated.email.trim().toLowerCase(),
+        email: cleanEmail,
         phone: updated.phone || null,
         city: updated.city || 'Surat',
         rating: updated.systemRating || 0,
@@ -2092,7 +2387,7 @@ export const EvencifyApi = {
         user_id: originalUserId,
         name: updated.name,
         company_name: updated.companyName || `${updated.name} Events`,
-        email: updated.email.trim().toLowerCase(),
+        email: cleanEmail,
         phone: updated.phone || null,
         city: updated.city || 'Surat',
         address: updated.address || null,
@@ -2251,7 +2546,7 @@ export const EvencifyApi = {
 
     const { data: targetUser, error: targetErr } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, email')
       .eq('id', userId)
       .single();
 
@@ -2280,6 +2575,8 @@ export const EvencifyApi = {
     if (error) {
       throw new Error(`Failed to delete user: ${error.message}`);
     }
+
+    removeStoredPassword(targetUser.email, userId);
 
     return true;
   },

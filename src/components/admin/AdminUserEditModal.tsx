@@ -17,6 +17,7 @@ import {
   User,
   ShieldCheck,
   ShieldOff,
+  Copy,
 } from 'lucide-react';
 import { UserAccount, CREW_CATEGORIES, CrewCategory } from '../../types';
 
@@ -60,6 +61,7 @@ export const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [copiedPass, setCopiedPass] = useState(false);
   const [originalId, setOriginalId] = useState('');
   const [activeTab, setActiveTab] = useState<'account' | 'role-details'>('account');
   const [error, setError] = useState('');
@@ -153,7 +155,20 @@ export const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
       return;
     }
 
-    onSave(originalId, formData);
+    const trimmedPass = (formData.password || '').trim();
+    if (isNew && trimmedPass.length < 6) {
+      setError('A password of at least 6 characters is required for new accounts.');
+      return;
+    }
+    if (!isNew && trimmedPass.length > 0 && trimmedPass.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    onSave(originalId, {
+      ...formData,
+      password: trimmedPass,
+    });
     onClose();
   };
 
@@ -320,21 +335,42 @@ export const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                   <KeyRound className="absolute left-3 top-2.5 h-4 w-4 text-neutral-400" />
                   <input
                     type={showPassword ? 'text' : 'password'}
+                    required={isNew}
+                    minLength={isNew ? 6 : undefined}
                     value={formData.password || ''}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full font-mono text-xs rounded-xl border border-neutral-200 bg-white pl-9 pr-10 py-2.5 text-neutral-900 focus:border-neutral-400 focus:outline-hidden"
-                    placeholder="Enter new user passcode"
+                    className="w-full font-mono text-xs rounded-xl border border-neutral-200 bg-white pl-9 pr-16 py-2.5 text-neutral-900 focus:border-neutral-400 focus:outline-hidden"
+                    placeholder={isNew ? 'Enter real password (min 6 chars)' : 'Enter or update actual password'}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-neutral-400 hover:text-neutral-700 cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                  <div className="absolute right-2.5 top-2 flex items-center gap-1">
+                    {formData.password && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(formData.password || '').catch(() => {});
+                          setCopiedPass(true);
+                          setTimeout(() => setCopiedPass(false), 1800);
+                        }}
+                        className={`p-1 rounded cursor-pointer ${
+                          copiedPass ? 'text-emerald-600' : 'text-neutral-400 hover:text-neutral-700'
+                        }`}
+                        title={copiedPass ? 'Copied!' : 'Copy password'}
+                      >
+                        {copiedPass ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="p-1 text-neutral-400 hover:text-neutral-700 cursor-pointer"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
                 <p className="text-[11px] text-neutral-500 mt-1">
-                  Admins can view and reset passwords directly. The user can sign in immediately with this passcode.
+                  Displays and updates this user’s actual login password. Changes take effect immediately on sign-in.
                 </p>
               </div>
 

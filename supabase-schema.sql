@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   role TEXT NOT NULL CHECK (role IN ('crew', 'organiser', 'admin')),
   full_name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
+  password TEXT,
   phone TEXT,
   avatar_url TEXT,
   address TEXT,
@@ -32,6 +33,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 );
 
 -- Ensure all columns exist on pre-existing table
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS password TEXT;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS verification_badge TEXT;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS city TEXT DEFAULT 'Surat';

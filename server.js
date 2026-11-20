@@ -15,6 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.set('trust proxy', true);
 app.disable('x-powered-by');
 
 // Body parser for JSON API requests
@@ -32,7 +33,7 @@ app.get('/healthz', (_req, res) => {
 // Mount Brevo SMTP and Auth API routes
 app.use('/api', apiRouter);
 
-// Canonical HTTPS, non-www, and trailing-slash 301 normalization
+// Safe trailing-slash normalization (HTTPS & www/apex handled by hosting edge)
 app.use(createCanonicalRedirectMiddleware());
 
 const distPath = path.join(__dirname, 'dist');

@@ -943,24 +943,19 @@ export function createCanonicalRedirectMiddleware() {
       return next();
     }
 
-    const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').toLowerCase();
-    const proto = String(req.headers['x-forwarded-proto'] || '').toLowerCase();
-    const queryIdx = req.originalUrl.indexOf('?');
-    const search = queryIdx >= 0 ? req.originalUrl.slice(queryIdx) : '';
+    // Do NOT force HTTP->HTTPS or www<->apex redirects inside Express:
+    // Hosting edge / CDN proxies (Render, Cloudflare) manage TLS termination and domain routing,
+    // and duplicating those redirects in app middleware causes ERR_TOO_MANY_REDIRECTS loops.
+    // Canonical domain & protocol are communicated safely via <link rel="canonical"> in HTML.
 
-    // Enforce non-www + HTTPS on production domain evencify.com
-    if (host.startsWith('www.evencify.com') || (host === 'evencify.com' && proto === 'http')) {
-      let cleanPath = req.path;
-      if (cleanPath.length > 1 && cleanPath.endsWith('/')) {
-        cleanPath = cleanPath.slice(0, -1);
-      }
-      return res.redirect(301, `https://evencify.com${cleanPath}${search}`);
-    }
-
-    // Remove trailing slash on non-root, non-file paths
+    // Safely remove trailing slash(es) on non-root, non-file paths using a relative redirect
     if (req.path.length > 1 && req.path.endsWith('/') && !path.extname(req.path)) {
-      const targetPath = req.path.slice(0, -1);
-      return res.redirect(301, `${targetPath}${search}`);
+      const targetPath = req.path.replace(/\/+$/, '') || '/';
+      if (targetPath !== req.path) {
+        const queryIdx = req.originalUrl.indexOf('?');
+        const search = queryIdx >= 0 ? req.originalUrl.slice(queryIdx) : '';
+        return res.redirect(301, `${targetPath}${search}`);
+      }
     }
 
     next();

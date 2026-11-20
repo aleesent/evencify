@@ -417,8 +417,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         return;
       }
 
-      // Password reset verified! Sign in with new credentials or update session
-      setAuthSuccess('Password reset successfully! Please log in with your new password.');
+      // Persist the user's new real password across credential store & Supabase profile
+      const resetRes = await EvencifyApi.resetUserPassword(email.trim(), resetNewPassword);
+      if (!resetRes.success) {
+        setAuthError(resetRes.error || 'Failed to update password. Please try again.');
+        setIsLoading(false);
+        return;
+      }
+
+      setAuthSuccess('Password updated successfully! You can now log in with your new password.');
       setIsLoading(false);
       setTimeout(() => {
         setStep('auth');

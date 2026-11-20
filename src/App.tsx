@@ -840,6 +840,9 @@ export default function App() {
       setActiveUserName(currentAdminProfile.name);
       showToast(`Admin Console Unlocked: ${email}`);
     }
+
+    // Refresh latest user accounts and synced real credentials
+    syncDatabase();
   };
 
   const handleLogout = async () => {
