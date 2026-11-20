@@ -17,8 +17,6 @@ import {
   Sparkles,
   ShieldCheck,
   ArrowLeft,
-  ExternalLink,
-  MessageSquare,
   Ticket,
 } from 'lucide-react';
 
@@ -28,7 +26,7 @@ interface SingleEventPageProps {
   events: EventItem[];
   currentRole: UserRole;
   onApplyAsCrew?: (eventId: string, category: string) => void;
-  onOpenAuthModal?: (role?: UserRole) => void;
+  onOpenAuthModal?: (role?: UserRole, initialMode?: 'login' | 'signup') => void;
 }
 
 export const SingleEventPage: React.FC<SingleEventPageProps> = ({
@@ -42,16 +40,22 @@ export const SingleEventPage: React.FC<SingleEventPageProps> = ({
   const [copied, setCopied] = useState(false);
   const [passReserved, setPassReserved] = useState(false);
 
-  // Find event matching slug
+  // Find event strictly matching slug (and citySlug if provided)
   const event = useMemo(() => {
     const cleanSlug = slugify(eventSlug);
-    return (
-      events.find((e) => slugify(e.name) === cleanSlug || e.id.toLowerCase() === cleanSlug) ||
-      events[0]
-    );
-  }, [eventSlug, events]);
+    const cleanCitySlug = citySlug ? slugify(citySlug) : '';
+    return events.find((e) => {
+      const matchesSlug = slugify(e.name) === cleanSlug || e.id.toLowerCase() === cleanSlug;
+      if (!matchesSlug) return false;
+      if (!cleanCitySlug) return true;
+      return slugify(e.city) === cleanCitySlug;
+    });
+  }, [eventSlug, citySlug, events]);
 
   const seo = useMemo(() => {
+    if (!event) {
+      return getSEOData({ type: 'not-found' });
+    }
     return getSEOData({
       type: 'event',
       event,
@@ -60,6 +64,7 @@ export const SingleEventPage: React.FC<SingleEventPageProps> = ({
 
   // Related events in same city
   const cityRelatedEvents = useMemo(() => {
+    if (!event) return [];
     return events.filter(
       (e) => e.id !== event.id && e.city.toLowerCase() === event.city.toLowerCase()
     );
@@ -67,10 +72,52 @@ export const SingleEventPage: React.FC<SingleEventPageProps> = ({
 
   // Related events in same category
   const categoryRelatedEvents = useMemo(() => {
+    if (!event) return [];
     return events.filter(
       (e) => e.id !== event.id && e.eventType.toLowerCase() === event.eventType.toLowerCase()
     );
   }, [events, event]);
+
+  if (!event) {
+    return (
+      <div className="min-h-screen bg-[#FDFDFD] pt-24 pb-16">
+        <SEOHead seo={seo} />
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <Breadcrumbs items={seo.breadcrumbItems} />
+          <div className="mt-8 rounded-3xl border border-neutral-200 bg-white p-8 sm:p-12 text-center shadow-xs">
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight">
+              Event Not Found
+            </h1>
+            <p className="mt-3 text-sm sm:text-base text-neutral-600">
+              This event listing may have ended, moved, or the URL may be incorrect. Browse active events and crew opportunities across Surat and India.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <a
+                href="/events"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateTo('/events');
+                }}
+                className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-black transition-colors"
+              >
+                Explore All Events
+              </a>
+              <a
+                href="/"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateTo('/');
+                }}
+                className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-bold text-neutral-800 hover:bg-neutral-50 transition-colors"
+              >
+                Back to Home
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleCopyLink = () => {
     if (typeof navigator !== 'undefined') {
@@ -155,17 +202,9 @@ export const SingleEventPage: React.FC<SingleEventPageProps> = ({
                   </div>
                   <div>
                     <div className="text-xs text-neutral-400">Organised By</div>
-                    <a
-                      href={`/organiser/${slugify(event.organiserName)}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigateTo(`/organiser/${slugify(event.organiserName)}`);
-                      }}
-                      className="text-sm font-bold text-neutral-900 hover:underline flex items-center gap-1"
-                    >
-                      <span>{event.organiserName}</span>
-                      <ExternalLink className="h-3 w-3 text-neutral-400" />
-                    </a>
+                    <div className="text-sm font-bold text-neutral-900">
+                      {event.organiserName}
+                    </div>
                   </div>
                 </div>
 

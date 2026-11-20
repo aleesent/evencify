@@ -40,9 +40,28 @@ import {
   markUserOnboardingCompleted,
 } from './utils/onboarding';
 
-// SEO Metadata
-import { getSEOData } from './services/seoData';
+// SEO Metadata & Public Routing
+import { getSEOData, getSEODataFromRoute } from './services/seoData';
+import {
+  useAppRoute,
+  navigateTo,
+  AUTH_OR_PORTAL_SHORTCUT_ROUTES,
+} from './services/router';
 import { SEOHead } from './components/seo/SEOHead';
+import { EventsDiscoveryPage } from './components/seo/pages/EventsDiscoveryPage';
+import { CityEventsPage } from './components/seo/pages/CityEventsPage';
+import { StateEventsPage } from './components/seo/pages/StateEventsPage';
+import { CategoryEventsPage } from './components/seo/pages/CategoryEventsPage';
+import { CityCategoryEventsPage } from './components/seo/pages/CityCategoryEventsPage';
+import { StateCategoryEventsPage } from './components/seo/pages/StateCategoryEventsPage';
+import { SingleEventPage } from './components/seo/pages/SingleEventPage';
+import { DateEventsPage } from './components/seo/pages/DateEventsPage';
+import { NearMeEventsPage } from './components/seo/pages/NearMeEventsPage';
+import { CrewJobsPage } from './components/seo/pages/CrewJobsPage';
+import { OrganiseEventPage } from './components/seo/pages/OrganiseEventPage';
+import { StaticPage } from './components/seo/pages/StaticPages';
+import { SitemapPage } from './components/seo/pages/SitemapPage';
+import { RobotsPage } from './components/seo/pages/RobotsPage';
 
 // Layout & Global Components
 import { Navbar } from './components/Navbar';
@@ -112,6 +131,8 @@ export const isEventOwner = (
 };
 
 export default function App() {
+  const { route } = useAppRoute();
+
   // Navigation & Role State (Only 3 active roles + visitor)
   const [currentRole, setCurrentRole] = useState<UserRole>('visitor');
   const [authenticatedRole, setAuthenticatedRole] = useState<UserRole>('visitor');
@@ -175,13 +196,16 @@ export default function App() {
     if (directLinksOpen) {
       return getSEOData({ type: 'direct-links' });
     }
+    if (currentRole === 'admin') {
+      return getSEOData({ type: 'admin' });
+    }
     if (currentRole === 'crew') {
       return getSEOData({ type: 'crew-portal' });
     }
     if (currentRole === 'organiser') {
       return getSEOData({ type: 'organiser-portal' });
     }
-    return getSEOData({ type: 'homepage', eventCount: events.length });
+    return getSEODataFromRoute(route, events);
   }, [
     authModalOpen,
     authInitialMode,
@@ -189,8 +213,18 @@ export default function App() {
     createEventModalOpen,
     directLinksOpen,
     currentRole,
-    events.length,
+    route,
+    events,
   ]);
+
+  const hasLeafSeoHead =
+    currentRole === 'visitor' &&
+    !authModalOpen &&
+    !createEventModalOpen &&
+    !directLinksOpen &&
+    route.type !== 'home' &&
+    !AUTH_OR_PORTAL_SHORTCUT_ROUTES.has(route.type) &&
+    route.type !== 'not-found';
 
   // Active subtabs for persistent navigation
   const [activeCrewTab, setActiveCrewTab] = useState<
@@ -322,6 +356,7 @@ export default function App() {
 
       // Check Direct Links Modal
       if (
+        path === '/direct-links' ||
         params.get('modal') === 'direct-links' ||
         params.get('links') === 'true' ||
         hash === '#links' ||
@@ -474,7 +509,7 @@ export default function App() {
           targetRole = 'crew';
           targetMode = 'login';
         }
-      } else if (path === '/organiser' || path === '/organizer' || path === '/events') {
+      } else if (path === '/organiser' || path === '/organizer') {
         if (activeUserEmail && authenticatedRole === 'organiser') {
           setCurrentRole('organiser');
         } else {
@@ -1466,16 +1501,166 @@ export default function App() {
 
   const handleScrollToSection = (sectionId: string) => {
     const targetId = sectionId === 'how-it-works' || sectionId === 'trust-safety' ? 'trust' : sectionId;
+    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+      navigateTo(`/#${targetId}`);
+      setTimeout(() => {
+        const el = document.getElementById(targetId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 80);
+      return;
+    }
     const el = document.getElementById(targetId);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
+  const renderVisitorRouteContent = () => {
+    if (route.type === 'home' || AUTH_OR_PORTAL_SHORTCUT_ROUTES.has(route.type)) {
+      return (
+        <div>
+          <HeroSection
+            onGetStarted={() => handleOpenAuth(undefined, 'signup')}
+            onJoinCrew={() => handleOpenAuth(undefined, 'signup')}
+            onHireCrew={() => handleOpenAuth(undefined, 'signup')}
+            onScrollToHowItWorks={() => handleScrollToSection('trust')}
+          />
+
+          <ForCrewSection onJoinCrew={() => handleOpenAuth(undefined, 'signup')} />
+
+          <ForOrganisersSection onHireCrew={() => handleOpenAuth(undefined, 'signup')} />
+
+          <TrustSection onCreateAccount={() => handleOpenAuth(undefined, 'signup')} />
+
+          <FinalCtaSection
+            onJoinCrew={() => handleOpenAuth(undefined, 'signup')}
+            onHireCrew={() => handleOpenAuth(undefined, 'signup')}
+          />
+
+          <FaqSection />
+        </div>
+      );
+    }
+
+    switch (route.type) {
+      case 'all-events':
+        return <EventsDiscoveryPage events={events} />;
+      case 'near-me':
+        return <NearMeEventsPage events={events} />;
+      case 'date':
+        return <DateEventsPage dateKey={route.dateKey || 'upcoming'} events={events} />;
+      case 'city':
+        return (
+          <CityEventsPage
+            citySlug={route.citySlug || 'surat'}
+            events={events}
+            onOpenCreateEvent={() => {
+              setPendingPostAuthAction('create-event');
+              handleOpenAuth('organiser', 'login');
+            }}
+          />
+        );
+      case 'state':
+        return <StateEventsPage stateSlug={route.stateSlug || 'gujarat'} events={events} />;
+      case 'category':
+        return <CategoryEventsPage categorySlug={route.categorySlug || 'concerts'} events={events} />;
+      case 'city-category':
+        return (
+          <CityCategoryEventsPage
+            citySlug={route.citySlug || 'surat'}
+            categorySlug={route.categorySlug || 'concerts'}
+            events={events}
+          />
+        );
+      case 'state-category':
+        return (
+          <StateCategoryEventsPage
+            stateSlug={route.stateSlug || 'gujarat'}
+            categorySlug={route.categorySlug || 'concerts'}
+            events={events}
+          />
+        );
+      case 'event':
+        return (
+          <SingleEventPage
+            eventSlug={route.eventSlug || ''}
+            citySlug={route.citySlug}
+            events={events}
+            currentRole={currentRole}
+            onApplyAsCrew={handleApplyToEvent}
+            onOpenAuthModal={handleOpenAuth}
+          />
+        );
+      case 'crew-jobs':
+        return <CrewJobsPage onOpenAuthModal={handleOpenAuth} />;
+      case 'organiser-solution':
+        return (
+          <OrganiseEventPage
+            onOpenCreateEvent={() => {
+              setPendingPostAuthAction('create-event');
+              handleOpenAuth('organiser', 'login');
+            }}
+            onOpenAuthModal={handleOpenAuth}
+          />
+        );
+      case 'about':
+        return <StaticPage pageType="about" />;
+      case 'contact':
+        return <StaticPage pageType="contact" />;
+      case 'privacy':
+        return <StaticPage pageType="privacy" />;
+      case 'terms':
+        return <StaticPage pageType="terms" />;
+      case 'faq':
+        return <StaticPage pageType="faq" />;
+      case 'sitemap':
+        return <SitemapPage events={events} />;
+      case 'robots':
+        return <RobotsPage />;
+      case 'not-found':
+      default:
+        return (
+          <div className="min-h-[75vh] bg-[#FDFDFD] pt-28 pb-16 px-4">
+            <div className="mx-auto max-w-2xl rounded-3xl border border-neutral-200 bg-white p-8 sm:p-12 text-center shadow-xs">
+              <div className="text-xs font-bold uppercase tracking-widest text-neutral-400">404</div>
+              <h1 className="mt-2 text-2xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight">
+                Page Not Found
+              </h1>
+              <p className="mt-3 text-sm sm:text-base text-neutral-600">
+                The page you requested does not exist or may have moved. Browse active events across Surat and India or return to the Evencify homepage.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <a
+                  href="/events"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateTo('/events');
+                  }}
+                  className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-black transition-colors"
+                >
+                  Browse Events
+                </a>
+                <a
+                  href="/"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateTo('/');
+                  }}
+                  className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-bold text-neutral-800 hover:bg-neutral-50 transition-colors"
+                >
+                  Back to Home
+                </a>
+              </div>
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-white text-black selection:bg-[#FED000] selection:text-black">
       {/* Production-Grade Technical SEO Head (Meta, Title, JSON-LD Schemas, Open Graph, Twitter) */}
-      <SEOHead seo={currentSeo} />
+      {!hasLeafSeoHead && <SEOHead seo={currentSeo} />}
 
       {/* Toast banner */}
       {toastMessage && (
@@ -1531,30 +1716,8 @@ export default function App() {
 
       {/* Main Content Areas */}
       <main className={`flex-1 ${currentRole !== 'visitor' ? 'pt-24 sm:pt-28' : ''}`}>
-        {/* VIEW 1: VISITOR / PUBLIC WEBSITE (NO LOGIN REQUIRED) */}
-        {currentRole === 'visitor' && (
-          <div>
-            <HeroSection
-              onGetStarted={() => handleOpenAuth(undefined, 'signup')}
-              onJoinCrew={() => handleOpenAuth(undefined, 'signup')}
-              onHireCrew={() => handleOpenAuth(undefined, 'signup')}
-              onScrollToHowItWorks={() => handleScrollToSection('trust')}
-            />
-
-            <ForCrewSection onJoinCrew={() => handleOpenAuth(undefined, 'signup')} />
-
-            <ForOrganisersSection onHireCrew={() => handleOpenAuth(undefined, 'signup')} />
-
-            <TrustSection onCreateAccount={() => handleOpenAuth(undefined, 'signup')} />
-
-            <FinalCtaSection
-              onJoinCrew={() => handleOpenAuth(undefined, 'signup')}
-              onHireCrew={() => handleOpenAuth(undefined, 'signup')}
-            />
-
-            <FaqSection />
-          </div>
-        )}
+        {/* VIEW 1: VISITOR / PUBLIC WEBSITE & SEO PAGES (NO LOGIN REQUIRED) */}
+        {currentRole === 'visitor' && renderVisitorRouteContent()}
 
         {/* VIEW 2: CREW PORTAL (AUTHENTICATED ONLY) */}
         {currentRole === 'crew' && (

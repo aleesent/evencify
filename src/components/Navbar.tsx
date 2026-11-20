@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { UserRole, AppNotification } from '../types';
 import { AuthSessionUser } from '../services/api';
+import { navigateTo } from '../services/router';
 import {
   Bell,
   Menu,
@@ -131,12 +132,18 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex h-full w-full items-center justify-between">
           {/* LEFT: Evencify Brand Logo */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              onClick={() => {
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
                 setUserMenuOpen(false);
                 setMobileMenuOpen(false);
                 onSelectRole('visitor');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+                  navigateTo('/');
+                } else {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
               }}
               className="flex items-center text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 rounded-xl transition-transform hover:opacity-95 cursor-pointer"
               aria-label="Evencify Home - View Public Site"
@@ -147,19 +154,25 @@ export const Navbar: React.FC<NavbarProps> = ({
                   isScrolled ? 'h-7 sm:h-8' : 'h-8 sm:h-9'
                 } flex items-center`}
               >
-                <img
-                  src="/evencify.logo.png"
-                  alt="Evencify — Events Made Easy"
-                  className="h-full w-auto object-contain select-none transition-transform duration-200 hover:scale-[1.02]"
-                  style={{
-                    filter:
-                      'drop-shadow(0 0 1.2px rgba(0, 0, 0, 0.85)) drop-shadow(0 1.5px 3.5px rgba(0, 0, 0, 0.28)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.14))',
-                  }}
-                  loading="eager"
-                  referrerPolicy="no-referrer"
-                />
+                <picture className="h-full flex items-center">
+                  <source srcSet="/evencify.logo.webp" type="image/webp" />
+                  <img
+                    src="/evencify.logo.png"
+                    alt="Evencify — Event Crew & Organiser Platform"
+                    width={2161}
+                    height={728}
+                    className="h-full w-auto object-contain select-none transition-transform duration-200 hover:scale-[1.02]"
+                    style={{
+                      filter:
+                        'drop-shadow(0 0 1.2px rgba(0, 0, 0, 0.85)) drop-shadow(0 1.5px 3.5px rgba(0, 0, 0, 0.28)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.14))',
+                    }}
+                    loading="eager"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                  />
+                </picture>
               </div>
-            </button>
+            </a>
           </div>
 
           {/* ================= CENTER NAVIGATION ================= */}
@@ -172,24 +185,36 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
               aria-label="Main Navigation"
             >
-              <button
-                onClick={() => handleNavClick('for-crew')}
+              <a
+                href="/#for-crew"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick('for-crew');
+                }}
                 className="text-xs sm:text-sm font-semibold text-neutral-600 transition-colors hover:text-neutral-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 rounded-lg px-2 py-1 cursor-pointer"
               >
                 For Crew
-              </button>
-              <button
-                onClick={() => handleNavClick('for-organisers')}
+              </a>
+              <a
+                href="/#for-organisers"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick('for-organisers');
+                }}
                 className="text-xs sm:text-sm font-semibold text-neutral-600 transition-colors hover:text-neutral-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 rounded-lg px-2 py-1 cursor-pointer"
               >
                 For Organisers
-              </button>
-              <button
-                onClick={() => handleNavClick('trust')}
+              </a>
+              <a
+                href="/#trust"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick('trust');
+                }}
                 className="text-xs sm:text-sm font-semibold text-neutral-600 transition-colors hover:text-neutral-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 rounded-lg px-2 py-1 cursor-pointer"
               >
                 Trust & Escrow
-              </button>
+              </a>
             </nav>
           )}
 
@@ -595,24 +620,36 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Public nav links */}
             <div className="flex flex-col space-y-1 pt-1 border-t border-neutral-100">
-              <button
-                onClick={() => handleNavClick('for-crew')}
+              <a
+                href="/#for-crew"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick('for-crew');
+                }}
                 className="rounded-xl px-4 py-2 text-left text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors cursor-pointer"
               >
                 For Crew
-              </button>
-              <button
-                onClick={() => handleNavClick('for-organisers')}
+              </a>
+              <a
+                href="/#for-organisers"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick('for-organisers');
+                }}
                 className="rounded-xl px-4 py-2 text-left text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors cursor-pointer"
               >
                 For Event Organisers
-              </button>
-              <button
-                onClick={() => handleNavClick('trust')}
+              </a>
+              <a
+                href="/#trust"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick('trust');
+                }}
                 className="rounded-xl px-4 py-2 text-left text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors cursor-pointer"
               >
                 Trust & Escrow
-              </button>
+              </a>
             </div>
 
             {isAuthenticated ? (

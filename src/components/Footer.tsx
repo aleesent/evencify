@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { EvencifyLogo } from './EvencifyLogo';
 import { UserRole } from '../types';
+import { navigateTo } from '../services/router';
 import { ArrowUpRight, ShieldCheck, Share2 } from 'lucide-react';
 
 interface FooterProps {
@@ -87,40 +88,56 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
             <ul className="space-y-2.5 text-xs text-neutral-400">
               <li>
-                <button
-                  onClick={() => onNavigateSection('for-crew')}
+                <a
+                  href="/events"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateTo('/events');
+                  }}
                   className="group flex items-center justify-between w-full hover:text-white transition-colors cursor-pointer text-left"
                 >
                   <span>Find Shifts</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigateSection('for-crew')}
+                <a
+                  href="/crew-jobs"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateTo('/crew-jobs');
+                  }}
                   className="group flex items-center justify-between w-full hover:text-white transition-colors cursor-pointer text-left"
                 >
                   <span>Crew Categories</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigateSection('trust-safety')}
+                <a
+                  href="/#trust"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigateSection('trust-safety');
+                  }}
                   className="group flex items-center justify-between w-full hover:text-white transition-colors cursor-pointer text-left"
                 >
                   <span>Same-Day Payouts</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigateSection('trust-safety')}
+                <a
+                  href="/#trust"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigateSection('trust-safety');
+                  }}
                   className="group flex items-center justify-between w-full hover:text-white transition-colors cursor-pointer text-left"
                 >
                   <span>Digital Pass</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
-                </button>
+                </a>
               </li>
             </ul>
           </div>
@@ -132,40 +149,56 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
             <ul className="space-y-2.5 text-xs text-neutral-400">
               <li>
-                <button
-                  onClick={() => onNavigateSection('for-organisers')}
+                <a
+                  href="/organise-event"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateTo('/organise-event');
+                  }}
                   className="group flex items-center justify-between w-full hover:text-white transition-colors cursor-pointer text-left"
                 >
                   <span>Post Staffing Call</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigateSection('for-organisers')}
+                <a
+                  href="/events"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateTo('/events');
+                  }}
                   className="group flex items-center justify-between w-full hover:text-white transition-colors cursor-pointer text-left"
                 >
                   <span>Browse Talent</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigateSection('for-organisers')}
+                <a
+                  href="/#for-organisers"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigateSection('for-organisers');
+                  }}
                   className="group flex items-center justify-between w-full hover:text-white transition-colors cursor-pointer text-left"
                 >
                   <span>Standby Buffers</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigateSection('trust')}
+                <a
+                  href="/#trust"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigateSection('trust');
+                  }}
                   className="group flex items-center justify-between w-full hover:text-white transition-colors cursor-pointer text-left"
                 >
                   <span>Escrow Protection</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
-                </button>
+                </a>
               </li>
             </ul>
           </div>
@@ -177,40 +210,56 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
             <ul className="space-y-2.5 text-xs text-neutral-400">
               <li>
-                <button
-                  onClick={() => onNavigateSection('trust-safety')}
+                <a
+                  href="/#trust"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigateSection('trust-safety');
+                  }}
                   className="group flex items-center justify-between w-full hover:text-white transition-colors cursor-pointer text-left"
                 >
                   <span>Verified Credentials Only</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigateSection('trust-safety')}
+                <a
+                  href="/#trust"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigateSection('trust-safety');
+                  }}
                   className="group flex items-center justify-between w-full hover:text-white transition-colors cursor-pointer text-left"
                 >
                   <span>System-Generated Ratings</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigateSection('trust-safety')}
+                <a
+                  href="/privacy"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateTo('/privacy');
+                  }}
                   className="group flex items-center justify-between w-full hover:text-white transition-colors cursor-pointer text-left"
                 >
                   <span>Private Database Policy</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigateSection('trust-safety')}
+                <a
+                  href="/terms"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateTo('/terms');
+                  }}
                   className="group flex items-center justify-between w-full hover:text-white transition-colors cursor-pointer text-left"
                 >
                   <span>Enterprise Compliance</span>
                   <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FED000] transition-all" />
-                </button>
+                </a>
               </li>
             </ul>
           </div>
@@ -224,30 +273,46 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-neutral-400">
-            <button
-              onClick={() => onNavigateSection('trust')}
+            <a
+              href="/about"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('/about');
+              }}
               className="hover:text-white transition-colors cursor-pointer"
             >
               About
-            </button>
-            <button
-              onClick={() => onNavigateSection('faq')}
+            </a>
+            <a
+              href="/faq"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('/faq');
+              }}
               className="hover:text-white transition-colors cursor-pointer"
             >
               FAQs
-            </button>
-            <button
-              onClick={() => onNavigateSection('trust')}
+            </a>
+            <a
+              href="/privacy"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('/privacy');
+              }}
               className="hover:text-white transition-colors cursor-pointer"
             >
               Privacy & Trust
-            </button>
-            <button
-              onClick={() => onNavigateSection('trust')}
+            </a>
+            <a
+              href="/terms"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('/terms');
+              }}
               className="hover:text-white transition-colors cursor-pointer"
             >
               Terms
-            </button>
+            </a>
             {onOpenDirectLinks && (
               <button
                 type="button"

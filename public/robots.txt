@@ -1,27 +1,28 @@
 User-agent: Googlebot
 Allow: /
+Allow: /events
 Allow: /events/
-Allow: /events/*
-Allow: /crew
-Allow: /crew/*
 Allow: /crew-jobs
+Allow: /event-jobs
 Allow: /event-staffing
 Allow: /organise-event
+Allow: /event-organisers
 Allow: /event-management
-Allow: /login
-Allow: /signup
-Allow: /create-event
-Allow: /direct-links
 Allow: /about
 Allow: /contact
 Allow: /privacy
 Allow: /terms
 Allow: /faq
+Allow: /sitemap
+Disallow: /admin
 Disallow: /admin/
+Disallow: /admin-login
+Disallow: /operator
 Disallow: /dashboard/
 Disallow: /api/
 Disallow: /chat/
 Disallow: /account/
+Disallow: /auth/
 
 User-agent: Googlebot-Image
 Allow: /
@@ -33,33 +34,18 @@ Allow: /*.ico$
 
 User-agent: *
 Allow: /
-Allow: /events/
-Allow: /events/*
-Allow: /crew
-Allow: /crew/*
-Allow: /crew-jobs
-Allow: /event-staffing
-Allow: /organise-event
-Allow: /event-management
-Allow: /login
-Allow: /signup
-Allow: /create-event
-Allow: /direct-links
-Allow: /about
-Allow: /contact
-Allow: /privacy
-Allow: /terms
-Allow: /faq
+Disallow: /admin
 Disallow: /admin/
+Disallow: /admin-login
+Disallow: /operator
 Disallow: /dashboard/
 Disallow: /api/
 Disallow: /chat/
 Disallow: /account/
+Disallow: /auth/
 Disallow: /*?*sort=
 Disallow: /*?*filter=
 Disallow: /*?*session=
 
-# Sitemap directives
+# Sitemap directive
 Sitemap: https://evencify.com/sitemap.xml
-Sitemap: https://www.evencify.com/sitemap.xml
-

@@ -109,7 +109,11 @@ export const CrewPass3DCard: React.FC = () => {
           <div className="relative h-16 w-16 shrink-0 rounded-2xl overflow-hidden border-2 border-black bg-black">
             <img
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&q=80"
-              alt="Crew Member"
+              alt="Pooja Verma, verified lead stage coordinator on Evencify"
+              width={64}
+              height={64}
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover"
             />
             <div className="absolute bottom-0 right-0 rounded-tl-md bg-[#FED000] p-0.5 border-t border-l border-black">
@@ -228,7 +232,11 @@ export const OrganiserRoster3DCard: React.FC = () => {
             <div className="flex items-center gap-2.5">
               <img
                 src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80"
-                alt="Crew"
+                alt="Arjun Nair, verified event production manager"
+                width={36}
+                height={36}
+                loading="lazy"
+                decoding="async"
                 className="h-9 w-9 rounded-xl object-cover border-2 border-black"
               />
               <div>
@@ -245,7 +253,11 @@ export const OrganiserRoster3DCard: React.FC = () => {
             <div className="flex items-center gap-2.5">
               <img
                 src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
-                alt="Crew"
+                alt="Sneha Patel, verified guest relations specialist"
+                width={36}
+                height={36}
+                loading="lazy"
+                decoding="async"
                 className="h-9 w-9 rounded-xl object-cover border-2 border-black"
               />
               <div>

@@ -1,51 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Minus } from 'lucide-react';
-
-interface FaqItem {
-  number: string;
-  question: string;
-  answer: string;
-}
-
-const FAQ_DATA: FaqItem[] = [
-  {
-    number: '01',
-    question: 'What is Evencify?',
-    answer:
-      'Evencify is a platform connecting event organisers with verified event crew. Organisers can build teams, publish shifts and manage their event workforce, while crew members can discover and apply for suitable event opportunities.',
-  },
-  {
-    number: '02',
-    question: 'Who can use Evencify?',
-    answer:
-      'Evencify is built for event organisers and event crew members, including freelancers and professionals working across event production, hospitality, coordination, technical operations and support.',
-  },
-  {
-    number: '03',
-    question: 'How does Evencify work?',
-    answer:
-      'Crew members create a verified professional profile and discover relevant event shifts. Organisers can create events, publish requirements, review applicants and build their teams from one simple dashboard.',
-  },
-  {
-    number: '04',
-    question: 'How do I find event shifts?',
-    answer:
-      'Crew members can browse available opportunities and filter them by role, location, date, category and other relevant requirements to find shifts that match their experience and availability.',
-  },
-  {
-    number: '05',
-    question: 'How can organisers build their event team?',
-    answer:
-      'Organisers can create event requirements, publish crew shifts, review applications and manage selected crew members through their organiser dashboard.',
-  },
-  {
-    number: '06',
-    question: 'Is my profile verified?',
-    answer:
-      'Evencify is designed around trusted professional profiles so organisers can make better-informed crew decisions and crew members can build a reliable professional reputation.',
-  },
-];
+import { HOMEPAGE_FAQS } from '../../services/seoData';
 
 export const FaqSection: React.FC = () => {
   // Only one FAQ open at a time; first one open by default for immediate visual feedback
@@ -82,7 +38,7 @@ export const FaqSection: React.FC = () => {
 
         {/* FAQ Accordion List */}
         <div className="w-full divide-y divide-neutral-200/80 border-t border-b border-neutral-200/80">
-          {FAQ_DATA.map((faq, index) => {
+          {HOMEPAGE_FAQS.map((faq, index) => {
             const isOpen = openIndex === index;
 
             return (

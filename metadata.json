@@ -1,6 +1,6 @@
 {
   "name": "Evencify",
-  "description": "Discover upcoming events in Surat & Gujarat or hire verified event crew in 60s. Find concerts, weddings, corporate expos & high-paying crew shifts with Evencify.",
+  "description": "Discover Evencify, an event platform connecting event organisers and professional crew. Post event requirements, hire event staff and discover event opportunities in Surat and across India.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

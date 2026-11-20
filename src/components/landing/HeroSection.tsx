@@ -98,8 +98,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           viewport={{ once: true, amount: 0.2 }}
           className="relative z-[3] w-full max-w-[620px] xl:max-w-[680px]"
         >
-          {/* 1. MAIN HEADING: "Event" (bold sans) + "made easy" (editorial italic serif) */}
-          <motion.h1
+          {/* 1. VISUAL DISPLAY TITLE: "Event" (bold sans) + "made easy" (editorial italic serif) */}
+          <motion.div
             variants={itemVariants}
             className="text-black tracking-[-0.035em] leading-[0.98] sm:leading-[0.95]"
           >
@@ -109,22 +109,22 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <span className="block text-[56px] sm:text-[74px] lg:text-[82px] xl:text-[92px] font-editorial italic font-normal tracking-[-0.02em] text-black">
               made easy
             </span>
-          </motion.h1>
+          </motion.div>
 
-          {/* 2. SUBORDINATE SUBHEADING: "The complete event management platform." */}
-          <motion.h2
+          {/* 2. PRIMARY H1 HEADING */}
+          <motion.h1
             variants={itemVariants}
             className="mt-6 sm:mt-7 text-[22px] sm:text-[28px] lg:text-[32px] xl:text-[34px] font-bold text-neutral-900 tracking-[-0.025em] leading-[1.2] max-w-[560px]"
           >
-            The complete event management<br className="hidden sm:inline" /> platform.
-          </motion.h2>
+            India&apos;s Event Crew &amp; Organiser Platform
+          </motion.h1>
 
           {/* 3. SUPPORTING PARAGRAPH: Clean modern sans with comfortable line-height */}
           <motion.p
             variants={itemVariants}
             className="mt-4 sm:mt-5 text-[16px] sm:text-[18px] lg:text-[20px] text-neutral-700 font-normal leading-[1.6] max-w-[520px] lg:max-w-[560px]"
           >
-            Connect event organisers with professional crew, manage events, assignments and communication all in one place.
+            Evencify connects event organisers with verified event crew in Surat and across India—manage staffing, shifts, and assignments in one place.
           </motion.p>
 
           {/* 4. PRIMARY CTA: Compact black pill/button with white text */}

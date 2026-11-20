@@ -148,7 +148,11 @@ export const FeatureVisual: React.FC<FeatureVisualProps> = ({ type }) => {
               <div className="relative shrink-0">
                 <img
                   src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80"
-                  alt="Pooja Verma"
+                  alt="Pooja Verma, verified event crew pass holder"
+                  width={64}
+                  height={64}
+                  loading="lazy"
+                  decoding="async"
                   referrerPolicy="no-referrer"
                   className="w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 rounded-lg object-cover border border-neutral-300"
                 />
@@ -199,7 +203,11 @@ export const FeatureVisual: React.FC<FeatureVisualProps> = ({ type }) => {
             <div className="relative rounded-lg overflow-hidden h-16 xs:h-20 sm:h-28 border border-neutral-300">
               <img
                 src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80"
-                alt="Sunburn Arena Concert"
+                alt="Live arena music festival production stage"
+                width={600}
+                height={180}
+                loading="lazy"
+                decoding="async"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
@@ -485,7 +493,11 @@ export const FeatureVisual: React.FC<FeatureVisualProps> = ({ type }) => {
             <div className="relative rounded-lg overflow-hidden h-16 xs:h-20 sm:h-28 border border-neutral-300">
               <img
                 src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&auto=format&fit=crop&q=80"
-                alt="Arena Production Blueprint"
+                alt="Large-scale event production blueprint"
+                width={600}
+                height={180}
+                loading="lazy"
+                decoding="async"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
@@ -592,7 +604,11 @@ export const FeatureVisual: React.FC<FeatureVisualProps> = ({ type }) => {
               <div className="flex items-center gap-2.5 p-1.5 rounded-lg bg-neutral-50 border border-neutral-200">
                 <img
                   src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
-                  alt="Arjun Nair"
+                  alt="Arjun Nair, verified production lead"
+                  width={40}
+                  height={40}
+                  loading="lazy"
+                  decoding="async"
                   referrerPolicy="no-referrer"
                   className="w-8 h-8 sm:w-10 sm:h-10 rounded object-cover border border-neutral-300 shrink-0"
                 />
@@ -609,7 +625,11 @@ export const FeatureVisual: React.FC<FeatureVisualProps> = ({ type }) => {
               <div className="flex items-center gap-2.5 p-1.5 rounded-lg bg-neutral-50 border border-neutral-200">
                 <img
                   src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
-                  alt="Pooja Verma"
+                  alt="Pooja Verma, verified stage coordinator"
+                  width={40}
+                  height={40}
+                  loading="lazy"
+                  decoding="async"
                   referrerPolicy="no-referrer"
                   className="w-8 h-8 sm:w-10 sm:h-10 rounded object-cover border border-neutral-300 shrink-0"
                 />
@@ -653,7 +673,11 @@ export const FeatureVisual: React.FC<FeatureVisualProps> = ({ type }) => {
               <div className="flex items-center gap-2 pb-1 border-b border-neutral-200">
                 <img
                   src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
-                  alt="Pooja Verma"
+                  alt="Pooja Verma, candidate dossier profile"
+                  width={44}
+                  height={44}
+                  loading="lazy"
+                  decoding="async"
                   referrerPolicy="no-referrer"
                   className="w-9 h-9 sm:w-11 sm:h-11 rounded object-cover border border-neutral-300 shrink-0"
                 />

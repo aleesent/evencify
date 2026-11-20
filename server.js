@@ -4,11 +4,18 @@ import fs from 'fs';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { apiRouter } from './server/apiRouter.js';
+import {
+  createCanonicalRedirectMiddleware,
+  buildDynamicSitemapXml,
+  createSeoHtmlHandler,
+  sendCompressedResponse,
+} from './server/seoMiddleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.disable('x-powered-by');
 
 // Body parser for JSON API requests
 app.use(express.json());
@@ -25,6 +32,9 @@ app.get('/healthz', (_req, res) => {
 // Mount Brevo SMTP and Auth API routes
 app.use('/api', apiRouter);
 
+// Canonical HTTPS, non-www, and trailing-slash 301 normalization
+app.use(createCanonicalRedirectMiddleware());
+
 const distPath = path.join(__dirname, 'dist');
 const indexPath = path.join(distPath, 'index.html');
 
@@ -39,45 +49,62 @@ if (!fs.existsSync(indexPath)) {
   }
 }
 
-// Dedicated Sitemap & Robots endpoints with proper content types
-app.get('/sitemap.xml', (req, res) => {
-  const distSitemap = path.join(distPath, 'sitemap.xml');
-  const publicSitemap = path.join(__dirname, 'public', 'sitemap.xml');
-  const target = fs.existsSync(distSitemap) ? distSitemap : publicSitemap;
-  if (fs.existsSync(target)) {
-    let content = fs.readFileSync(target, 'utf8');
-    const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').toLowerCase();
-    if (host.includes('evencify.com') && !host.includes('www.')) {
-      content = content.replaceAll('https://www.evencify.com', 'https://evencify.com');
+// Dynamic Sitemap & Robots endpoints with proper content types, caching, and gzip
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const content = await buildDynamicSitemapXml(distPath, __dirname);
+    if (content) {
+      return sendCompressedResponse(
+        req,
+        res,
+        200,
+        'application/xml; charset=utf-8',
+        content,
+        { 'Cache-Control': 'public, max-age=3600' }
+      );
     }
-    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    return res.send(content);
+    res.status(404).send('Sitemap not found');
+  } catch (err) {
+    console.error('Sitemap generation error:', err);
+    res.status(500).send('Failed to generate sitemap');
   }
-  res.status(404).send('Sitemap not found');
 });
 
-app.get('/robots.txt', (_req, res) => {
+app.get('/robots.txt', (req, res) => {
   const distRobots = path.join(distPath, 'robots.txt');
   const publicRobots = path.join(__dirname, 'public', 'robots.txt');
   const target = fs.existsSync(distRobots) ? distRobots : publicRobots;
-  if (fs.existsSync(target)) {
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    return res.sendFile(target);
-  }
-  res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://evencify.com/sitemap.xml');
+  const content = fs.existsSync(target)
+    ? fs.readFileSync(target, 'utf8')
+    : 'User-agent: *\nAllow: /\nSitemap: https://evencify.com/sitemap.xml\n';
+  return sendCompressedResponse(
+    req,
+    res,
+    200,
+    'text/plain; charset=utf-8',
+    content,
+    { 'Cache-Control': 'public, max-age=3600' }
+  );
 });
 
-// Serve static assets from the compiled Vite dist directory
-app.use(express.static(distPath));
+// Serve hashed build assets and public static files with explicit Cache-Control
+app.use(
+  express.static(distPath, {
+    index: false,
+    setHeaders: (res, filePath) => {
+      if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      } else if (/\.(webp|png|jpg|jpeg|svg|ico|woff2|woff|ttf)$/i.test(filePath)) {
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      } else {
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+      }
+    },
+  })
+);
 
-// Single Page Application (SPA) fallback: serve index.html for all client routes
-app.get('*', (_req, res) => {
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(503).send('Building application assets. Please reload in a moment.');
-  }
-});
+// Route-aware HTML response: injects dynamic <head>/JSON-LD, enforces 404 & X-Robots-Tag
+app.get('*', createSeoHtmlHandler(distPath, indexPath));
 
 // Host must be 0.0.0.0 for containerized platforms like Render to route ingress traffic
 app.listen(PORT, '0.0.0.0', () => {

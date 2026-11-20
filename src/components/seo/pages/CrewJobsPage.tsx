@@ -18,7 +18,7 @@ import {
 import { UserRole } from '../../../types';
 
 interface CrewJobsPageProps {
-  onOpenAuthModal?: (role?: UserRole) => void;
+  onOpenAuthModal?: (role?: UserRole, initialMode?: 'login' | 'signup') => void;
 }
 
 export const CrewJobsPage: React.FC<CrewJobsPageProps> = ({ onOpenAuthModal }) => {

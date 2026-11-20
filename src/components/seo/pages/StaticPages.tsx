@@ -78,6 +78,7 @@ export const AboutPage: React.FC = () => {
 
 export const ContactPage: React.FC = () => {
   const seo = useMemo(() => getSEOData({ type: 'contact' }), []);
+  const [submitted, setSubmitted] = React.useState(false);
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] pt-24 pb-16">
@@ -128,10 +129,15 @@ export const ContactPage: React.FC = () => {
 
           <div className="rounded-3xl border border-neutral-200 bg-white p-8 shadow-xs">
             <h2 className="text-xl font-bold text-neutral-900 mb-4">Send a Message</h2>
+            {submitted && (
+              <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800">
+                Thank you! Your message has been sent to our support desk.
+              </div>
+            )}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                alert('Thank you! Your message has been sent to our support desk.');
+                setSubmitted(true);
               }}
               className="space-y-4 text-xs"
             >

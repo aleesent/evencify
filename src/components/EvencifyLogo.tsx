@@ -26,18 +26,24 @@ export const EvencifyLogo: React.FC<EvencifyLogoProps> = ({
   if (!imageError) {
     return (
       <div className={`inline-flex items-center select-none ${className}`}>
-        <img
-          src="/evencify.logo.png"
-          alt="Evencify — Events Made Easy"
-          className={`${heightMap[size]} w-auto object-contain transition-transform duration-200 hover:scale-[1.02]`}
-          style={{
-            filter:
-              'drop-shadow(0 0 1.2px rgba(0, 0, 0, 0.85)) drop-shadow(0 1.5px 3.5px rgba(0, 0, 0, 0.28)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.14))',
-          }}
-          loading="eager"
-          referrerPolicy="no-referrer"
-          onError={() => setImageError(true)}
-        />
+        <picture className="inline-flex items-center">
+          <source srcSet="/evencify.logo.webp" type="image/webp" />
+          <img
+            src="/evencify.logo.png"
+            alt="Evencify — Event Crew & Organiser Platform"
+            width={2161}
+            height={728}
+            className={`${heightMap[size]} w-auto object-contain transition-transform duration-200 hover:scale-[1.02]`}
+            style={{
+              filter:
+                'drop-shadow(0 0 1.2px rgba(0, 0, 0, 0.85)) drop-shadow(0 1.5px 3.5px rgba(0, 0, 0, 0.28)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.14))',
+            }}
+            loading="eager"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            onError={() => setImageError(true)}
+          />
+        </picture>
       </div>
     );
   }

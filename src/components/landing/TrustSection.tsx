@@ -79,25 +79,30 @@ export const TrustSection: React.FC<TrustSectionProps> = ({ onCreateAccount }) =
           width: '100%',
         }}
       >
-        {/* The complete untouched trust.png image with natural aspect ratio and zero cropping */}
-        <img
-          id="trust-section-visual"
-          src="/trust.png"
-          alt="Trust, reliability and escrow safety"
-          className="w-full h-auto max-w-none block select-none pointer-events-none"
-          style={{
-            width: '100%',
-            height: 'auto',
-            maxWidth: 'none',
-            display: 'block',
-            WebkitMaskImage:
-              'radial-gradient(ellipse 96% 94% at 50% 50%, rgba(0,0,0,1) 82%, rgba(0,0,0,0) 100%)',
-            maskImage:
-              'radial-gradient(ellipse 96% 94% at 50% 50%, rgba(0,0,0,1) 82%, rgba(0,0,0,0) 100%)',
-          }}
-          loading="lazy"
-          decoding="async"
-        />
+        {/* Optimized trust visual with WebP source and PNG fallback */}
+        <picture>
+          <source srcSet="/trust.webp" type="image/webp" />
+          <img
+            id="trust-section-visual"
+            src="/trust.png"
+            alt="Escrow protection, reliability, and verified event staffing on Evencify"
+            width={1451}
+            height={1084}
+            className="w-full h-auto max-w-none block select-none pointer-events-none"
+            style={{
+              width: '100%',
+              height: 'auto',
+              maxWidth: 'none',
+              display: 'block',
+              WebkitMaskImage:
+                'radial-gradient(ellipse 96% 94% at 50% 50%, rgba(0,0,0,1) 82%, rgba(0,0,0,0) 100%)',
+              maskImage:
+                'radial-gradient(ellipse 96% 94% at 50% 50%, rgba(0,0,0,1) 82%, rgba(0,0,0,0) 100%)',
+            }}
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
 
         {/* Top soft feathered edge transition into page background */}
         <div

@@ -10,7 +10,10 @@ export interface SitemapUrlEntry {
   section?: string;
 }
 
-export function generateAllSitemapEntries(events: EventItem[], baseUrl: string = 'https://evencify.com'): SitemapUrlEntry[] {
+export function generateAllSitemapEntries(
+  events: EventItem[],
+  baseUrl: string = 'https://evencify.com'
+): SitemapUrlEntry[] {
   const BASE_URL = baseUrl.replace(/\/+$/, '');
   const today = new Date().toISOString().split('T')[0];
 
@@ -22,7 +25,7 @@ export function generateAllSitemapEntries(events: EventItem[], baseUrl: string =
     lastmod: today,
     changefreq: 'daily',
     priority: '1.0',
-    title: 'Evencify | Event Made Easy – Discover Events in Surat & Gujarat',
+    title: 'Evencify – Event Platform in Surat | Hire Event Crew & Find Event Jobs',
     section: 'Core',
   });
   entries.push({
@@ -30,7 +33,7 @@ export function generateAllSitemapEntries(events: EventItem[], baseUrl: string =
     lastmod: today,
     changefreq: 'daily',
     priority: '0.9',
-    title: 'All Upcoming Events in India',
+    title: 'Upcoming Events in Surat & India | Evencify',
     section: 'Discovery',
   });
   entries.push({
@@ -80,7 +83,7 @@ export function generateAllSitemapEntries(events: EventItem[], baseUrl: string =
     lastmod: today,
     changefreq: 'daily',
     priority: '1.0',
-    title: 'Events in Surat | Upcoming Events & Things to Do | Evencify',
+    title: 'Events in Surat & Event Crew Jobs | Evencify',
     section: 'Local Focus',
   });
   entries.push({
@@ -88,7 +91,7 @@ export function generateAllSitemapEntries(events: EventItem[], baseUrl: string =
     lastmod: today,
     changefreq: 'daily',
     priority: '0.95',
-    title: 'Events in Gujarat | Upcoming Events & Things to Do | Evencify',
+    title: 'Events in Gujarat | Event Platform & Crew Hiring | Evencify',
     section: 'Local Focus',
   });
 
@@ -116,7 +119,7 @@ export function generateAllSitemapEntries(events: EventItem[], baseUrl: string =
     });
   });
 
-  // 5. City Pages (0.9, daily)
+  // 5. City Pages
   Object.values(CITIES_DATABASE).forEach((city) => {
     if (city.slug !== 'surat') {
       const isGujaratCity = city.stateSlug === 'gujarat';
@@ -131,7 +134,7 @@ export function generateAllSitemapEntries(events: EventItem[], baseUrl: string =
     }
   });
 
-  // 6. Category Pages across India (0.8, daily)
+  // 6. Category Pages across India
   Object.values(CATEGORIES_DATABASE).forEach((cat) => {
     entries.push({
       loc: `${BASE_URL}/events/${cat.slug}`,
@@ -143,7 +146,7 @@ export function generateAllSitemapEntries(events: EventItem[], baseUrl: string =
     });
   });
 
-  // 7. City + Category Combinations for other key Gujarat and Priority Cities (0.8, daily)
+  // 7. City + Category Combinations for key Gujarat and Priority Cities
   const keyCities = Object.values(CITIES_DATABASE).filter(
     (c) => c.slug !== 'surat' && (c.stateSlug === 'gujarat' || c.priority)
   );
@@ -162,7 +165,7 @@ export function generateAllSitemapEntries(events: EventItem[], baseUrl: string =
     });
   });
 
-  // 8. Other State Pages (0.8, weekly)
+  // 8. Other State Pages
   Object.values(STATES_DATABASE).forEach((state) => {
     if (state.slug !== 'gujarat') {
       entries.push({
@@ -176,10 +179,19 @@ export function generateAllSitemapEntries(events: EventItem[], baseUrl: string =
     }
   });
 
-  // 9. Real Published Database Events: /events/[city]/[event-slug] (0.85, daily)
+  // 9. Public Upcoming Events Only (exclude expired, draft, paused, closed, cancelled, completed)
   events.forEach((evt) => {
+    if (!evt?.name || !evt?.city || !evt?.date) return;
+    const statusLower = String(evt.status || '').toLowerCase();
+    const isPublicStatus =
+      statusLower === 'open' || statusLower === 'published' || statusLower === 'in-progress';
+    const isUpcoming = evt.date >= today;
+    if (!isPublicStatus || !isUpcoming) return;
+
     const citySlug = slugify(evt.city);
     const eventSlug = slugify(evt.name);
+    if (!citySlug || !eventSlug) return;
+
     entries.push({
       loc: `${BASE_URL}/events/${citySlug}/${eventSlug}`,
       lastmod: evt.createdAt || today,
@@ -190,13 +202,13 @@ export function generateAllSitemapEntries(events: EventItem[], baseUrl: string =
     });
   });
 
-  // 7. Crew & Organiser Pages
+  // 10. Crew & Organiser Public Solution Pages
   entries.push({
     loc: `${BASE_URL}/crew-jobs`,
     lastmod: today,
     changefreq: 'daily',
-    priority: '0.8',
-    title: 'Event Crew Jobs & Shift Work',
+    priority: '0.85',
+    title: 'Event Crew Jobs & Event Staffing in Surat & India | Evencify',
     section: 'Careers',
   });
   entries.push({
@@ -204,15 +216,15 @@ export function generateAllSitemapEntries(events: EventItem[], baseUrl: string =
     lastmod: today,
     changefreq: 'daily',
     priority: '0.8',
-    title: 'Event Staffing Shifts & Rates',
+    title: 'Event Staffing Platform & Crew Shifts | Evencify',
     section: 'Careers',
   });
   entries.push({
     loc: `${BASE_URL}/organise-event`,
     lastmod: today,
     changefreq: 'weekly',
-    priority: '0.8',
-    title: 'Organise Event & Hire Crew',
+    priority: '0.85',
+    title: 'Hire Event Crew & Manage Events | Evencify',
     section: 'Organisers',
   });
   entries.push({
@@ -220,11 +232,11 @@ export function generateAllSitemapEntries(events: EventItem[], baseUrl: string =
     lastmod: today,
     changefreq: 'weekly',
     priority: '0.8',
-    title: 'Event Management Platform',
+    title: 'Event Management Platform India | Evencify',
     section: 'Organisers',
   });
 
-  // 8. Static Pages
+  // 11. Public Informational & Legal Pages
   entries.push({
     loc: `${BASE_URL}/about`,
     lastmod: today,

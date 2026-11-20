@@ -1,27 +1,54 @@
 import React, { useMemo } from 'react';
 import { SEOHead } from '../SEOHead';
 import { Breadcrumbs } from '../Breadcrumbs';
+import { getSEOData } from '../../../services/seoData';
 import { FileText, Copy, Check } from 'lucide-react';
 
-const ROBOTS_TEXT = `User-agent: *
+const ROBOTS_TEXT = `User-agent: Googlebot
 Allow: /
+Allow: /events
 Allow: /events/
-Allow: /events/*
 Allow: /crew-jobs
+Allow: /event-jobs
 Allow: /event-staffing
 Allow: /organise-event
+Allow: /event-organisers
 Allow: /event-management
 Allow: /about
 Allow: /contact
 Allow: /privacy
 Allow: /terms
 Allow: /faq
+Allow: /sitemap
+Disallow: /admin
 Disallow: /admin/
+Disallow: /admin-login
+Disallow: /operator
 Disallow: /dashboard/
 Disallow: /api/
-Disallow: /auth/
 Disallow: /chat/
 Disallow: /account/
+Disallow: /auth/
+
+User-agent: Googlebot-Image
+Allow: /
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.svg$
+Allow: /*.webp$
+Allow: /*.ico$
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /admin-login
+Disallow: /operator
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /chat/
+Disallow: /account/
+Disallow: /auth/
 Disallow: /*?*sort=
 Disallow: /*?*filter=
 Disallow: /*?*session=
@@ -33,17 +60,7 @@ export const RobotsPage: React.FC = () => {
   const [copied, setCopied] = React.useState(false);
 
   const seo = useMemo(() => {
-    return {
-      title: 'robots.txt | Evencify Search Crawler Directives',
-      metaDescription: 'Robots.txt instructions and indexing rules for Evencify.com search crawlers.',
-      canonicalUrl: 'https://evencify.com/robots.txt',
-      h1: 'Robots.txt Configuration',
-      robots: 'noindex, follow',
-      breadcrumbItems: [
-        { label: 'Home', url: '/' },
-        { label: 'robots.txt', url: '/robots.txt' },
-      ],
-    };
+    return getSEOData({ type: 'robots' });
   }, []);
 
   const handleCopy = () => {

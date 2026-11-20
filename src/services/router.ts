@@ -3,10 +3,8 @@ import {
   CITIES_DATABASE,
   STATES_DATABASE,
   CATEGORIES_DATABASE,
-  CITY_ALIASES,
   normalizeCitySlug,
   normalizeCategorySlug,
-  slugify,
 } from './seoData';
 
 export type RouteType =
@@ -20,7 +18,6 @@ export type RouteType =
   | 'city-category'
   | 'state-category'
   | 'event'
-  | 'organiser'
   | 'crew-jobs'
   | 'organiser-solution'
   | 'about'
@@ -30,6 +27,16 @@ export type RouteType =
   | 'faq'
   | 'sitemap'
   | 'robots'
+  | 'login'
+  | 'crew-login'
+  | 'organiser-login'
+  | 'signup'
+  | 'crew-signup'
+  | 'organiser-signup'
+  | 'create-event'
+  | 'crew-portal'
+  | 'organiser-portal'
+  | 'direct-links'
   | 'admin'
   | 'not-found';
 
@@ -41,14 +48,26 @@ export interface ParsedRoute {
   categorySlug?: string;
   dateKey?: string;
   eventSlug?: string;
-  organiserSlug?: string;
 }
+
+export const AUTH_OR_PORTAL_SHORTCUT_ROUTES = new Set<RouteType>([
+  'login',
+  'crew-login',
+  'organiser-login',
+  'signup',
+  'crew-signup',
+  'organiser-signup',
+  'create-event',
+  'crew-portal',
+  'organiser-portal',
+  'direct-links',
+  'admin',
+]);
 
 // ----------------------------------------------------
 // Path Parser
 // ----------------------------------------------------
 export function parseRoute(pathname: string): ParsedRoute {
-  // Normalize: lowercasing and trim trailing slash
   let clean = pathname.toLowerCase().trim();
   if (clean.length > 1 && clean.endsWith('/')) {
     clean = clean.slice(0, -1);
@@ -59,7 +78,7 @@ export function parseRoute(pathname: string): ParsedRoute {
     return { type: 'home', path: '/' };
   }
 
-  // Public Jobs & Recruitment Routes
+  // Public Crew Jobs & Recruitment Routes
   if (clean === '/crew-jobs' || clean === '/event-jobs' || clean === '/event-staffing') {
     return { type: 'crew-jobs', path: clean };
   }
@@ -91,24 +110,61 @@ export function parseRoute(pathname: string): ParsedRoute {
   if (clean === '/robots.txt' || clean === '/robots') {
     return { type: 'robots', path: clean };
   }
+
+  // Private / Auth / Portal / Admin Shortcuts (Rendered with noindex, nofollow)
   if (clean === '/admin' || clean === '/admin-login' || clean === '/operator') {
     return { type: 'admin', path: clean };
   }
-
-  // Organiser Public Profile Route: /organiser/:slug
-  if (clean.startsWith('/organiser/')) {
-    const orgSlug = clean.replace('/organiser/', '').trim();
-    if (orgSlug) {
-      return { type: 'organiser', path: clean, organiserSlug: orgSlug };
-    }
+  if (clean === '/login') {
+    return { type: 'login', path: clean };
+  }
+  if (clean === '/signup') {
+    return { type: 'signup', path: clean };
+  }
+  if (clean === '/crew/login' || clean === '/crew-login' || clean === '/login/crew') {
+    return { type: 'crew-login', path: clean };
+  }
+  if (clean === '/crew/signup' || clean === '/crew-signup' || clean === '/signup/crew') {
+    return { type: 'crew-signup', path: clean };
+  }
+  if (
+    clean === '/organiser/login' ||
+    clean === '/organizer/login' ||
+    clean === '/event/login' ||
+    clean === '/event-login' ||
+    clean === '/login/organiser'
+  ) {
+    return { type: 'organiser-login', path: clean };
+  }
+  if (
+    clean === '/organiser/signup' ||
+    clean === '/organizer/signup' ||
+    clean === '/event/signup' ||
+    clean === '/event-signup' ||
+    clean === '/signup/organiser'
+  ) {
+    return { type: 'organiser-signup', path: clean };
+  }
+  if (clean === '/create-event' || clean === '/events/new') {
+    return { type: 'create-event', path: clean };
+  }
+  if (clean === '/crew' || clean === '/crew-dashboard') {
+    return { type: 'crew-portal', path: clean };
+  }
+  if (clean === '/organiser' || clean === '/organizer') {
+    return { type: 'organiser-portal', path: clean };
+  }
+  if (clean === '/direct-links') {
+    return { type: 'direct-links', path: clean };
   }
 
   // Legacy/Shortcut Single Event Route: /event/:slug
   if (clean.startsWith('/event/')) {
-    const eventSlug = clean.replace('/event/', '').trim();
-    if (eventSlug) {
+    const eventSlug = clean.slice('/event/'.length).trim();
+    if (eventSlug && !eventSlug.includes('/')) {
       return { type: 'event', path: clean, eventSlug };
     }
+    return { type: 'not-found', path: clean };
   }
 
   // Events Subtree: /events
@@ -138,23 +194,23 @@ export function parseRoute(pathname: string): ParsedRoute {
       const normalizedCat = normalizeCategorySlug(seg);
       const normalizedCity = normalizeCitySlug(seg);
 
-      // 1. Is it a known Category? (e.g. /events/concerts, /events/business)
+      // 1. Known Category (e.g. /events/concerts, /events/business)
       if (CATEGORIES_DATABASE[normalizedCat]) {
         return { type: 'category', path: clean, categorySlug: normalizedCat };
       }
 
-      // 2. Is it a known State? (e.g. /events/gujarat)
+      // 2. Known State (e.g. /events/gujarat)
       if (STATES_DATABASE[seg]) {
         return { type: 'state', path: clean, stateSlug: seg };
       }
 
-      // 3. Is it a known City or alias? (e.g. /events/surat, /events/bangalore)
+      // 3. Known City or alias (e.g. /events/surat, /events/bangalore)
       if (CITIES_DATABASE[normalizedCity]) {
         return { type: 'city', path: clean, citySlug: normalizedCity };
       }
 
-      // 4. Default fallback as potential city or category
-      return { type: 'city', path: clean, citySlug: normalizedCity };
+      // Unknown single segment under /events/ -> 404 (prevents thin/duplicate junk URLs)
+      return { type: 'not-found', path: clean };
     }
 
     // Two segments: /events/:part1/:part2
@@ -164,20 +220,18 @@ export function parseRoute(pathname: string): ParsedRoute {
       const rawSeg2 = parts[1].toLowerCase();
       const normalizedCat = normalizeCategorySlug(rawSeg2);
 
-      // 1. Check if seg1 is a State (e.g. /events/gujarat/[category])
-      if (STATES_DATABASE[rawSeg1]) {
-        if (CATEGORIES_DATABASE[normalizedCat]) {
-          return {
-            type: 'state-category',
-            path: clean,
-            stateSlug: rawSeg1,
-            categorySlug: normalizedCat,
-          };
-        }
+      // 1. /events/:state/:category
+      if (STATES_DATABASE[rawSeg1] && CATEGORIES_DATABASE[normalizedCat]) {
+        return {
+          type: 'state-category',
+          path: clean,
+          stateSlug: rawSeg1,
+          categorySlug: normalizedCat,
+        };
       }
 
-      // 2. Check if seg2 is a category (e.g. /events/surat/concerts, /events/ahmedabad/business)
-      if (CATEGORIES_DATABASE[normalizedCat]) {
+      // 2. /events/:knownCity/:category
+      if (CITIES_DATABASE[normalizedCity] && CATEGORIES_DATABASE[normalizedCat]) {
         return {
           type: 'city-category',
           path: clean,
@@ -186,7 +240,7 @@ export function parseRoute(pathname: string): ParsedRoute {
         };
       }
 
-      // 3. Otherwise, assume it's an individual event: /events/:city/:eventSlug
+      // 3. Individual event: /events/:city/:eventSlug
       return {
         type: 'event',
         path: clean,
@@ -196,7 +250,6 @@ export function parseRoute(pathname: string): ParsedRoute {
     }
   }
 
-  // Unrecognized
   return { type: 'not-found', path: clean };
 }
 
@@ -206,7 +259,7 @@ export function parseRoute(pathname: string): ParsedRoute {
 export function navigateTo(url: string, replace = false): void {
   if (typeof window === 'undefined') return;
 
-  const currentPath = window.location.pathname + window.location.search;
+  const currentPath = window.location.pathname + window.location.search + window.location.hash;
   if (currentPath === url) return;
 
   if (replace) {
@@ -215,9 +268,10 @@ export function navigateTo(url: string, replace = false): void {
     window.history.pushState({}, '', url);
   }
 
-  // Dispatch custom navigation event so reactive hook updates
   window.dispatchEvent(new Event('popstate'));
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (!url.includes('#')) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
 // ----------------------------------------------------

@@ -30,17 +30,7 @@ export const SitemapPage: React.FC<SitemapPageProps> = ({ events, rawXml = false
   const xmlString = useMemo(() => generateSitemapXml(entries), [entries]);
 
   const seo = useMemo(() => {
-    return {
-      title: 'HTML & XML Sitemap | Evencify Event Index',
-      metaDescription: 'Complete index of all city event pages, category hubs, and verified event listings on Evencify.',
-      canonicalUrl: 'https://evencify.com/sitemap',
-      h1: 'Evencify Index & Sitemap',
-      robots: 'index, follow',
-      breadcrumbItems: [
-        { label: 'Home', url: '/' },
-        { label: 'Sitemap', url: '/sitemap' },
-      ],
-    };
+    return getSEOData({ type: 'sitemap' });
   }, []);
 
   const filteredEntries = useMemo(() => {
