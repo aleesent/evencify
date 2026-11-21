@@ -106,7 +106,7 @@ export const DirectLinksModal: React.FC<DirectLinksModalProps> = ({ isOpen, onCl
   const getFullUrl = (item: DirectLinkItem) => {
     const origin =
       domainMode === 'production'
-        ? 'https://evencify.com'
+        ? 'https://www.evencify.com'
         : window.location.origin;
     if (format === 'query') return `${origin}${item.queryParam}`;
     if (format === 'hash') return `${origin}${item.hashParam}`;

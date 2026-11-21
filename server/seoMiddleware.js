@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import zlib from 'zlib';
 
-const BASE_URL = 'https://evencify.com';
+const BASE_URL = 'https://www.evencify.com';
 const DEFAULT_IMAGE = `${BASE_URL}/hero-banner.png`;
 const SUPABASE_CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -885,15 +885,19 @@ function injectHeadMetadata(html, seo) {
     `<meta name="description" content="${safeDesc}" />`
   );
 
-  out = out.replace(
-    /<meta\s+name="robots"[^>]*content="[^"]*"[^>]*\/?>/i,
-    `<meta name="robots" content="${safeRobots}" />`
-  );
+  let replacedRobots = false;
+  out = out.replace(/<meta\s+name="robots"[^>]*content="[^"]*"[^>]*\/?>/gi, () => {
+    if (replacedRobots) return '';
+    replacedRobots = true;
+    return `<meta name="robots" content="${safeRobots}" />`;
+  });
 
-  out = out.replace(
-    /<link\s+rel="canonical"[^>]*href="[^"]*"[^>]*\/?>/i,
-    `<link rel="canonical" href="${safeCanonical}" />`
-  );
+  let replacedCanonical = false;
+  out = out.replace(/<link\s+rel="canonical"[^>]*href="[^"]*"[^>]*\/?>/gi, () => {
+    if (replacedCanonical) return '';
+    replacedCanonical = true;
+    return `<link rel="canonical" href="${safeCanonical}" />`;
+  });
 
   if (isNoIndex) {
     out = out.replace(/<link\s+rel="alternate"\s+hreflang="[^"]*"[^>]*\/?>\s*/gi, '');
@@ -1039,7 +1043,7 @@ export async function buildDynamicSitemapXml(distPath, rootDir) {
   const target = fs.existsSync(distSitemap) ? distSitemap : publicSitemap;
 
   let baseXml = fs.existsSync(target) ? fs.readFileSync(target, 'utf8') : '';
-  baseXml = baseXml.replaceAll('https://www.evencify.com', BASE_URL);
+  baseXml = baseXml.replace(/https:\/\/evencify\.com(?=[/<]|$)/g, BASE_URL);
 
   const liveEvents = await getPublicEvents();
   const today = getTodayIsoDate();

@@ -12,7 +12,7 @@ export interface SitemapUrlEntry {
 
 export function generateAllSitemapEntries(
   events: EventItem[],
-  baseUrl: string = 'https://evencify.com'
+  baseUrl: string = 'https://www.evencify.com'
 ): SitemapUrlEntry[] {
   const BASE_URL = baseUrl.replace(/\/+$/, '');
   const today = new Date().toISOString().split('T')[0];
@@ -192,9 +192,12 @@ export function generateAllSitemapEntries(
     const eventSlug = slugify(evt.name);
     if (!citySlug || !eventSlug) return;
 
+    const rawLastMod = String(evt.createdAt || today).slice(0, 10);
+    const validLastMod = /^\d{4}-\d{2}-\d{2}$/.test(rawLastMod) ? rawLastMod : today;
+
     entries.push({
       loc: `${BASE_URL}/events/${citySlug}/${eventSlug}`,
-      lastmod: evt.createdAt || today,
+      lastmod: validLastMod,
       changefreq: 'daily',
       priority: '0.85',
       title: `${evt.name} in ${evt.city} | Evencify`,

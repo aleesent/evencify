@@ -13,9 +13,15 @@ export const SEOHead: React.FC<SEOHeadProps> = ({ seo }) => {
       document.documentElement.lang = 'en-IN';
     }
 
-    // Helper to update or create meta tags
+    // Helper to update or create meta tags (removing duplicates to prevent conflicting directives)
     const setMetaTag = (attrName: 'name' | 'property', attrValue: string, content: string) => {
-      let meta = document.querySelector(`meta[${attrName}="${attrValue}"]`) as HTMLMetaElement | null;
+      const matches = Array.from(
+        document.querySelectorAll(`meta[${attrName}="${attrValue}"]`)
+      ) as HTMLMetaElement[];
+      let meta = matches[0] || null;
+      if (matches.length > 1) {
+        matches.slice(1).forEach((dup) => dup.remove());
+      }
       if (!meta) {
         meta = document.createElement('meta');
         meta.setAttribute(attrName, attrValue);
@@ -25,13 +31,18 @@ export const SEOHead: React.FC<SEOHeadProps> = ({ seo }) => {
     };
 
     const removeMetaTag = (attrName: 'name' | 'property', attrValue: string) => {
-      const meta = document.querySelector(`meta[${attrName}="${attrValue}"]`);
-      if (meta) meta.remove();
+      document.querySelectorAll(`meta[${attrName}="${attrValue}"]`).forEach((el) => el.remove());
     };
 
     const setLinkTag = (rel: string, href: string, extra?: Record<string, string>) => {
       const extraSelector = extra?.hreflang ? `[hreflang="${extra.hreflang}"]` : '';
-      let link = document.querySelector(`link[rel="${rel}"]${extraSelector}`) as HTMLLinkElement | null;
+      const matches = Array.from(
+        document.querySelectorAll(`link[rel="${rel}"]${extraSelector}`)
+      ) as HTMLLinkElement[];
+      let link = matches[0] || null;
+      if (matches.length > 1) {
+        matches.slice(1).forEach((dup) => dup.remove());
+      }
       if (!link) {
         link = document.createElement('link');
         link.setAttribute('rel', rel);

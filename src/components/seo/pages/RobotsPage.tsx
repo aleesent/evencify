@@ -6,40 +6,7 @@ import { FileText, Copy, Check } from 'lucide-react';
 
 const ROBOTS_TEXT = `User-agent: Googlebot
 Allow: /
-Allow: /events
-Allow: /events/
-Allow: /crew-jobs
-Allow: /event-jobs
-Allow: /event-staffing
-Allow: /organise-event
-Allow: /event-organisers
-Allow: /event-management
-Allow: /about
-Allow: /contact
-Allow: /privacy
-Allow: /terms
-Allow: /faq
-Allow: /sitemap
-Disallow: /admin
-Disallow: /admin/
-Disallow: /admin-login
-Disallow: /operator
-Disallow: /dashboard/
-Disallow: /api/
-Disallow: /chat/
-Disallow: /account/
-Disallow: /auth/
-
-User-agent: Googlebot-Image
-Allow: /
-Allow: /*.png$
-Allow: /*.jpg$
-Allow: /*.svg$
-Allow: /*.webp$
-Allow: /*.ico$
-
-User-agent: *
-Allow: /
+Allow: /assets/
 Disallow: /admin
 Disallow: /admin/
 Disallow: /admin-login
@@ -53,8 +20,26 @@ Disallow: /*?*sort=
 Disallow: /*?*filter=
 Disallow: /*?*session=
 
-# Sitemap directive
-Sitemap: https://evencify.com/sitemap.xml`;
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: *
+Allow: /
+Allow: /assets/
+Disallow: /admin
+Disallow: /admin/
+Disallow: /admin-login
+Disallow: /operator
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /chat/
+Disallow: /account/
+Disallow: /auth/
+Disallow: /*?*sort=
+Disallow: /*?*filter=
+Disallow: /*?*session=
+
+Sitemap: https://www.evencify.com/sitemap.xml`;
 
 export const RobotsPage: React.FC = () => {
   const [copied, setCopied] = React.useState(false);

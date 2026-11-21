@@ -78,7 +78,7 @@ app.get('/robots.txt', (req, res) => {
   const target = fs.existsSync(distRobots) ? distRobots : publicRobots;
   const content = fs.existsSync(target)
     ? fs.readFileSync(target, 'utf8')
-    : 'User-agent: *\nAllow: /\nSitemap: https://evencify.com/sitemap.xml\n';
+    : 'User-agent: *\nAllow: /\nSitemap: https://www.evencify.com/sitemap.xml\n';
   return sendCompressedResponse(
     req,
     res,

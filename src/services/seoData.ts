@@ -1006,7 +1006,7 @@ export function getEventSlug(event: EventItem): string {
 export function getEventCanonicalUrl(event: EventItem): string {
   const citySlug = slugify(event.city || 'india');
   const eventSlug = getEventSlug(event);
-  return `https://evencify.com/events/${citySlug}/${eventSlug}`;
+  return `https://www.evencify.com/events/${citySlug}/${eventSlug}`;
 }
 
 export function normalizeCitySlug(rawSlug: string): string {
@@ -1126,15 +1126,15 @@ export function getSEOData(params: {
   eventCount?: number;
   openRolesCount?: number;
 }): SEOOutput {
-  const fallbackImage = 'https://evencify.com/hero-banner.png';
-  const logoImage = 'https://evencify.com/evencify.logo.png';
+  const fallbackImage = 'https://www.evencify.com/hero-banner.png';
+  const logoImage = 'https://www.evencify.com/evencify.logo.png';
 
   switch (params.type) {
     case 'homepage': {
       const title = 'Evencify – Event Platform in Surat | Hire Crew & Jobs';
       const description =
         'Connect with verified event crew and organisers on Evencify. Post requirements, hire event staff, and discover event jobs in Surat and across India.';
-      const canonicalUrl = 'https://evencify.com/';
+      const canonicalUrl = 'https://www.evencify.com/';
       const h1 = "India's Event Crew & Organiser Platform";
 
       const unifiedHomepageGraph = {
@@ -1142,20 +1142,20 @@ export function getSEOData(params: {
         '@graph': [
           {
             '@type': 'WebSite',
-            '@id': 'https://evencify.com/#website',
-            url: 'https://evencify.com/',
+            '@id': 'https://www.evencify.com/#website',
+            url: 'https://www.evencify.com/',
             name: 'Evencify',
             description:
               'Event platform in Surat and across India connecting event organisers and verified event crew.',
             publisher: {
-              '@id': 'https://evencify.com/#organization',
+              '@id': 'https://www.evencify.com/#organization',
             },
             potentialAction: [
               {
                 '@type': 'SearchAction',
                 target: {
                   '@type': 'EntryPoint',
-                  urlTemplate: 'https://evencify.com/events?search={search_term_string}',
+                  urlTemplate: 'https://www.evencify.com/events?search={search_term_string}',
                 },
                 'query-input': 'required name=search_term_string',
               },
@@ -1164,19 +1164,19 @@ export function getSEOData(params: {
           },
           {
             '@type': 'Organization',
-            '@id': 'https://evencify.com/#organization',
+            '@id': 'https://www.evencify.com/#organization',
             name: 'Evencify',
             legalName: 'Evencify Technologies Pvt. Ltd.',
-            url: 'https://evencify.com/',
+            url: 'https://www.evencify.com/',
             logo: {
               '@type': 'ImageObject',
-              '@id': 'https://evencify.com/#logo',
+              '@id': 'https://www.evencify.com/#logo',
               url: logoImage,
               width: 540,
               height: 182,
             },
             image: {
-              '@id': 'https://evencify.com/#logo',
+              '@id': 'https://www.evencify.com/#logo',
             },
             sameAs: [
               'https://x.com/evencify',
@@ -1199,15 +1199,15 @@ export function getSEOData(params: {
           },
           {
             '@type': 'WebApplication',
-            '@id': 'https://evencify.com/#application',
+            '@id': 'https://www.evencify.com/#application',
             name: 'Evencify',
-            url: 'https://evencify.com/',
+            url: 'https://www.evencify.com/',
             applicationCategory: 'BusinessApplication',
             operatingSystem: 'All',
             description:
               'Event workforce management platform connecting verified event crew and event organisers in Surat and across India.',
             publisher: {
-              '@id': 'https://evencify.com/#organization',
+              '@id': 'https://www.evencify.com/#organization',
             },
             offers: {
               '@type': 'Offer',
@@ -1217,7 +1217,7 @@ export function getSEOData(params: {
           },
           {
             '@type': 'FAQPage',
-            '@id': 'https://evencify.com/#faq',
+            '@id': 'https://www.evencify.com/#faq',
             mainEntity: HOMEPAGE_FAQS.map((faq) => ({
               '@type': 'Question',
               name: faq.question,
@@ -1234,7 +1234,7 @@ export function getSEOData(params: {
         title,
         description,
         canonicalUrl,
-        robots: 'index, follow',
+        robots: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
         ogTitle: title,
         ogDescription: description,
         ogImage: fallbackImage,
@@ -1245,7 +1245,7 @@ export function getSEOData(params: {
         twitterImage: fallbackImage,
         h1,
         structuredData: [unifiedHomepageGraph],
-        breadcrumbItems: [{ name: 'Home', url: 'https://evencify.com/' }],
+        breadcrumbItems: [{ name: 'Home', url: 'https://www.evencify.com/' }],
       };
     }
 
@@ -1253,14 +1253,14 @@ export function getSEOData(params: {
       const title = 'Upcoming Events in Surat & India | Live Shows | Evencify';
       const description =
         'Explore verified upcoming events in Surat, Gujarat, and across India. View event schedules, venues, and open event crew shifts on Evencify.';
-      const canonicalUrl = 'https://evencify.com/events';
+      const canonicalUrl = 'https://www.evencify.com/events';
       const h1 = 'Upcoming Events in India';
 
       const breadcrumbSchema = {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.evencify.com/' },
           { '@type': 'ListItem', position: 2, name: 'Events', item: canonicalUrl },
         ],
       };
@@ -1281,7 +1281,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [breadcrumbSchema],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Events', url: canonicalUrl },
         ],
       };
@@ -1291,15 +1291,15 @@ export function getSEOData(params: {
       const title = 'Events Near Me in Surat & India | Live Events | Evencify';
       const description =
         'Find upcoming concerts, exhibitions, workshops, and live events near you today and this weekend across Surat and major Indian cities on Evencify.';
-      const canonicalUrl = 'https://evencify.com/events/near-me';
+      const canonicalUrl = 'https://www.evencify.com/events/near-me';
       const h1 = 'Events Happening Near You';
 
       const breadcrumbSchema = {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
-          { '@type': 'ListItem', position: 2, name: 'Events', item: 'https://evencify.com/events' },
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.evencify.com/' },
+          { '@type': 'ListItem', position: 2, name: 'Events', item: 'https://www.evencify.com/events' },
           { '@type': 'ListItem', position: 3, name: 'Near Me', item: canonicalUrl },
         ],
       };
@@ -1320,8 +1320,8 @@ export function getSEOData(params: {
         h1,
         structuredData: [breadcrumbSchema],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
-          { name: 'Events', url: 'https://evencify.com/events' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
+          { name: 'Events', url: 'https://www.evencify.com/events' },
           { name: 'Near Me', url: canonicalUrl },
         ],
       };
@@ -1340,7 +1340,7 @@ export function getSEOData(params: {
       const info = dateLabels[dateKey] || dateLabels.upcoming;
       const title = `${info.label} | Live Shows | Evencify`;
       const description = `Discover verified events happening ${dateKey.replace(/-/g, ' ')} across Surat and India. Browse concerts, expos, workshops, and crew shifts on Evencify.`;
-      const canonicalUrl = `https://evencify.com/events/${dateKey}`;
+      const canonicalUrl = `https://www.evencify.com/events/${dateKey}`;
 
       return {
         title,
@@ -1361,15 +1361,15 @@ export function getSEOData(params: {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
-              { '@type': 'ListItem', position: 2, name: 'Events', item: 'https://evencify.com/events' },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.evencify.com/' },
+              { '@type': 'ListItem', position: 2, name: 'Events', item: 'https://www.evencify.com/events' },
               { '@type': 'ListItem', position: 3, name: info.label, item: canonicalUrl },
             ],
           },
         ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
-          { name: 'Events', url: 'https://evencify.com/events' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
+          { name: 'Events', url: 'https://www.evencify.com/events' },
           { name: info.label, url: canonicalUrl },
         ],
       };
@@ -1385,19 +1385,19 @@ export function getSEOData(params: {
       const description = isSurat
         ? 'Explore upcoming events in Surat, hire verified event crew, or find event jobs across Vesu, Adajan, Dumas Road, and SIECC on Evencify.'
         : `Discover upcoming events in ${city.name}, ${city.state} with Evencify. Browse concerts, workshops, conferences, exhibitions, and event staffing shifts.`;
-      const canonicalUrl = `https://evencify.com/events/${city.slug}`;
+      const canonicalUrl = `https://www.evencify.com/events/${city.slug}`;
       const h1 = isSurat ? 'Events in Surat 2026' : `Upcoming Events in ${city.name}`;
 
       const breadcrumbItems = isGujaratCity
         ? [
-            { name: 'Home', url: 'https://evencify.com/' },
-            { name: 'Events', url: 'https://evencify.com/events' },
-            { name: 'Gujarat', url: 'https://evencify.com/events/gujarat' },
+            { name: 'Home', url: 'https://www.evencify.com/' },
+            { name: 'Events', url: 'https://www.evencify.com/events' },
+            { name: 'Gujarat', url: 'https://www.evencify.com/events/gujarat' },
             { name: city.name, url: canonicalUrl },
           ]
         : [
-            { name: 'Home', url: 'https://evencify.com/' },
-            { name: 'Events', url: 'https://evencify.com/events' },
+            { name: 'Home', url: 'https://www.evencify.com/' },
+            { name: 'Events', url: 'https://www.evencify.com/events' },
             { name: city.name, url: canonicalUrl },
           ];
 
@@ -1457,12 +1457,12 @@ export function getSEOData(params: {
       const description = isGujarat
         ? 'Discover upcoming events in Gujarat across Surat, Ahmedabad, Vadodara, and Rajkot. Browse concerts, expos, corporate events, and crew shifts on Evencify.'
         : `Discover upcoming concerts, workshops, conferences, exhibitions, and corporate events across ${state.name} with verified venues and crew shifts on Evencify.`;
-      const canonicalUrl = `https://evencify.com/events/${state.slug}`;
+      const canonicalUrl = `https://www.evencify.com/events/${state.slug}`;
       const h1 = `Upcoming Events in ${state.name}`;
 
       const breadcrumbItems = [
-        { name: 'Home', url: 'https://evencify.com/' },
-        { name: 'Events', url: 'https://evencify.com/events' },
+        { name: 'Home', url: 'https://www.evencify.com/' },
+        { name: 'Events', url: 'https://www.evencify.com/events' },
         { name: state.name, url: canonicalUrl },
       ];
 
@@ -1500,15 +1500,15 @@ export function getSEOData(params: {
       const cat = params.category || CATEGORIES_DATABASE.concerts;
       const title = `Upcoming ${cat.name} in India | Live Events | Evencify`;
       const description = `Find upcoming ${cat.name.toLowerCase()} across Surat, Mumbai, Bengaluru, Delhi, and India on Evencify. Explore verified schedules, venues, and crew roles.`;
-      const canonicalUrl = `https://evencify.com/events/${cat.slug}`;
+      const canonicalUrl = `https://www.evencify.com/events/${cat.slug}`;
       const h1 = `Upcoming ${cat.name} in India`;
 
       const breadcrumbSchema = {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
-          { '@type': 'ListItem', position: 2, name: 'Events', item: 'https://evencify.com/events' },
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.evencify.com/' },
+          { '@type': 'ListItem', position: 2, name: 'Events', item: 'https://www.evencify.com/events' },
           { '@type': 'ListItem', position: 3, name: cat.name, item: canonicalUrl },
         ],
       };
@@ -1529,8 +1529,8 @@ export function getSEOData(params: {
         h1,
         structuredData: [breadcrumbSchema],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
-          { name: 'Events', url: 'https://evencify.com/events' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
+          { name: 'Events', url: 'https://www.evencify.com/events' },
           { name: cat.name, url: canonicalUrl },
         ],
       };
@@ -1542,21 +1542,21 @@ export function getSEOData(params: {
       const isGujaratCity = city.stateSlug === 'gujarat';
       const title = `${cat.name} in ${city.name} | Live Events | Evencify`;
       const description = `Discover upcoming ${cat.name.toLowerCase()} in ${city.name}, ${city.state} on Evencify. Browse verified event schedules, venues, and open event crew shifts.`;
-      const canonicalUrl = `https://evencify.com/events/${city.slug}/${cat.slug}`;
+      const canonicalUrl = `https://www.evencify.com/events/${city.slug}/${cat.slug}`;
       const h1 = `${cat.name} Events in ${city.name}`;
 
       const breadcrumbItems = isGujaratCity
         ? [
-            { name: 'Home', url: 'https://evencify.com/' },
-            { name: 'Events', url: 'https://evencify.com/events' },
-            { name: 'Gujarat', url: 'https://evencify.com/events/gujarat' },
-            { name: city.name, url: `https://evencify.com/events/${city.slug}` },
+            { name: 'Home', url: 'https://www.evencify.com/' },
+            { name: 'Events', url: 'https://www.evencify.com/events' },
+            { name: 'Gujarat', url: 'https://www.evencify.com/events/gujarat' },
+            { name: city.name, url: `https://www.evencify.com/events/${city.slug}` },
             { name: cat.name, url: canonicalUrl },
           ]
         : [
-            { name: 'Home', url: 'https://evencify.com/' },
-            { name: 'Events', url: 'https://evencify.com/events' },
-            { name: city.name, url: `https://evencify.com/events/${city.slug}` },
+            { name: 'Home', url: 'https://www.evencify.com/' },
+            { name: 'Events', url: 'https://www.evencify.com/events' },
+            { name: city.name, url: `https://www.evencify.com/events/${city.slug}` },
             { name: cat.name, url: canonicalUrl },
           ];
 
@@ -1595,13 +1595,13 @@ export function getSEOData(params: {
       const cat = params.category || CATEGORIES_DATABASE.concerts;
       const title = `${cat.name} in ${state.name} | Live Events | Evencify`;
       const description = `Discover upcoming ${cat.name.toLowerCase()} across ${state.name} on Evencify. Explore verified event dates, venues, organisers, and event crew openings.`;
-      const canonicalUrl = `https://evencify.com/events/${state.slug}/${cat.slug}`;
+      const canonicalUrl = `https://www.evencify.com/events/${state.slug}/${cat.slug}`;
       const h1 = `${cat.name} Events in ${state.name}`;
 
       const breadcrumbItems = [
-        { name: 'Home', url: 'https://evencify.com/' },
-        { name: 'Events', url: 'https://evencify.com/events' },
-        { name: state.name, url: `https://evencify.com/events/${state.slug}` },
+        { name: 'Home', url: 'https://www.evencify.com/' },
+        { name: 'Events', url: 'https://www.evencify.com/events' },
+        { name: state.name, url: `https://www.evencify.com/events/${state.slug}` },
         { name: cat.name, url: canonicalUrl },
       ];
 
@@ -1665,7 +1665,7 @@ export function getSEOData(params: {
       const rawEventDesc = `${evt.name} at ${evt.venue}, ${evt.city} on ${evt.date}. Organised by ${evt.organiserName}. Explore venue details and ${evt.requiredCategory || 'event crew'} openings on Evencify.`;
       const description =
         rawEventDesc.length <= 160 ? rawEventDesc : `${rawEventDesc.slice(0, 157).trimEnd()}...`;
-      const canonicalUrl = `https://evencify.com/events/${citySlug}/${eventSlug}`;
+      const canonicalUrl = `https://www.evencify.com/events/${citySlug}/${eventSlug}`;
       const h1 = evt.name;
 
       const eventSchema: Record<string, unknown> = {
@@ -1707,16 +1707,16 @@ export function getSEOData(params: {
 
       const breadcrumbItems = isGujaratCity
         ? [
-            { name: 'Home', url: 'https://evencify.com/' },
-            { name: 'Events', url: 'https://evencify.com/events' },
-            { name: 'Gujarat', url: 'https://evencify.com/events/gujarat' },
-            { name: evt.city, url: `https://evencify.com/events/${citySlug}` },
+            { name: 'Home', url: 'https://www.evencify.com/' },
+            { name: 'Events', url: 'https://www.evencify.com/events' },
+            { name: 'Gujarat', url: 'https://www.evencify.com/events/gujarat' },
+            { name: evt.city, url: `https://www.evencify.com/events/${citySlug}` },
             { name: evt.name, url: canonicalUrl },
           ]
         : [
-            { name: 'Home', url: 'https://evencify.com/' },
-            { name: 'Events', url: 'https://evencify.com/events' },
-            { name: evt.city, url: `https://evencify.com/events/${citySlug}` },
+            { name: 'Home', url: 'https://www.evencify.com/' },
+            { name: 'Events', url: 'https://www.evencify.com/events' },
+            { name: evt.city, url: `https://www.evencify.com/events/${citySlug}` },
             { name: evt.name, url: canonicalUrl },
           ];
 
@@ -1792,7 +1792,7 @@ export function getSEOData(params: {
       const title = 'Event Crew Jobs in Surat & India | Staffing | Evencify';
       const description =
         'Find verified event crew jobs, part-time shifts, and event staff openings in Surat, Ahmedabad, Mumbai, and across India with escrow payouts on Evencify.';
-      const canonicalUrl = 'https://evencify.com/crew-jobs';
+      const canonicalUrl = 'https://www.evencify.com/crew-jobs';
       const h1 = 'Event Crew Jobs & Staffing Opportunities';
 
       return {
@@ -1814,13 +1814,13 @@ export function getSEOData(params: {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.evencify.com/' },
               { '@type': 'ListItem', position: 2, name: 'Crew Jobs', item: canonicalUrl },
             ],
           },
         ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Crew Jobs', url: canonicalUrl },
         ],
       };
@@ -1830,7 +1830,7 @@ export function getSEOData(params: {
       const title = 'Hire Event Crew Online | Event Platform India | Evencify';
       const description =
         'Post event requirements, hire verified event staff in Surat and across India, coordinate shifts, and manage escrow crew payouts on Evencify.';
-      const canonicalUrl = 'https://evencify.com/organise-event';
+      const canonicalUrl = 'https://www.evencify.com/organise-event';
       const h1 = 'Enterprise Event Workforce & Management Platform';
 
       return {
@@ -1852,13 +1852,13 @@ export function getSEOData(params: {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.evencify.com/' },
               { '@type': 'ListItem', position: 2, name: 'For Organisers', item: canonicalUrl },
             ],
           },
         ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'For Organisers', url: canonicalUrl },
         ],
       };
@@ -1868,7 +1868,7 @@ export function getSEOData(params: {
       const title = 'Hire Event Crew Online | Event Platform India | Evencify';
       const description =
         'Post event requirements, hire verified event staff in Surat and across India, coordinate shifts, and manage escrow crew payouts on Evencify.';
-      const canonicalUrl = 'https://evencify.com/organise-event';
+      const canonicalUrl = 'https://www.evencify.com/organise-event';
       const h1 = 'Hire Verified Event Crew Across India';
 
       return {
@@ -1890,13 +1890,13 @@ export function getSEOData(params: {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.evencify.com/' },
               { '@type': 'ListItem', position: 2, name: 'Organise Event', item: canonicalUrl },
             ],
           },
         ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Organise Event', url: canonicalUrl },
         ],
       };
@@ -1906,7 +1906,7 @@ export function getSEOData(params: {
       const title = 'About Evencify | Event Crew & Organiser Platform India';
       const description =
         'Learn about Evencify, our Surat headquarters, verified event crew network, escrow payout security, and how we support event organisers across India.';
-      const canonicalUrl = 'https://evencify.com/about';
+      const canonicalUrl = 'https://www.evencify.com/about';
       const h1 = 'About Evencify';
 
       return {
@@ -1928,13 +1928,13 @@ export function getSEOData(params: {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.evencify.com/' },
               { '@type': 'ListItem', position: 2, name: 'About Us', item: canonicalUrl },
             ],
           },
         ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'About Us', url: canonicalUrl },
         ],
       };
@@ -1944,7 +1944,7 @@ export function getSEOData(params: {
       const title = 'Contact Evencify | Organiser & Event Crew Support India';
       const description =
         'Contact the Evencify team in Surat, Gujarat for event organiser onboarding, crew verification support, and event staffing inquiries across India.';
-      const canonicalUrl = 'https://evencify.com/contact';
+      const canonicalUrl = 'https://www.evencify.com/contact';
       const h1 = 'Contact Evencify';
 
       return {
@@ -1966,13 +1966,13 @@ export function getSEOData(params: {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.evencify.com/' },
               { '@type': 'ListItem', position: 2, name: 'Contact Us', item: canonicalUrl },
             ],
           },
         ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Contact Us', url: canonicalUrl },
         ],
       };
@@ -1982,7 +1982,7 @@ export function getSEOData(params: {
       const title = 'Privacy Policy | Data Security & Protection | Evencify';
       const description =
         "Read Evencify's Privacy Policy covering user accounts, event crew verification data, geolocation handling, and platform data security practices.";
-      const canonicalUrl = 'https://evencify.com/privacy';
+      const canonicalUrl = 'https://www.evencify.com/privacy';
       const h1 = 'Privacy Policy';
 
       return {
@@ -2004,13 +2004,13 @@ export function getSEOData(params: {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.evencify.com/' },
               { '@type': 'ListItem', position: 2, name: 'Privacy Policy', item: canonicalUrl },
             ],
           },
         ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Privacy Policy', url: canonicalUrl },
         ],
       };
@@ -2020,7 +2020,7 @@ export function getSEOData(params: {
       const title = 'Terms of Service | Platform & Escrow Rules | Evencify';
       const description =
         "Review Evencify's Terms of Service covering platform roles, event crew shift escrow terms, organizer responsibilities, and community conduct.";
-      const canonicalUrl = 'https://evencify.com/terms';
+      const canonicalUrl = 'https://www.evencify.com/terms';
       const h1 = 'Terms of Service';
 
       return {
@@ -2042,13 +2042,13 @@ export function getSEOData(params: {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.evencify.com/' },
               { '@type': 'ListItem', position: 2, name: 'Terms of Service', item: canonicalUrl },
             ],
           },
         ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Terms of Service', url: canonicalUrl },
         ],
       };
@@ -2058,7 +2058,7 @@ export function getSEOData(params: {
       const title = 'Evencify FAQ | Event Crew Jobs & Organiser Help Center';
       const description =
         'Find answers to common questions about hiring event crew, discovering upcoming events, escrow payouts, and shift coordination on Evencify.';
-      const canonicalUrl = 'https://evencify.com/faq';
+      const canonicalUrl = 'https://www.evencify.com/faq';
       const h1 = 'Frequently Asked Questions';
 
       return {
@@ -2080,13 +2080,13 @@ export function getSEOData(params: {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.evencify.com/' },
               { '@type': 'ListItem', position: 2, name: 'FAQ', item: canonicalUrl },
             ],
           },
         ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'FAQ', url: canonicalUrl },
         ],
       };
@@ -2096,7 +2096,7 @@ export function getSEOData(params: {
       const title = 'Evencify Sitemap | Cities, Categories & Live Events';
       const description =
         'Browse the complete directory of public event cities, Indian states, event categories, crew staffing pages, and upcoming events on Evencify.';
-      const canonicalUrl = 'https://evencify.com/sitemap';
+      const canonicalUrl = 'https://www.evencify.com/sitemap';
       const h1 = 'Evencify Event & City Index';
 
       return {
@@ -2118,13 +2118,13 @@ export function getSEOData(params: {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.evencify.com/' },
               { '@type': 'ListItem', position: 2, name: 'Sitemap', item: canonicalUrl },
             ],
           },
         ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Sitemap', url: canonicalUrl },
         ],
       };
@@ -2133,7 +2133,7 @@ export function getSEOData(params: {
     case 'robots': {
       const title = 'Robots.txt Specifications | Evencify';
       const description = 'Search engine indexing directives for Evencify.com.';
-      const canonicalUrl = 'https://evencify.com/robots.txt';
+      const canonicalUrl = 'https://www.evencify.com/robots.txt';
       const h1 = 'Robots.txt Directives';
 
       return {
@@ -2152,7 +2152,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Robots.txt', url: canonicalUrl },
         ],
       };
@@ -2161,7 +2161,7 @@ export function getSEOData(params: {
     case 'login': {
       const title = 'Sign In | Evencify';
       const description = 'Sign in to access your Evencify crew or organiser portal.';
-      const canonicalUrl = 'https://evencify.com/login';
+      const canonicalUrl = 'https://www.evencify.com/login';
       const h1 = 'Sign In to Evencify';
       return {
         title,
@@ -2179,7 +2179,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Login', url: canonicalUrl },
         ],
       };
@@ -2188,7 +2188,7 @@ export function getSEOData(params: {
     case 'crew-login': {
       const title = 'Crew Sign In | Evencify';
       const description = 'Sign in to your Evencify Crew account.';
-      const canonicalUrl = 'https://evencify.com/crew/login';
+      const canonicalUrl = 'https://www.evencify.com/crew/login';
       const h1 = 'Evencify Crew Member Login';
       return {
         title,
@@ -2206,7 +2206,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Crew Login', url: canonicalUrl },
         ],
       };
@@ -2215,7 +2215,7 @@ export function getSEOData(params: {
     case 'organiser-login': {
       const title = 'Organiser Sign In | Evencify';
       const description = 'Sign in to your Evencify Organiser portal.';
-      const canonicalUrl = 'https://evencify.com/event/login';
+      const canonicalUrl = 'https://www.evencify.com/event/login';
       const h1 = 'Evencify Event Organiser Login';
       return {
         title,
@@ -2233,7 +2233,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Organiser Login', url: canonicalUrl },
         ],
       };
@@ -2242,7 +2242,7 @@ export function getSEOData(params: {
     case 'signup': {
       const title = 'Create Account | Evencify';
       const description = 'Create your Evencify account as an event organiser or event crew member.';
-      const canonicalUrl = 'https://evencify.com/signup';
+      const canonicalUrl = 'https://www.evencify.com/signup';
       const h1 = 'Create Your Evencify Account';
       return {
         title,
@@ -2260,7 +2260,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Sign Up', url: canonicalUrl },
         ],
       };
@@ -2269,7 +2269,7 @@ export function getSEOData(params: {
     case 'crew-signup': {
       const title = 'Crew Registration | Evencify';
       const description = 'Register as an event crew member on Evencify.';
-      const canonicalUrl = 'https://evencify.com/crew/signup';
+      const canonicalUrl = 'https://www.evencify.com/crew/signup';
       const h1 = 'Join Evencify Crew';
       return {
         title,
@@ -2287,7 +2287,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Crew Registration', url: canonicalUrl },
         ],
       };
@@ -2296,7 +2296,7 @@ export function getSEOData(params: {
     case 'organiser-signup': {
       const title = 'Organiser Registration | Evencify';
       const description = 'Register as an event organiser on Evencify.';
-      const canonicalUrl = 'https://evencify.com/event/signup';
+      const canonicalUrl = 'https://www.evencify.com/event/signup';
       const h1 = 'Register as an Event Organiser';
       return {
         title,
@@ -2314,7 +2314,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Organiser Sign Up', url: canonicalUrl },
         ],
       };
@@ -2323,7 +2323,7 @@ export function getSEOData(params: {
     case 'create-event': {
       const title = 'Create Event | Evencify';
       const description = 'Publish your event requirements on Evencify.';
-      const canonicalUrl = 'https://evencify.com/create-event';
+      const canonicalUrl = 'https://www.evencify.com/create-event';
       const h1 = 'Post an Event & Hire Crew';
       return {
         title,
@@ -2341,7 +2341,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Create Event', url: canonicalUrl },
         ],
       };
@@ -2350,7 +2350,7 @@ export function getSEOData(params: {
     case 'crew-portal': {
       const title = 'Crew Dashboard | Evencify';
       const description = 'Evencify Crew portal for managing shifts, applications, and profile.';
-      const canonicalUrl = 'https://evencify.com/crew';
+      const canonicalUrl = 'https://www.evencify.com/crew';
       const h1 = 'Evencify Crew Portal';
       return {
         title,
@@ -2368,7 +2368,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Crew Portal', url: canonicalUrl },
         ],
       };
@@ -2377,7 +2377,7 @@ export function getSEOData(params: {
     case 'organiser-portal': {
       const title = 'Organiser Dashboard | Evencify';
       const description = 'Evencify Organiser portal for managing events, applications, and crew.';
-      const canonicalUrl = 'https://evencify.com/organiser';
+      const canonicalUrl = 'https://www.evencify.com/organiser';
       const h1 = 'Evencify Organiser Portal';
       return {
         title,
@@ -2395,7 +2395,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Organiser Portal', url: canonicalUrl },
         ],
       };
@@ -2404,7 +2404,7 @@ export function getSEOData(params: {
     case 'direct-links': {
       const title = 'Direct Access Links | Evencify';
       const description = 'Quick portal links for Evencify.';
-      const canonicalUrl = 'https://evencify.com/direct-links';
+      const canonicalUrl = 'https://www.evencify.com/direct-links';
       const h1 = 'Evencify Direct Access Links';
       return {
         title,
@@ -2422,7 +2422,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Direct Links', url: canonicalUrl },
         ],
       };
@@ -2431,7 +2431,7 @@ export function getSEOData(params: {
     case 'admin': {
       const title = 'Admin Console | Evencify';
       const description = 'Restricted Evencify administrative console.';
-      const canonicalUrl = 'https://evencify.com/admin';
+      const canonicalUrl = 'https://www.evencify.com/admin';
       const h1 = 'Admin Console';
       return {
         title,
@@ -2448,7 +2448,7 @@ export function getSEOData(params: {
         twitterImage: fallbackImage,
         h1,
         structuredData: [],
-        breadcrumbItems: [{ name: 'Home', url: 'https://evencify.com/' }],
+        breadcrumbItems: [{ name: 'Home', url: 'https://www.evencify.com/' }],
       };
     }
 
@@ -2457,7 +2457,7 @@ export function getSEOData(params: {
       const title = 'Page Not Found (404) | Evencify';
       const description =
         'The requested event or page could not be found. Explore upcoming events in Surat, Mumbai, Ahmedabad, and across India on Evencify.';
-      const canonicalUrl = 'https://evencify.com/404';
+      const canonicalUrl = 'https://www.evencify.com/404';
       const h1 = 'Event or Page Not Found';
 
       return {
@@ -2476,7 +2476,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com/' },
+          { name: 'Home', url: 'https://www.evencify.com/' },
           { name: 'Page Not Found', url: canonicalUrl },
         ],
       };
