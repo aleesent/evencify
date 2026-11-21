@@ -25,33 +25,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
   const parallaxY = useTransform(scrollYProgress, [0, 1], [0, 24]);
 
-  // Easing curve: cubic-bezier(0.22, 1, 0.36, 1)
-  const customEase = [0.22, 1, 0.36, 1] as const;
-
-  // Stagger container for editorial text entrance
-  const contentVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.12,
-        delayChildren: 0.08,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 18 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.65,
-        ease: customEase,
-      },
-    },
-  };
-
   return (
     <section
       id="hero"
@@ -67,9 +40,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
         {/* Full-bleed background image covering viewport seamlessly without hard edges */}
         <motion.div
-          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.02, ease: customEase }}
           style={{ y: prefersReducedMotion ? 0 : parallaxY }}
           className="hero-bg-layer"
           aria-hidden="true"
@@ -91,44 +61,29 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       {/* ========================================================================= */}
       <div className="hero-content relative z-[2] w-full px-6 sm:px-12 lg:px-0 lg:pl-[10%] xl:pl-[12%] pt-[100px] sm:pt-[110px] lg:pt-[90px] pb-12 sm:pb-16 my-auto flex flex-col justify-center">
         {/* Left text column placed directly on top of the image (no box, no card) */}
-        <motion.div
-          variants={contentVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          className="relative z-[3] w-full max-w-[620px] xl:max-w-[680px]"
-        >
+        <div className="relative z-[3] w-full max-w-[620px] xl:max-w-[680px]">
           {/* 1. VISUAL DISPLAY TITLE: "Event" (bold sans) + "made easy" (editorial italic serif) */}
-          <motion.div
-            variants={itemVariants}
-            className="text-black tracking-[-0.035em] leading-[0.98] sm:leading-[0.95]"
-          >
+          <div className="text-black tracking-[-0.035em] leading-[0.98] sm:leading-[0.95]">
             <span className="block text-[54px] sm:text-[70px] lg:text-[78px] xl:text-[88px] font-black font-sans">
               Event
             </span>
             <span className="block text-[56px] sm:text-[74px] lg:text-[82px] xl:text-[92px] font-editorial italic font-normal tracking-[-0.02em] text-black">
               made easy
             </span>
-          </motion.div>
+          </div>
 
           {/* 2. PRIMARY H1 HEADING */}
-          <motion.h1
-            variants={itemVariants}
-            className="mt-6 sm:mt-7 text-[22px] sm:text-[28px] lg:text-[32px] xl:text-[34px] font-bold text-neutral-900 tracking-[-0.025em] leading-[1.2] max-w-[560px]"
-          >
+          <h1 className="mt-6 sm:mt-7 text-[22px] sm:text-[28px] lg:text-[32px] xl:text-[34px] font-bold text-neutral-900 tracking-[-0.025em] leading-[1.2] max-w-[560px]">
             India&apos;s Event Crew &amp; Organiser Platform
-          </motion.h1>
+          </h1>
 
           {/* 3. SUPPORTING PARAGRAPH: Clean modern sans with comfortable line-height */}
-          <motion.p
-            variants={itemVariants}
-            className="mt-4 sm:mt-5 text-[16px] sm:text-[18px] lg:text-[20px] text-neutral-700 font-normal leading-[1.6] max-w-[520px] lg:max-w-[560px]"
-          >
+          <p className="mt-4 sm:mt-5 text-[16px] sm:text-[18px] lg:text-[20px] text-neutral-700 font-normal leading-[1.6] max-w-[520px] lg:max-w-[560px]">
             Evencify connects event organisers with verified event crew in Surat and across India—manage staffing, shifts, and assignments in one place.
-          </motion.p>
+          </p>
 
           {/* 4. PRIMARY CTA: Compact black pill/button with white text */}
-          <motion.div variants={itemVariants} className="mt-8 sm:mt-9">
+          <div className="mt-8 sm:mt-9">
             <button
               id="hero-get-started-cta"
               onClick={handlePrimaryCta}
@@ -137,8 +92,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             >
               <span>Get started</span>
             </button>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
     </section>
   );

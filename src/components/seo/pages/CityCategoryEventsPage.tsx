@@ -170,9 +170,9 @@ export const CityCategoryEventsPage: React.FC<CityCategoryEventsPageProps> = ({
         ) : (
           <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-12 text-center my-6">
             <Calendar className="mx-auto h-10 w-10 text-neutral-400 mb-3" />
-            <h3 className="text-lg font-bold text-neutral-900">
+            <h2 className="text-lg font-bold text-neutral-900">
               No scheduled {category.name.toLowerCase()} in {city.name} right now
-            </h3>
+            </h2>
             <p className="mt-1 text-sm text-neutral-500 max-w-md mx-auto">
               Check out other active categories in {city.name} below or discover {category.name.toLowerCase()} across other Indian cities.
             </p>

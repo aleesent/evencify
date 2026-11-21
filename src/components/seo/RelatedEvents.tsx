@@ -59,7 +59,7 @@ export const RelatedEvents: React.FC<RelatedEventsProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {displayedEvents.map((evt) => (
-          <EventCard key={evt.id} event={evt} />
+          <EventCard key={evt.id} event={evt} headingLevel="h3" />
         ))}
       </div>
     </section>

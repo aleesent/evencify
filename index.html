@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Evencify – Event Platform in Surat | Hire Event Crew &amp; Find Event Jobs</title>
+    <title>Evencify – Event Platform in Surat | Hire Crew &amp; Jobs</title>
     <meta
       name="description"
-      content="Discover Evencify, an event platform connecting event organisers and professional crew. Post event requirements, hire event staff and discover event opportunities in Surat and across India."
+      content="Connect with verified event crew and organisers on Evencify. Post requirements, hire event staff, and discover event jobs in Surat and across India."
     />
     <meta name="author" content="Evencify" />
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
@@ -25,10 +25,10 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://evencify.com/" />
     <meta property="og:site_name" content="Evencify" />
-    <meta property="og:title" content="Evencify – Event Platform in Surat | Hire Event Crew &amp; Find Event Jobs" />
+    <meta property="og:title" content="Evencify – Event Platform in Surat | Hire Crew &amp; Jobs" />
     <meta
       property="og:description"
-      content="Discover Evencify, an event platform connecting event organisers and professional crew. Post event requirements, hire event staff and discover event opportunities in Surat and across India."
+      content="Connect with verified event crew and organisers on Evencify. Post requirements, hire event staff, and discover event jobs in Surat and across India."
     />
     <meta property="og:image" content="https://evencify.com/hero-banner.png" />
     <meta property="og:image:secure_url" content="https://evencify.com/hero-banner.png" />
@@ -42,10 +42,10 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@evencify" />
     <meta name="twitter:creator" content="@evencify" />
-    <meta name="twitter:title" content="Evencify – Event Platform in Surat | Hire Event Crew &amp; Find Event Jobs" />
+    <meta name="twitter:title" content="Evencify – Event Platform in Surat | Hire Crew &amp; Jobs" />
     <meta
       name="twitter:description"
-      content="Discover Evencify, an event platform connecting event organisers and professional crew. Post event requirements, hire event staff and discover event opportunities in Surat and across India."
+      content="Connect with verified event crew and organisers on Evencify. Post requirements, hire event staff, and discover event jobs in Surat and across India."
     />
     <meta name="twitter:image" content="https://evencify.com/hero-banner.png" />
 
@@ -60,6 +60,9 @@
           "url": "https://evencify.com/",
           "name": "Evencify",
           "description": "Event platform in Surat and across India connecting event organisers and verified event crew.",
+          "publisher": {
+            "@id": "https://evencify.com/#organization"
+          },
           "potentialAction": [
             {
               "@type": "SearchAction",
@@ -80,14 +83,18 @@
           "url": "https://evencify.com/",
           "logo": {
             "@type": "ImageObject",
+            "@id": "https://evencify.com/#logo",
             "url": "https://evencify.com/evencify.logo.png",
-            "width": 2161,
-            "height": 728
+            "width": 540,
+            "height": 182
+          },
+          "image": {
+            "@id": "https://evencify.com/#logo"
           },
           "sameAs": [
-            "https://twitter.com/evencify",
-            "https://www.linkedin.com/company/evencify",
-            "https://instagram.com/evencify"
+            "https://x.com/evencify",
+            "https://www.linkedin.com/company/evencify/",
+            "https://www.instagram.com/evencify/"
           ],
           "contactPoint": {
             "@type": "ContactPoint",
@@ -111,6 +118,9 @@
           "applicationCategory": "BusinessApplication",
           "operatingSystem": "All",
           "description": "Event workforce management platform connecting verified event crew and event organisers in Surat and across India.",
+          "publisher": {
+            "@id": "https://evencify.com/#organization"
+          },
           "offers": {
             "@type": "Offer",
             "price": "0",
@@ -176,8 +186,8 @@
     </script>
 
     <!-- Favicons & App Icons -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -188,15 +198,24 @@
     <link rel="preload" as="image" type="image/webp" href="/hero-banner.webp" media="(min-width: 769px)" fetchpriority="high" />
     <link rel="preload" as="image" type="image/webp" href="/hero-banner-portrait.webp" media="(max-width: 768px)" fetchpriority="high" />
 
+    <!-- Deferred Google Fonts (non-render-blocking for faster mobile FCP/LCP) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Newsreader:ital,opsz,wght@1,6..72,300;1,6..72,400;1,6..72,500;1,6..72,600&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500;1,6..72,600&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500;1,6..72,600&display=swap"
+      />
+    </noscript>
   </head>
   <body class="bg-[#FAFAFB] text-neutral-900 antialiased selection:bg-neutral-900 selection:text-white">
-    <div id="root"></div>
+    <div id="root"><!--SEO_SSR_FALLBACK_START--><main style="min-height:100vh;background:#F8F9FD;color:#111215;padding:96px 24px 48px;max-width:680px"><h1>India's Event Crew &amp; Organiser Platform</h1><p>Evencify connects event organisers with verified event crew in Surat and across India—manage staffing, shifts, and assignments in one place.</p><nav aria-label="Primary links"><a href="/events">Upcoming Events</a> · <a href="/events/surat">Events in Surat</a> · <a href="/events/gujarat">Events in Gujarat</a> · <a href="/crew-jobs">Event Crew Jobs</a> · <a href="/organise-event">For Organisers</a> · <a href="/about">About</a> · <a href="/faq">FAQ</a> · <a href="/contact">Contact</a></nav></main><!--SEO_SSR_FALLBACK_END--></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

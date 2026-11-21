@@ -127,7 +127,7 @@ export const CrewJobsPage: React.FC<CrewJobsPageProps> = ({ onOpenAuthModal }) =
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-900 mb-4">
               <DollarSign className="h-5 w-5 text-[#FED000]" />
             </div>
-            <h3 className="text-base font-bold text-neutral-900 mb-1">Guaranteed Escrow Payouts</h3>
+            <h2 className="text-base font-bold text-neutral-900 mb-1">Guaranteed Escrow Payouts</h2>
             <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
               No chasing organizers for weeks. Event budgets are held in advance escrow and cleared same-day upon shift completion.
             </p>
@@ -137,7 +137,7 @@ export const CrewJobsPage: React.FC<CrewJobsPageProps> = ({ onOpenAuthModal }) =
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-900 mb-4">
               <ShieldCheck className="h-5 w-5 text-[#FED000]" />
             </div>
-            <h3 className="text-base font-bold text-neutral-900 mb-1">Verified Organizers Only</h3>
+            <h2 className="text-base font-bold text-neutral-900 mb-1">Verified Organizers Only</h2>
             <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
               All event organizers on Evencify are identity verified, with transparent venue addresses, clear dress codes, and shift timings.
             </p>
@@ -147,7 +147,7 @@ export const CrewJobsPage: React.FC<CrewJobsPageProps> = ({ onOpenAuthModal }) =
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-900 mb-4">
               <Award className="h-5 w-5 text-[#FED000]" />
             </div>
-            <h3 className="text-base font-bold text-neutral-900 mb-1">Build Your Professional Rating</h3>
+            <h2 className="text-base font-bold text-neutral-900 mb-1">Build Your Professional Rating</h2>
             <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
               Earn 5-star organizer reviews with every successful gig and unlock high-tier VIP shifts and supervisory pay.
             </p>

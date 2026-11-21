@@ -105,9 +105,9 @@ export const CategoryEventsPage: React.FC<CategoryEventsPageProps> = ({
         ) : (
           <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-12 text-center my-6">
             <Calendar className="mx-auto h-10 w-10 text-neutral-400 mb-3" />
-            <h3 className="text-lg font-bold text-neutral-900">
+            <h2 className="text-lg font-bold text-neutral-900">
               No upcoming {category.name.toLowerCase()} found at the moment
-            </h3>
+            </h2>
             <p className="mt-1 text-sm text-neutral-500 max-w-md mx-auto">
               New {category.name.toLowerCase()} are added daily by verified event planners. Check back shortly or browse other active categories.
             </p>

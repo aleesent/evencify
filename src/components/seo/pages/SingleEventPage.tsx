@@ -138,7 +138,7 @@ export const SingleEventPage: React.FC<SingleEventPageProps> = ({
     const text = encodeURIComponent(
       `Join ${event.name} in ${event.city} on ${event.date} via @Evencify: ${window.location.href}`
     );
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+    window.open(`https://x.com/intent/post?text=${text}`, '_blank');
   };
 
   const handleShareLinkedIn = () => {

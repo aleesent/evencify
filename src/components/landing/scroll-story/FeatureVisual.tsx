@@ -162,9 +162,9 @@ export const FeatureVisual: React.FC<FeatureVisualProps> = ({ type }) => {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs sm:text-base font-black text-neutral-900 truncate">
+                  <div className="text-xs sm:text-base font-black text-neutral-900 truncate">
                     Pooja Verma
-                  </h4>
+                  </div>
                   <span className="font-mono text-[9px] sm:text-[11px] font-black text-neutral-900">
                     4.96 ★
                   </span>
@@ -218,9 +218,9 @@ export const FeatureVisual: React.FC<FeatureVisualProps> = ({ type }) => {
                 </span>
               </div>
               <div className="absolute bottom-1.5 left-2 text-white">
-                <h4 className="text-xs sm:text-base font-black tracking-tight leading-none">
+                <div className="text-xs sm:text-base font-black tracking-tight leading-none">
                   Sunburn Arena 2026
-                </h4>
+                </div>
                 <p className="font-mono text-[8px] sm:text-[10px] text-neutral-300 mt-0.5">
                   DY Patil Stadium • Dec 28–30
                 </p>
@@ -349,7 +349,7 @@ export const FeatureVisual: React.FC<FeatureVisualProps> = ({ type }) => {
             <div className="my-auto bg-neutral-50 p-2 sm:p-2.5 rounded-lg border border-neutral-200 space-y-1.5">
               <div className="flex items-center justify-between pb-1 border-b border-neutral-200">
                 <div>
-                  <h5 className="text-xs sm:text-sm font-black text-neutral-900">Pooja Verma</h5>
+                  <div className="text-xs sm:text-sm font-black text-neutral-900">Pooja Verma</div>
                   <p className="font-mono text-[8px] sm:text-[10px] text-neutral-500">
                     Applying: Sunburn Arena (Main Stage)
                   </p>
@@ -398,9 +398,9 @@ export const FeatureVisual: React.FC<FeatureVisualProps> = ({ type }) => {
                 <span className="font-mono text-[7px] sm:text-[9px] font-black uppercase tracking-wider text-neutral-500 block">
                   ADMISSION VOUCHER
                 </span>
-                <h4 className="text-xs sm:text-sm font-black text-neutral-900">
+                <div className="text-xs sm:text-sm font-black text-neutral-900">
                   India Tech Summit 2026
-                </h4>
+                </div>
               </div>
               <span className="font-mono text-[8px] sm:text-[9px] font-black bg-neutral-900 text-white px-2 py-0.5 rounded">
                 GATE 4B
@@ -508,9 +508,9 @@ export const FeatureVisual: React.FC<FeatureVisualProps> = ({ type }) => {
                 </span>
               </div>
               <div className="absolute bottom-1.5 left-2 text-white">
-                <h4 className="text-xs sm:text-base font-black tracking-tight leading-none">
+                <div className="text-xs sm:text-base font-black tracking-tight leading-none">
                   Sunburn Arena 2026
-                </h4>
+                </div>
                 <p className="font-mono text-[8px] sm:text-[10px] text-neutral-300 mt-0.5">
                   DY Patil Stadium • 40 Crew Positions
                 </p>

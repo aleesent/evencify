@@ -123,7 +123,7 @@ export const CrewPass3DCard: React.FC = () => {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <h4 className="text-base font-extrabold text-black truncate">Pooja Verma</h4>
+              <div className="text-base font-extrabold text-black truncate">Pooja Verma</div>
               <span className="rounded-full bg-black text-[#FED000] px-2 py-0.5 text-[9px] font-black">
                 TOP CREW
               </span>
@@ -195,9 +195,9 @@ export const OrganiserRoster3DCard: React.FC = () => {
                 LIVE EVENT ROSTER
               </span>
             </div>
-            <h4 className="text-sm font-black text-black mt-0.5">
+            <div className="text-sm font-black text-black mt-0.5">
               Sunburn Arena Festival 2026
-            </h4>
+            </div>
           </div>
           <span className="rounded-full bg-[#FED000] border border-black px-2.5 py-1 text-[10px] font-black text-black">
             DAY 1 OF 3

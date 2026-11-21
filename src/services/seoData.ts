@@ -1131,95 +1131,103 @@ export function getSEOData(params: {
 
   switch (params.type) {
     case 'homepage': {
-      const title = 'Evencify – Event Platform in Surat | Hire Event Crew & Find Event Jobs';
+      const title = 'Evencify – Event Platform in Surat | Hire Crew & Jobs';
       const description =
-        'Discover Evencify, an event platform connecting event organisers and professional crew. Post event requirements, hire event staff and discover event opportunities in Surat and across India.';
+        'Connect with verified event crew and organisers on Evencify. Post requirements, hire event staff, and discover event jobs in Surat and across India.';
       const canonicalUrl = 'https://evencify.com/';
       const h1 = "India's Event Crew & Organiser Platform";
 
-      const organizationSchema = {
+      const unifiedHomepageGraph = {
         '@context': 'https://schema.org',
-        '@type': 'Organization',
-        '@id': 'https://evencify.com/#organization',
-        name: 'Evencify',
-        legalName: 'Evencify Technologies Pvt. Ltd.',
-        url: 'https://evencify.com/',
-        logo: {
-          '@type': 'ImageObject',
-          url: logoImage,
-          width: 2161,
-          height: 728,
-        },
-        description:
-          'Event platform in Surat and across India connecting event organisers and verified event crew.',
-        sameAs: [
-          'https://twitter.com/evencify',
-          'https://www.linkedin.com/company/evencify',
-          'https://instagram.com/evencify',
+        '@graph': [
+          {
+            '@type': 'WebSite',
+            '@id': 'https://evencify.com/#website',
+            url: 'https://evencify.com/',
+            name: 'Evencify',
+            description:
+              'Event platform in Surat and across India connecting event organisers and verified event crew.',
+            publisher: {
+              '@id': 'https://evencify.com/#organization',
+            },
+            potentialAction: [
+              {
+                '@type': 'SearchAction',
+                target: {
+                  '@type': 'EntryPoint',
+                  urlTemplate: 'https://evencify.com/events?search={search_term_string}',
+                },
+                'query-input': 'required name=search_term_string',
+              },
+            ],
+            inLanguage: 'en-IN',
+          },
+          {
+            '@type': 'Organization',
+            '@id': 'https://evencify.com/#organization',
+            name: 'Evencify',
+            legalName: 'Evencify Technologies Pvt. Ltd.',
+            url: 'https://evencify.com/',
+            logo: {
+              '@type': 'ImageObject',
+              '@id': 'https://evencify.com/#logo',
+              url: logoImage,
+              width: 540,
+              height: 182,
+            },
+            image: {
+              '@id': 'https://evencify.com/#logo',
+            },
+            sameAs: [
+              'https://x.com/evencify',
+              'https://www.linkedin.com/company/evencify/',
+              'https://www.instagram.com/evencify/',
+            ],
+            contactPoint: {
+              '@type': 'ContactPoint',
+              contactType: 'Customer Support',
+              email: 'support@evencify.com',
+              areaServed: 'IN',
+              availableLanguage: ['English', 'Hindi', 'Gujarati'],
+            },
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: 'Surat',
+              addressRegion: 'Gujarat',
+              addressCountry: 'IN',
+            },
+          },
+          {
+            '@type': 'WebApplication',
+            '@id': 'https://evencify.com/#application',
+            name: 'Evencify',
+            url: 'https://evencify.com/',
+            applicationCategory: 'BusinessApplication',
+            operatingSystem: 'All',
+            description:
+              'Event workforce management platform connecting verified event crew and event organisers in Surat and across India.',
+            publisher: {
+              '@id': 'https://evencify.com/#organization',
+            },
+            offers: {
+              '@type': 'Offer',
+              price: '0',
+              priceCurrency: 'INR',
+            },
+          },
+          {
+            '@type': 'FAQPage',
+            '@id': 'https://evencify.com/#faq',
+            mainEntity: HOMEPAGE_FAQS.map((faq) => ({
+              '@type': 'Question',
+              name: faq.question,
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: faq.answer,
+              },
+            })),
+          },
         ],
-        contactPoint: {
-          '@type': 'ContactPoint',
-          contactType: 'Customer Support',
-          email: 'support@evencify.com',
-          areaServed: 'IN',
-          availableLanguage: ['English', 'Hindi', 'Gujarati'],
-        },
-        address: {
-          '@type': 'PostalAddress',
-          addressLocality: 'Surat',
-          addressRegion: 'Gujarat',
-          addressCountry: 'IN',
-        },
-      };
-
-      const webApplicationSchema = {
-        '@context': 'https://schema.org',
-        '@type': 'WebApplication',
-        '@id': 'https://evencify.com/#application',
-        name: 'Evencify',
-        url: 'https://evencify.com/',
-        applicationCategory: 'BusinessApplication',
-        operatingSystem: 'All',
-        description:
-          'Event workforce management platform connecting verified event crew and event organisers in Surat and across India.',
-        offers: {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'INR',
-        },
-      };
-
-      const faqSchema = {
-        '@context': 'https://schema.org',
-        '@type': 'FAQPage',
-        '@id': 'https://evencify.com/#faq',
-        mainEntity: HOMEPAGE_FAQS.map((faq) => ({
-          '@type': 'Question',
-          name: faq.question,
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: faq.answer,
-          },
-        })),
-      };
-
-      const webSiteSchema = {
-        '@context': 'https://schema.org',
-        '@type': 'WebSite',
-        '@id': 'https://evencify.com/#website',
-        name: 'Evencify',
-        url: 'https://evencify.com/',
-        description:
-          'Event platform in Surat and across India connecting event organisers and verified event crew.',
-        inLanguage: 'en-IN',
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: {
-            '@type': 'EntryPoint',
-            urlTemplate: 'https://evencify.com/events?search={search_term_string}',
-          },
-          'query-input': 'required name=search_term_string',
-        },
       };
 
       return {
@@ -1236,15 +1244,15 @@ export function getSEOData(params: {
         twitterDescription: description,
         twitterImage: fallbackImage,
         h1,
-        structuredData: [webSiteSchema, organizationSchema, webApplicationSchema, faqSchema],
+        structuredData: [unifiedHomepageGraph],
         breadcrumbItems: [{ name: 'Home', url: 'https://evencify.com/' }],
       };
     }
 
     case 'all-events': {
-      const title = 'Upcoming Events 2026 in Surat & India | Concerts, Expos | Evencify';
+      const title = 'Upcoming Events in Surat & India | Live Shows | Evencify';
       const description =
-        'Explore verified upcoming events in Surat, Gujarat & across India. Real-time schedules, venues, booking links, and on-demand event crew hiring on Evencify.';
+        'Explore verified upcoming events in Surat, Gujarat, and across India. View event schedules, venues, and open event crew shifts on Evencify.';
       const canonicalUrl = 'https://evencify.com/events';
       const h1 = 'Upcoming Events in India';
 
@@ -1252,7 +1260,7 @@ export function getSEOData(params: {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com' },
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
           { '@type': 'ListItem', position: 2, name: 'Events', item: canonicalUrl },
         ],
       };
@@ -1273,16 +1281,16 @@ export function getSEOData(params: {
         h1,
         structuredData: [breadcrumbSchema],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Home', url: 'https://evencify.com/' },
           { name: 'Events', url: canonicalUrl },
         ],
       };
     }
 
     case 'near-me': {
-      const title = 'Events Near Me | Upcoming Live Events & Things to Do | Evencify';
+      const title = 'Events Near Me in Surat & India | Live Events | Evencify';
       const description =
-        'Find upcoming events happening near you today and this weekend. Discover live concerts, workshops, food festivals, trade exhibitions, and sports meets nearby.';
+        'Find upcoming concerts, exhibitions, workshops, and live events near you today and this weekend across Surat and major Indian cities on Evencify.';
       const canonicalUrl = 'https://evencify.com/events/near-me';
       const h1 = 'Events Happening Near You';
 
@@ -1290,7 +1298,7 @@ export function getSEOData(params: {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com' },
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
           { '@type': 'ListItem', position: 2, name: 'Events', item: 'https://evencify.com/events' },
           { '@type': 'ListItem', position: 3, name: 'Near Me', item: canonicalUrl },
         ],
@@ -1312,7 +1320,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [breadcrumbSchema],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Home', url: 'https://evencify.com/' },
           { name: 'Events', url: 'https://evencify.com/events' },
           { name: 'Near Me', url: canonicalUrl },
         ],
@@ -1330,8 +1338,8 @@ export function getSEOData(params: {
         upcoming: { label: 'Upcoming Events in India', h1: 'Upcoming Events Across India' },
       };
       const info = dateLabels[dateKey] || dateLabels.upcoming;
-      const title = `${info.label} | Live Music, Shows & Fests | Evencify`;
-      const description = `Discover verified events happening ${dateKey.replace('-', ' ')} across India. Find concerts, theatre, tech expos, workshops, and nightlife near you on Evencify.`;
+      const title = `${info.label} | Live Shows | Evencify`;
+      const description = `Discover verified events happening ${dateKey.replace(/-/g, ' ')} across Surat and India. Browse concerts, expos, workshops, and crew shifts on Evencify.`;
       const canonicalUrl = `https://evencify.com/events/${dateKey}`;
 
       return {
@@ -1353,14 +1361,14 @@ export function getSEOData(params: {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com' },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
               { '@type': 'ListItem', position: 2, name: 'Events', item: 'https://evencify.com/events' },
               { '@type': 'ListItem', position: 3, name: info.label, item: canonicalUrl },
             ],
           },
         ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Home', url: 'https://evencify.com/' },
           { name: 'Events', url: 'https://evencify.com/events' },
           { name: info.label, url: canonicalUrl },
         ],
@@ -1372,23 +1380,23 @@ export function getSEOData(params: {
       const isSurat = city.slug === 'surat';
       const isGujaratCity = city.stateSlug === 'gujarat';
       const title = isSurat
-        ? 'Events in Surat 2026 | Upcoming Events, Concerts & Expos | Evencify'
-        : `Events in ${city.name} 2026 | Upcoming Events & Shows | Evencify`;
+        ? 'Events in Surat & Hire Event Crew in Surat | Evencify'
+        : `Events in ${city.name} | Upcoming Events | Evencify`;
       const description = isSurat
-        ? 'Discover upcoming events in Surat 2026 with Evencify. Explore concerts, luxury weddings, diamond & textile expos at SIECC, and hire background-verified crew.'
-        : `Discover upcoming events in ${city.name}, ${city.state} with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more.`;
+        ? 'Explore upcoming events in Surat, hire verified event crew, or find event jobs across Vesu, Adajan, Dumas Road, and SIECC on Evencify.'
+        : `Discover upcoming events in ${city.name}, ${city.state} with Evencify. Browse concerts, workshops, conferences, exhibitions, and event staffing shifts.`;
       const canonicalUrl = `https://evencify.com/events/${city.slug}`;
       const h1 = isSurat ? 'Events in Surat 2026' : `Upcoming Events in ${city.name}`;
 
       const breadcrumbItems = isGujaratCity
         ? [
-            { name: 'Home', url: 'https://evencify.com' },
+            { name: 'Home', url: 'https://evencify.com/' },
             { name: 'Events', url: 'https://evencify.com/events' },
             { name: 'Gujarat', url: 'https://evencify.com/events/gujarat' },
             { name: city.name, url: canonicalUrl },
           ]
         : [
-            { name: 'Home', url: 'https://evencify.com' },
+            { name: 'Home', url: 'https://evencify.com/' },
             { name: 'Events', url: 'https://evencify.com/events' },
             { name: city.name, url: canonicalUrl },
           ];
@@ -1444,16 +1452,16 @@ export function getSEOData(params: {
       const state = params.state || STATES_DATABASE.gujarat;
       const isGujarat = state.slug === 'gujarat';
       const title = isGujarat
-        ? 'Events in Gujarat | Upcoming Events & Things to Do | Evencify'
-        : `Events in ${state.name} | Upcoming Events Across ${state.name} | Evencify`;
+        ? 'Events in Gujarat | Concerts, Expos & Crew | Evencify'
+        : `Events in ${state.name} | Upcoming Shows & Crew | Evencify`;
       const description = isGujarat
-        ? 'Discover upcoming events in Gujarat with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more across Surat, Ahmedabad, Vadodara, Rajkot and more.'
-        : `Discover concerts, workshops, conferences, exhibitions, festivals and business events happening across ${state.name} with verified venue and ticket information.`;
+        ? 'Discover upcoming events in Gujarat across Surat, Ahmedabad, Vadodara, and Rajkot. Browse concerts, expos, corporate events, and crew shifts on Evencify.'
+        : `Discover upcoming concerts, workshops, conferences, exhibitions, and corporate events across ${state.name} with verified venues and crew shifts on Evencify.`;
       const canonicalUrl = `https://evencify.com/events/${state.slug}`;
       const h1 = `Upcoming Events in ${state.name}`;
 
       const breadcrumbItems = [
-        { name: 'Home', url: 'https://evencify.com' },
+        { name: 'Home', url: 'https://evencify.com/' },
         { name: 'Events', url: 'https://evencify.com/events' },
         { name: state.name, url: canonicalUrl },
       ];
@@ -1484,18 +1492,14 @@ export function getSEOData(params: {
         twitterImage: fallbackImage,
         h1,
         structuredData: [breadcrumbSchema],
-        breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
-          { name: 'Events', url: 'https://evencify.com/events' },
-          { name: state.name, url: canonicalUrl },
-        ],
+        breadcrumbItems,
       };
     }
 
     case 'category': {
       const cat = params.category || CATEGORIES_DATABASE.concerts;
-      const title = `Upcoming ${cat.name} in India | Live Events & Tickets | Evencify`;
-      const description = `Find upcoming ${cat.name.toLowerCase()} happening across India on Evencify. Explore dates, venue addresses, schedules, organisers, and ticket information.`;
+      const title = `Upcoming ${cat.name} in India | Live Events | Evencify`;
+      const description = `Find upcoming ${cat.name.toLowerCase()} across Surat, Mumbai, Bengaluru, Delhi, and India on Evencify. Explore verified schedules, venues, and crew roles.`;
       const canonicalUrl = `https://evencify.com/events/${cat.slug}`;
       const h1 = `Upcoming ${cat.name} in India`;
 
@@ -1503,7 +1507,7 @@ export function getSEOData(params: {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com' },
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
           { '@type': 'ListItem', position: 2, name: 'Events', item: 'https://evencify.com/events' },
           { '@type': 'ListItem', position: 3, name: cat.name, item: canonicalUrl },
         ],
@@ -1525,7 +1529,7 @@ export function getSEOData(params: {
         h1,
         structuredData: [breadcrumbSchema],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Home', url: 'https://evencify.com/' },
           { name: 'Events', url: 'https://evencify.com/events' },
           { name: cat.name, url: canonicalUrl },
         ],
@@ -1536,21 +1540,21 @@ export function getSEOData(params: {
       const city = params.city || CITIES_DATABASE.surat;
       const cat = params.category || CATEGORIES_DATABASE.concerts;
       const isGujaratCity = city.stateSlug === 'gujarat';
-      const title = `${cat.name} Events in ${city.name} | Evencify`;
-      const description = `Discover upcoming ${cat.name.toLowerCase()} in ${city.name} with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more with verified venue and ticket details.`;
+      const title = `${cat.name} in ${city.name} | Live Events | Evencify`;
+      const description = `Discover upcoming ${cat.name.toLowerCase()} in ${city.name}, ${city.state} on Evencify. Browse verified event schedules, venues, and open event crew shifts.`;
       const canonicalUrl = `https://evencify.com/events/${city.slug}/${cat.slug}`;
       const h1 = `${cat.name} Events in ${city.name}`;
 
       const breadcrumbItems = isGujaratCity
         ? [
-            { name: 'Home', url: 'https://evencify.com' },
+            { name: 'Home', url: 'https://evencify.com/' },
             { name: 'Events', url: 'https://evencify.com/events' },
             { name: 'Gujarat', url: 'https://evencify.com/events/gujarat' },
             { name: city.name, url: `https://evencify.com/events/${city.slug}` },
             { name: cat.name, url: canonicalUrl },
           ]
         : [
-            { name: 'Home', url: 'https://evencify.com' },
+            { name: 'Home', url: 'https://evencify.com/' },
             { name: 'Events', url: 'https://evencify.com/events' },
             { name: city.name, url: `https://evencify.com/events/${city.slug}` },
             { name: cat.name, url: canonicalUrl },
@@ -1589,13 +1593,13 @@ export function getSEOData(params: {
     case 'state-category': {
       const state = params.state || STATES_DATABASE.gujarat;
       const cat = params.category || CATEGORIES_DATABASE.concerts;
-      const title = `${cat.name} Events in ${state.name} | Evencify`;
-      const description = `Discover upcoming ${cat.name.toLowerCase()} in ${state.name} with Evencify. Find concerts, workshops, conferences, festivals, exhibitions, business events and more across ${state.name}.`;
+      const title = `${cat.name} in ${state.name} | Live Events | Evencify`;
+      const description = `Discover upcoming ${cat.name.toLowerCase()} across ${state.name} on Evencify. Explore verified event dates, venues, organisers, and event crew openings.`;
       const canonicalUrl = `https://evencify.com/events/${state.slug}/${cat.slug}`;
       const h1 = `${cat.name} Events in ${state.name}`;
 
       const breadcrumbItems = [
-        { name: 'Home', url: 'https://evencify.com' },
+        { name: 'Home', url: 'https://evencify.com/' },
         { name: 'Events', url: 'https://evencify.com/events' },
         { name: state.name, url: `https://evencify.com/events/${state.slug}` },
         { name: cat.name, url: canonicalUrl },
@@ -1653,8 +1657,14 @@ export function getSEOData(params: {
           (c) => c.toLowerCase() === (evt.city || '').toLowerCase()
         ) || evt.city?.toLowerCase() === 'surat';
 
-      const title = `${evt.name} in ${evt.city} | ${evt.eventType} & Event Staffing | Evencify`;
-      const description = `${evt.name} at ${evt.venue}, ${evt.city} on ${evt.date}. Organised by ${evt.organiserName}. Explore venue details and ${evt.requiredCategory || 'event crew'} opportunities on Evencify.`;
+      const rawEventTitle = `${evt.name} in ${evt.city} | Evencify`;
+      const title =
+        rawEventTitle.length <= 60
+          ? rawEventTitle
+          : `${evt.name.slice(0, Math.max(20, 46 - evt.city.length)).trim()} – ${evt.city} | Evencify`;
+      const rawEventDesc = `${evt.name} at ${evt.venue}, ${evt.city} on ${evt.date}. Organised by ${evt.organiserName}. Explore venue details and ${evt.requiredCategory || 'event crew'} openings on Evencify.`;
+      const description =
+        rawEventDesc.length <= 160 ? rawEventDesc : `${rawEventDesc.slice(0, 157).trimEnd()}...`;
       const canonicalUrl = `https://evencify.com/events/${citySlug}/${eventSlug}`;
       const h1 = evt.name;
 
@@ -1724,7 +1734,7 @@ export function getSEOData(params: {
       const structuredData: Record<string, unknown>[] = [eventSchema, breadcrumbSchema];
 
       // Emit factual JobPosting markup only for open, upcoming events with available crew slots and real pay amount
-      if (isUpcoming && evt.status === 'Open' && evt.crewPositionsAvailable > 0 && evt.payAmount > 0 && evt.requiredCategory) {
+      if (isUpcoming && isPublicStatus && evt.crewPositionsAvailable > 0 && evt.payAmount > 0 && evt.requiredCategory) {
         structuredData.push({
           '@context': 'https://schema.org',
           '@type': 'JobPosting',
@@ -1779,9 +1789,9 @@ export function getSEOData(params: {
     }
 
     case 'crew-jobs': {
-      const title = 'Event Crew Jobs & Staffing in India | Apply for Shifts | Evencify';
+      const title = 'Event Crew Jobs in Surat & India | Staffing | Evencify';
       const description =
-        'Find verified event crew jobs, part-time shifts, and freelance event staff openings in Surat, Mumbai, Ahmedabad & across India. Escrow-secured same-day payouts.';
+        'Find verified event crew jobs, part-time shifts, and event staff openings in Surat, Ahmedabad, Mumbai, and across India with escrow payouts on Evencify.';
       const canonicalUrl = 'https://evencify.com/crew-jobs';
       const h1 = 'Event Crew Jobs & Staffing Opportunities';
 
@@ -1804,22 +1814,22 @@ export function getSEOData(params: {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com' },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
               { '@type': 'ListItem', position: 2, name: 'Crew Jobs', item: canonicalUrl },
             ],
           },
         ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Home', url: 'https://evencify.com/' },
           { name: 'Crew Jobs', url: canonicalUrl },
         ],
       };
     }
 
     case 'organiser-solution': {
-      const title = 'Event Management & Staffing Platform India | Evencify';
+      const title = 'Hire Event Crew Online | Event Platform India | Evencify';
       const description =
-        'Scale your event productions with India’s leading private event workforce operating system. Hire background-verified crew, manage shifts, and secure escrow payouts.';
+        'Post event requirements, hire verified event staff in Surat and across India, coordinate shifts, and manage escrow crew payouts on Evencify.';
       const canonicalUrl = 'https://evencify.com/organise-event';
       const h1 = 'Enterprise Event Workforce & Management Platform';
 
@@ -1842,22 +1852,22 @@ export function getSEOData(params: {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com' },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
               { '@type': 'ListItem', position: 2, name: 'For Organisers', item: canonicalUrl },
             ],
           },
         ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Home', url: 'https://evencify.com/' },
           { name: 'For Organisers', url: canonicalUrl },
         ],
       };
     }
 
     case 'organise-event': {
-      const title = 'Hire Event Crew & Organise Events Across India | Evencify';
+      const title = 'Hire Event Crew Online | Event Platform India | Evencify';
       const description =
-        'Hire background-verified event staff, ushers, promoters, security, and stage managers. Guaranteed escrow payouts and on-demand replacement in Surat and across India.';
+        'Post event requirements, hire verified event staff in Surat and across India, coordinate shifts, and manage escrow crew payouts on Evencify.';
       const canonicalUrl = 'https://evencify.com/organise-event';
       const h1 = 'Hire Verified Event Crew Across India';
 
@@ -1875,18 +1885,27 @@ export function getSEOData(params: {
         twitterDescription: description,
         twitterImage: fallbackImage,
         h1,
-        structuredData: [],
+        structuredData: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 2, name: 'Organise Event', item: canonicalUrl },
+            ],
+          },
+        ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Home', url: 'https://evencify.com/' },
           { name: 'Organise Event', url: canonicalUrl },
         ],
       };
     }
 
     case 'about': {
-      const title = 'About Evencify | India’s Event Discovery & Verified Crew Platform';
+      const title = 'About Evencify | Event Crew & Organiser Platform India';
       const description =
-        'Learn about Evencify, our mission, verified workforce network, escrow security, and how we are transforming event experiences across India.';
+        'Learn about Evencify, our Surat headquarters, verified event crew network, escrow payout security, and how we support event organisers across India.';
       const canonicalUrl = 'https://evencify.com/about';
       const h1 = 'About Evencify';
 
@@ -1904,18 +1923,27 @@ export function getSEOData(params: {
         twitterDescription: description,
         twitterImage: fallbackImage,
         h1,
-        structuredData: [],
+        structuredData: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 2, name: 'About Us', item: canonicalUrl },
+            ],
+          },
+        ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Home', url: 'https://evencify.com/' },
           { name: 'About Us', url: canonicalUrl },
         ],
       };
     }
 
     case 'contact': {
-      const title = 'Contact Evencify | Support & Corporate Partnerships';
+      const title = 'Contact Evencify | Organiser & Event Crew Support India';
       const description =
-        'Contact the Evencify team in Surat, Gujarat. Support for event attendees, organizers, and crew members across India.';
+        'Contact the Evencify team in Surat, Gujarat for event organiser onboarding, crew verification support, and event staffing inquiries across India.';
       const canonicalUrl = 'https://evencify.com/contact';
       const h1 = 'Contact Evencify';
 
@@ -1933,18 +1961,27 @@ export function getSEOData(params: {
         twitterDescription: description,
         twitterImage: fallbackImage,
         h1,
-        structuredData: [],
+        structuredData: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 2, name: 'Contact Us', item: canonicalUrl },
+            ],
+          },
+        ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Home', url: 'https://evencify.com/' },
           { name: 'Contact Us', url: canonicalUrl },
         ],
       };
     }
 
     case 'privacy': {
-      const title = 'Privacy Policy | Evencify';
+      const title = 'Privacy Policy | Data Security & Protection | Evencify';
       const description =
-        'Evencify privacy policy and data security practices for event attendees, organizers, and verified crew members.';
+        "Read Evencify's Privacy Policy covering user accounts, event crew verification data, geolocation handling, and platform data security practices.";
       const canonicalUrl = 'https://evencify.com/privacy';
       const h1 = 'Privacy Policy';
 
@@ -1962,18 +1999,27 @@ export function getSEOData(params: {
         twitterDescription: description,
         twitterImage: fallbackImage,
         h1,
-        structuredData: [],
+        structuredData: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 2, name: 'Privacy Policy', item: canonicalUrl },
+            ],
+          },
+        ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Home', url: 'https://evencify.com/' },
           { name: 'Privacy Policy', url: canonicalUrl },
         ],
       };
     }
 
     case 'terms': {
-      const title = 'Terms of Service | Evencify';
+      const title = 'Terms of Service | Platform & Escrow Rules | Evencify';
       const description =
-        'Terms of service, platform agreements, escrow conditions, and code of conduct for users of Evencify.';
+        "Review Evencify's Terms of Service covering platform roles, event crew shift escrow terms, organizer responsibilities, and community conduct.";
       const canonicalUrl = 'https://evencify.com/terms';
       const h1 = 'Terms of Service';
 
@@ -1991,18 +2037,27 @@ export function getSEOData(params: {
         twitterDescription: description,
         twitterImage: fallbackImage,
         h1,
-        structuredData: [],
+        structuredData: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 2, name: 'Terms of Service', item: canonicalUrl },
+            ],
+          },
+        ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Home', url: 'https://evencify.com/' },
           { name: 'Terms of Service', url: canonicalUrl },
         ],
       };
     }
 
     case 'faq': {
-      const title = 'Frequently Asked Questions (FAQ) | Evencify';
+      const title = 'Evencify FAQ | Event Crew Jobs & Organiser Help Center';
       const description =
-        'Answers to frequently asked questions about discovering events, hiring event crew, escrow payouts, and shift attendance on Evencify.';
+        'Find answers to common questions about hiring event crew, discovering upcoming events, escrow payouts, and shift coordination on Evencify.';
       const canonicalUrl = 'https://evencify.com/faq';
       const h1 = 'Frequently Asked Questions';
 
@@ -2020,18 +2075,27 @@ export function getSEOData(params: {
         twitterDescription: description,
         twitterImage: fallbackImage,
         h1,
-        structuredData: [],
+        structuredData: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 2, name: 'FAQ', item: canonicalUrl },
+            ],
+          },
+        ],
         breadcrumbItems: [
-          { name: 'Home', url: 'https://evencify.com' },
+          { name: 'Home', url: 'https://evencify.com/' },
           { name: 'FAQ', url: canonicalUrl },
         ],
       };
     }
 
     case 'sitemap': {
-      const title = 'HTML Sitemap & Event Index | Evencify';
+      const title = 'Evencify Sitemap | Cities, Categories & Live Events';
       const description =
-        'Explore the full directory of public event pages, city guides, category listings, and crew hiring portals on Evencify.';
+        'Browse the complete directory of public event cities, Indian states, event categories, crew staffing pages, and upcoming events on Evencify.';
       const canonicalUrl = 'https://evencify.com/sitemap';
       const h1 = 'Evencify Event & City Index';
 
@@ -2049,7 +2113,16 @@ export function getSEOData(params: {
         twitterDescription: description,
         twitterImage: fallbackImage,
         h1,
-        structuredData: [],
+        structuredData: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://evencify.com/' },
+              { '@type': 'ListItem', position: 2, name: 'Sitemap', item: canonicalUrl },
+            ],
+          },
+        ],
         breadcrumbItems: [
           { name: 'Home', url: 'https://evencify.com/' },
           { name: 'Sitemap', url: canonicalUrl },

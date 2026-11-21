@@ -41,21 +41,21 @@ export const AboutPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-10">
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs">
             <div className="text-3xl font-extrabold text-[#FED000] mb-2">5,000+</div>
-            <h3 className="text-sm font-bold text-neutral-900">Verified Crew Network</h3>
+            <h2 className="text-sm font-bold text-neutral-900">Verified Crew Network</h2>
             <p className="text-xs text-neutral-500 mt-1">
               Screened hospitality staff, security, promoters, and stage technicians across Surat, Ahmedabad, and major Indian cities.
             </p>
           </div>
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs">
             <div className="text-3xl font-extrabold text-[#FED000] mb-2">₹100%</div>
-            <h3 className="text-sm font-bold text-neutral-900">Escrow Payment Security</h3>
+            <h2 className="text-sm font-bold text-neutral-900">Escrow Payment Security</h2>
             <p className="text-xs text-neutral-500 mt-1">
               Guaranteed same-day crew payouts and complete budget protection for organizers.
             </p>
           </div>
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs">
             <div className="text-3xl font-extrabold text-[#FED000] mb-2">25+</div>
-            <h3 className="text-sm font-bold text-neutral-900">Active Indian Cities</h3>
+            <h2 className="text-sm font-bold text-neutral-900">Active Indian Cities</h2>
             <p className="text-xs text-neutral-500 mt-1">
               Hyper-local coverage starting from Gujarat into Maharashtra, Karnataka, NCR, and Telangana.
             </p>
@@ -206,15 +206,15 @@ export const PrivacyPolicyPage: React.FC = () => {
           <p>
             Evencify (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is committed to protecting your privacy in compliance with Indian Information Technology Act, 2000 and Digital Personal Data Protection (DPDP) Act.
           </p>
-          <h3 className="text-base font-bold text-neutral-900">1. Information We Collect</h3>
+          <h2 className="text-base font-bold text-neutral-900">1. Information We Collect</h2>
           <p>
             We collect personal identity details provided during account creation (Name, Email, Mobile number, City), crew verification documentation (Govt ID, experience records), and transaction logs required for escrow payout processing.
           </p>
-          <h3 className="text-base font-bold text-neutral-900">2. Geolocation Data</h3>
+          <h2 className="text-base font-bold text-neutral-900">2. Geolocation Data</h2>
           <p>
             When utilizing our &quot;Events Near Me&quot; discovery feature, location coordinates are processed ephemerally on the client-side device to calculate Haversine distance to event venues. We do not store or sell continuous background location tracking.
           </p>
-          <h3 className="text-base font-bold text-neutral-900">3. Contact</h3>
+          <h2 className="text-base font-bold text-neutral-900">3. Contact</h2>
           <p>For data inquiries or deletion requests, contact privacy@evencify.com.</p>
         </div>
       </div>
@@ -243,15 +243,15 @@ export const TermsOfServicePage: React.FC = () => {
         </div>
 
         <div className="rounded-3xl border border-neutral-200 bg-white p-8 shadow-xs text-sm text-neutral-700 space-y-6 leading-relaxed">
-          <h3 className="text-base font-bold text-neutral-900">1. Platform Role</h3>
+          <h2 className="text-base font-bold text-neutral-900">1. Platform Role</h2>
           <p>
             Evencify provides an online marketplace facilitating discovery of public events and workforce matchmaking between independent event organizers and freelance event crew.
           </p>
-          <h3 className="text-base font-bold text-neutral-900">2. Escrow & Shift Payments</h3>
+          <h2 className="text-base font-bold text-neutral-900">2. Escrow & Shift Payments</h2>
           <p>
             Organizers agree to fund event crew shift budgets into the escrow vault prior to shift commencement. Upon satisfactory shift delivery, funds are disbursed according to the agreed day rate or shift rate.
           </p>
-          <h3 className="text-base font-bold text-neutral-900">3. Code of Conduct</h3>
+          <h2 className="text-base font-bold text-neutral-900">3. Code of Conduct</h2>
           <p>
             Crew members and organizers agree to uphold professional standards on-site. Discrimination, no-shows without prior emergency notification, or unsafe working conditions result in immediate profile suspension.
           </p>

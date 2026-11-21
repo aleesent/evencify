@@ -17,13 +17,16 @@ interface EventCardProps {
   event: EventItem;
   variant?: 'grid' | 'compact';
   showCrewRoles?: boolean;
+  headingLevel?: 'h2' | 'h3';
 }
 
 export const EventCard: React.FC<EventCardProps> = ({
   event,
   variant = 'grid',
   showCrewRoles = true,
+  headingLevel = 'h2',
 }) => {
+  const HeadingTag = headingLevel;
   const citySlug = slugify(event.city || 'india');
   const eventSlug = slugify(event.name);
   const eventUrl = `/events/${citySlug}/${eventSlug}`;
@@ -64,7 +67,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         </div>
 
         {/* Title Link with Real Href for SEO Crawlers */}
-        <h3 className="text-lg sm:text-xl font-bold text-neutral-900 group-hover:text-neutral-950 transition-colors line-clamp-2">
+        <HeadingTag className="text-lg sm:text-xl font-bold text-neutral-900 group-hover:text-neutral-950 transition-colors line-clamp-2">
           <a
             href={eventUrl}
             onClick={handleClick}
@@ -73,7 +76,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           >
             {event.name}
           </a>
-        </h3>
+        </HeadingTag>
 
         {/* Organiser */}
         <p className="mt-1 text-xs text-neutral-500 flex items-center gap-1">

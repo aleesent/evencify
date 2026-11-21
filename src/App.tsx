@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import {
   UserRole,
   EventItem,
@@ -48,29 +48,10 @@ import {
   AUTH_OR_PORTAL_SHORTCUT_ROUTES,
 } from './services/router';
 import { SEOHead } from './components/seo/SEOHead';
-import { EventsDiscoveryPage } from './components/seo/pages/EventsDiscoveryPage';
-import { CityEventsPage } from './components/seo/pages/CityEventsPage';
-import { StateEventsPage } from './components/seo/pages/StateEventsPage';
-import { CategoryEventsPage } from './components/seo/pages/CategoryEventsPage';
-import { CityCategoryEventsPage } from './components/seo/pages/CityCategoryEventsPage';
-import { StateCategoryEventsPage } from './components/seo/pages/StateCategoryEventsPage';
-import { SingleEventPage } from './components/seo/pages/SingleEventPage';
-import { DateEventsPage } from './components/seo/pages/DateEventsPage';
-import { NearMeEventsPage } from './components/seo/pages/NearMeEventsPage';
-import { CrewJobsPage } from './components/seo/pages/CrewJobsPage';
-import { OrganiseEventPage } from './components/seo/pages/OrganiseEventPage';
-import { StaticPage } from './components/seo/pages/StaticPages';
-import { SitemapPage } from './components/seo/pages/SitemapPage';
-import { RobotsPage } from './components/seo/pages/RobotsPage';
 
-// Layout & Global Components
+// Layout & Global Components (eager for immediate homepage render)
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
-import { RoleSelectorModal } from './components/RoleSelectorModal';
-import { AuthModal } from './components/AuthModal';
-import { DirectLinksModal } from './components/DirectLinksModal';
-import { NotificationDrawer } from './components/NotificationDrawer';
-import { EventCoordinationChatModal } from './components/EventCoordinationChatModal';
 
 // Landing Page Components (Strictly Informational / Marketing)
 import { HeroSection } from './components/landing/HeroSection';
@@ -80,18 +61,89 @@ import { TrustSection } from './components/landing/TrustSection';
 import { FinalCtaSection } from './components/landing/FinalCtaSection';
 import { FaqSection } from './components/landing/FaqSection';
 
-// Authenticated Crew Component
-import { CrewDashboardView } from './components/crew/CrewDashboardView';
-import { CrewOnboardingModal } from './components/crew/CrewOnboardingModal';
-import { CrewProfileModal } from './components/crew/CrewProfileModal';
+// Lazy-loaded SEO Sub-pages (keeps initial mobile homepage bundle lean)
+const EventsDiscoveryPage = lazy(() =>
+  import('./components/seo/pages/EventsDiscoveryPage').then((m) => ({ default: m.EventsDiscoveryPage }))
+);
+const CityEventsPage = lazy(() =>
+  import('./components/seo/pages/CityEventsPage').then((m) => ({ default: m.CityEventsPage }))
+);
+const StateEventsPage = lazy(() =>
+  import('./components/seo/pages/StateEventsPage').then((m) => ({ default: m.StateEventsPage }))
+);
+const CategoryEventsPage = lazy(() =>
+  import('./components/seo/pages/CategoryEventsPage').then((m) => ({ default: m.CategoryEventsPage }))
+);
+const CityCategoryEventsPage = lazy(() =>
+  import('./components/seo/pages/CityCategoryEventsPage').then((m) => ({ default: m.CityCategoryEventsPage }))
+);
+const StateCategoryEventsPage = lazy(() =>
+  import('./components/seo/pages/StateCategoryEventsPage').then((m) => ({ default: m.StateCategoryEventsPage }))
+);
+const SingleEventPage = lazy(() =>
+  import('./components/seo/pages/SingleEventPage').then((m) => ({ default: m.SingleEventPage }))
+);
+const DateEventsPage = lazy(() =>
+  import('./components/seo/pages/DateEventsPage').then((m) => ({ default: m.DateEventsPage }))
+);
+const NearMeEventsPage = lazy(() =>
+  import('./components/seo/pages/NearMeEventsPage').then((m) => ({ default: m.NearMeEventsPage }))
+);
+const CrewJobsPage = lazy(() =>
+  import('./components/seo/pages/CrewJobsPage').then((m) => ({ default: m.CrewJobsPage }))
+);
+const OrganiseEventPage = lazy(() =>
+  import('./components/seo/pages/OrganiseEventPage').then((m) => ({ default: m.OrganiseEventPage }))
+);
+const StaticPage = lazy(() =>
+  import('./components/seo/pages/StaticPages').then((m) => ({ default: m.StaticPage }))
+);
+const SitemapPage = lazy(() =>
+  import('./components/seo/pages/SitemapPage').then((m) => ({ default: m.SitemapPage }))
+);
+const RobotsPage = lazy(() =>
+  import('./components/seo/pages/RobotsPage').then((m) => ({ default: m.RobotsPage }))
+);
 
-// Authenticated Organiser Components
-import { OrganiserDashboard } from './components/organiser/OrganiserDashboard';
-import { CreateEventModal } from './components/organiser/CreateEventModal';
-import { OrganiserOnboardingModal } from './components/organiser/OrganiserOnboardingModal';
+// Lazy-loaded Modals (loaded on demand when triggered)
+const RoleSelectorModal = lazy(() =>
+  import('./components/RoleSelectorModal').then((m) => ({ default: m.RoleSelectorModal }))
+);
+const AuthModal = lazy(() =>
+  import('./components/AuthModal').then((m) => ({ default: m.AuthModal }))
+);
+const DirectLinksModal = lazy(() =>
+  import('./components/DirectLinksModal').then((m) => ({ default: m.DirectLinksModal }))
+);
+const NotificationDrawer = lazy(() =>
+  import('./components/NotificationDrawer').then((m) => ({ default: m.NotificationDrawer }))
+);
+const EventCoordinationChatModal = lazy(() =>
+  import('./components/EventCoordinationChatModal').then((m) => ({ default: m.EventCoordinationChatModal }))
+);
 
-// Authenticated Admin Components
-import { AdminDashboard } from './components/admin/AdminDashboard';
+// Lazy-loaded Authenticated Role Dashboards & Modals
+const CrewDashboardView = lazy(() =>
+  import('./components/crew/CrewDashboardView').then((m) => ({ default: m.CrewDashboardView }))
+);
+const CrewOnboardingModal = lazy(() =>
+  import('./components/crew/CrewOnboardingModal').then((m) => ({ default: m.CrewOnboardingModal }))
+);
+const CrewProfileModal = lazy(() =>
+  import('./components/crew/CrewProfileModal').then((m) => ({ default: m.CrewProfileModal }))
+);
+const OrganiserDashboard = lazy(() =>
+  import('./components/organiser/OrganiserDashboard').then((m) => ({ default: m.OrganiserDashboard }))
+);
+const CreateEventModal = lazy(() =>
+  import('./components/organiser/CreateEventModal').then((m) => ({ default: m.CreateEventModal }))
+);
+const OrganiserOnboardingModal = lazy(() =>
+  import('./components/organiser/OrganiserOnboardingModal').then((m) => ({ default: m.OrganiserOnboardingModal }))
+);
+const AdminDashboard = lazy(() =>
+  import('./components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
+);
 
 /**
  * Checks whether an event was created by or belongs to the specified organiser.
@@ -1719,77 +1771,79 @@ export default function App() {
 
       {/* Main Content Areas */}
       <main className={`flex-1 ${currentRole !== 'visitor' ? 'pt-24 sm:pt-28' : ''}`}>
-        {/* VIEW 1: VISITOR / PUBLIC WEBSITE & SEO PAGES (NO LOGIN REQUIRED) */}
-        {currentRole === 'visitor' && renderVisitorRouteContent()}
+        <Suspense fallback={<div className="min-h-[60vh] bg-[#FAFAFB]" aria-busy="true" />}>
+          {/* VIEW 1: VISITOR / PUBLIC WEBSITE & SEO PAGES (NO LOGIN REQUIRED) */}
+          {currentRole === 'visitor' && renderVisitorRouteContent()}
 
-        {/* VIEW 2: CREW PORTAL (AUTHENTICATED ONLY) */}
-        {currentRole === 'crew' && (
-          <CrewDashboardView
-            crewProfile={currentCrewProfile}
-            events={events}
-            applications={applications}
-            eventGroups={eventGroups}
-            onOpenGroupChat={(grp) => setActiveChatGroup(grp)}
-            onApplyToEvent={handleApplyToEvent}
-            onOpenProfileModal={() => setCrewOnboardingOpen(true)}
-            onOpenOnboarding={() => setCrewOnboardingOpen(true)}
-            onLogout={handleLogout}
-            activeTab={activeCrewTab}
-            onTabChange={setActiveCrewTab}
-          />
-        )}
+          {/* VIEW 2: CREW PORTAL (AUTHENTICATED ONLY) */}
+          {currentRole === 'crew' && (
+            <CrewDashboardView
+              crewProfile={currentCrewProfile}
+              events={events}
+              applications={applications}
+              eventGroups={eventGroups}
+              onOpenGroupChat={(grp) => setActiveChatGroup(grp)}
+              onApplyToEvent={handleApplyToEvent}
+              onOpenProfileModal={() => setCrewOnboardingOpen(true)}
+              onOpenOnboarding={() => setCrewOnboardingOpen(true)}
+              onLogout={handleLogout}
+              activeTab={activeCrewTab}
+              onTabChange={setActiveCrewTab}
+            />
+          )}
 
-        {/* VIEW 3: ORGANISER COMMAND CENTER (AUTHENTICATED ONLY) */}
-        {currentRole === 'organiser' && (
-          <OrganiserDashboard
-            events={events}
-            applications={applications}
-            crewList={crewList}
-            organiserProfile={currentOrganiserProfile}
-            eventGroups={eventGroups}
-            onOpenGroupChat={(grp) => setActiveChatGroup(grp)}
-            onOpenCreateEvent={() => setCreateEventModalOpen(true)}
-            onOpenOnboarding={() => setOrganiserOnboardingOpen(true)}
-            onSelectEvent={() => {}}
-            onViewCrewProfile={(crew) => setSelectedCrewForDetail(crew)}
-            onUpdateApplicationStatus={handleUpdateAppStatus}
-            onUpdateEventStatus={handleUpdateEventStatus}
-            onEditEvent={handleEditEvent}
-            onDeleteEvent={handleDeleteEvent}
-            onCompleteEventAndRateCrew={handleCompleteEventAndRateCrew}
-            activeTab={activeOrganiserTab}
-            onTabChange={setActiveOrganiserTab}
-          />
-        )}
+          {/* VIEW 3: ORGANISER COMMAND CENTER (AUTHENTICATED ONLY) */}
+          {currentRole === 'organiser' && (
+            <OrganiserDashboard
+              events={events}
+              applications={applications}
+              crewList={crewList}
+              organiserProfile={currentOrganiserProfile}
+              eventGroups={eventGroups}
+              onOpenGroupChat={(grp) => setActiveChatGroup(grp)}
+              onOpenCreateEvent={() => setCreateEventModalOpen(true)}
+              onOpenOnboarding={() => setOrganiserOnboardingOpen(true)}
+              onSelectEvent={() => {}}
+              onViewCrewProfile={(crew) => setSelectedCrewForDetail(crew)}
+              onUpdateApplicationStatus={handleUpdateAppStatus}
+              onUpdateEventStatus={handleUpdateEventStatus}
+              onEditEvent={handleEditEvent}
+              onDeleteEvent={handleDeleteEvent}
+              onCompleteEventAndRateCrew={handleCompleteEventAndRateCrew}
+              activeTab={activeOrganiserTab}
+              onTabChange={setActiveOrganiserTab}
+            />
+          )}
 
-        {/* VIEW 4: ADMIN PLATFORM MANAGEMENT (AUTHENTICATED ONLY) */}
-        {currentRole === 'admin' && (
-          <AdminDashboard
-            crewList={crewList}
-            events={events}
-            applications={applications}
-            organiserProfile={currentOrganiserProfile}
-            adminProfile={currentAdminProfile}
-            users={users}
-            eventGroups={eventGroups}
-            onCreateEventGroup={handleCreateEventGroup}
-            onDiscreateEventGroup={handleDiscreateGroup}
-            onOpenGroupChat={(grp) => setActiveChatGroup(grp)}
-            onToggleUserStatus={handleToggleUserStatus}
-            onToggleUserVerification={handleToggleUserVerification}
-            onUpdateUser={handleUpdateUser}
-            onCreateUser={handleCreateUser}
-            onUpdateUserRole={handleUpdateUserRole}
-            onDeleteUser={handleDeleteUser}
-            onUpdateEventStatus={handleUpdateEventStatus}
-            onEditEvent={handleEditEvent}
-            onDeleteEvent={handleDeleteEvent}
-            onUpdateApplicationStatus={handleUpdateAppStatus}
-            onDeleteApplication={handleDeleteApplication}
-            onViewCrewProfile={(crew) => setSelectedCrewForDetail(crew)}
-            onLogout={handleLogout}
-          />
-        )}
+          {/* VIEW 4: ADMIN PLATFORM MANAGEMENT (AUTHENTICATED ONLY) */}
+          {currentRole === 'admin' && (
+            <AdminDashboard
+              crewList={crewList}
+              events={events}
+              applications={applications}
+              organiserProfile={currentOrganiserProfile}
+              adminProfile={currentAdminProfile}
+              users={users}
+              eventGroups={eventGroups}
+              onCreateEventGroup={handleCreateEventGroup}
+              onDiscreateEventGroup={handleDiscreateGroup}
+              onOpenGroupChat={(grp) => setActiveChatGroup(grp)}
+              onToggleUserStatus={handleToggleUserStatus}
+              onToggleUserVerification={handleToggleUserVerification}
+              onUpdateUser={handleUpdateUser}
+              onCreateUser={handleCreateUser}
+              onUpdateUserRole={handleUpdateUserRole}
+              onDeleteUser={handleDeleteUser}
+              onUpdateEventStatus={handleUpdateEventStatus}
+              onEditEvent={handleEditEvent}
+              onDeleteEvent={handleDeleteEvent}
+              onUpdateApplicationStatus={handleUpdateAppStatus}
+              onDeleteApplication={handleDeleteApplication}
+              onViewCrewProfile={(crew) => setSelectedCrewForDetail(crew)}
+              onLogout={handleLogout}
+            />
+          )}
+        </Suspense>
       </main>
 
       {/* Global Footer (Marketing & Governance Links) */}
@@ -1799,222 +1853,240 @@ export default function App() {
         onOpenDirectLinks={() => setDirectLinksOpen(true)}
       />
 
-      {/* Global Modals */}
-      <RoleSelectorModal
-        isOpen={roleModalOpen}
-        onClose={() => setRoleModalOpen(false)}
-        onSelectRole={handleSelectRole}
-      />
+      {/* Global Modals (loaded lazily on demand) */}
+      <Suspense fallback={null}>
+        {roleModalOpen && (
+          <RoleSelectorModal
+            isOpen={roleModalOpen}
+            onClose={() => setRoleModalOpen(false)}
+            onSelectRole={handleSelectRole}
+          />
+        )}
 
-      <DirectLinksModal
-        isOpen={directLinksOpen}
-        onClose={() => {
-          setDirectLinksOpen(false);
-          if (
-            window.location.search.includes('direct-links') ||
-            window.location.search.includes('links=') ||
-            window.location.hash.includes('links')
-          ) {
-            window.history.replaceState({}, '', window.location.pathname);
-          }
-        }}
-      />
+        {directLinksOpen && (
+          <DirectLinksModal
+            isOpen={directLinksOpen}
+            onClose={() => {
+              setDirectLinksOpen(false);
+              if (
+                window.location.search.includes('direct-links') ||
+                window.location.search.includes('links=') ||
+                window.location.hash.includes('links')
+              ) {
+                window.history.replaceState({}, '', window.location.pathname);
+              }
+            }}
+          />
+        )}
 
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => {
-          setAuthModalOpen(false);
-          if (
-            window.location.search.includes('auth=') ||
-            window.location.search.includes('login=') ||
-            window.location.search.includes('signup=') ||
-            window.location.search.includes('role=') ||
-            window.location.hash.includes('login') ||
-            window.location.hash.includes('signup')
-          ) {
-            window.history.replaceState({}, '', window.location.pathname);
-          }
-        }}
-        targetRole={authTargetRole}
-        initialMode={authInitialMode}
-        onModeChange={(mode) => {
-          setAuthInitialMode(mode);
-          if (typeof window !== 'undefined') {
-            try {
-              const url = new URL(window.location.href);
-              url.searchParams.set('auth', mode);
-              window.history.replaceState({}, '', url.toString());
-            } catch (e) {}
-          }
-        }}
-        onRoleChange={(role) => {
-          setAuthTargetRole(role);
-          if (typeof window !== 'undefined') {
-            try {
-              const url = new URL(window.location.href);
-              url.searchParams.set('role', role);
-              window.history.replaceState({}, '', url.toString());
-            } catch (e) {}
-          }
-        }}
-        onAuthenticated={handleAuthenticated}
-      />
+        {authModalOpen && (
+          <AuthModal
+            isOpen={authModalOpen}
+            onClose={() => {
+              setAuthModalOpen(false);
+              if (
+                window.location.search.includes('auth=') ||
+                window.location.search.includes('login=') ||
+                window.location.search.includes('signup=') ||
+                window.location.search.includes('role=') ||
+                window.location.hash.includes('login') ||
+                window.location.hash.includes('signup')
+              ) {
+                window.history.replaceState({}, '', window.location.pathname);
+              }
+            }}
+            targetRole={authTargetRole}
+            initialMode={authInitialMode}
+            onModeChange={(mode) => {
+              setAuthInitialMode(mode);
+              if (typeof window !== 'undefined') {
+                try {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('auth', mode);
+                  window.history.replaceState({}, '', url.toString());
+                } catch (e) {}
+              }
+            }}
+            onRoleChange={(role) => {
+              setAuthTargetRole(role);
+              if (typeof window !== 'undefined') {
+                try {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('role', role);
+                  window.history.replaceState({}, '', url.toString());
+                } catch (e) {}
+              }
+            }}
+            onAuthenticated={handleAuthenticated}
+          />
+        )}
 
-      <NotificationDrawer
-        isOpen={notificationDrawerOpen}
-        onClose={() => setNotificationDrawerOpen(false)}
-        notifications={notifications}
-        onMarkAllRead={() => {
-          setNotifications(notifications.map((n) => ({ ...n, read: true })));
-          showToast('All notifications marked as read');
-        }}
-        onSelectNotification={(notif) => {
-          setNotificationDrawerOpen(false);
-          if (notif.type === 'application') handleSelectRole('organiser');
-        }}
-      />
+        {notificationDrawerOpen && (
+          <NotificationDrawer
+            isOpen={notificationDrawerOpen}
+            onClose={() => setNotificationDrawerOpen(false)}
+            notifications={notifications}
+            onMarkAllRead={() => {
+              setNotifications(notifications.map((n) => ({ ...n, read: true })));
+              showToast('All notifications marked as read');
+            }}
+            onSelectNotification={(notif) => {
+              setNotificationDrawerOpen(false);
+              if (notif.type === 'application') handleSelectRole('organiser');
+            }}
+          />
+        )}
 
-      {/* Crew Onboarding Modal */}
-      <CrewOnboardingModal
-        isOpen={crewOnboardingOpen}
-        isMandatory={crewOnboardingMandatory}
-        onClose={() => {
-          setCrewOnboardingOpen(false);
-          setCrewOnboardingMandatory(false);
-          markUserOnboardingCompleted(activeUserEmail || currentCrewProfile.email);
-        }}
-        initialProfile={currentCrewProfile}
-        onSaveProfile={async (updated) => {
-          const merged = { ...currentCrewProfile, ...updated };
-          setCurrentCrewProfile(merged);
-          if (updated.name) setActiveUserName(updated.name);
-          if (updated.email) setActiveUserEmail(updated.email);
+        {/* Crew Onboarding Modal */}
+        {crewOnboardingOpen && (
+          <CrewOnboardingModal
+            isOpen={crewOnboardingOpen}
+            isMandatory={crewOnboardingMandatory}
+            onClose={() => {
+              setCrewOnboardingOpen(false);
+              setCrewOnboardingMandatory(false);
+              markUserOnboardingCompleted(activeUserEmail || currentCrewProfile.email);
+            }}
+            initialProfile={currentCrewProfile}
+            onSaveProfile={async (updated) => {
+              const merged = { ...currentCrewProfile, ...updated };
+              setCurrentCrewProfile(merged);
+              if (updated.name) setActiveUserName(updated.name);
+              if (updated.email) setActiveUserEmail(updated.email);
 
-          const targetId = currentCrewProfile.id || activeUserEmail || updated.email || 'crew-1';
-          const targetEmail = activeUserEmail || currentCrewProfile.email || updated.email;
-          try {
-            await EvencifyApi.updateCrewProfile(targetId, updated);
-            await syncDatabase();
-            markUserOnboardingCompleted(targetEmail);
-            setCrewOnboardingMandatory(false);
-            setCrewOnboardingOpen(false);
-            showToast('Crew profile saved & verified!');
-          } catch (err) {
-            console.error('Failed to save crew profile to Supabase:', err);
-            markUserOnboardingCompleted(targetEmail);
-            setCrewOnboardingMandatory(false);
-            setCrewOnboardingOpen(false);
-            showToast('Crew profile updated.');
-          }
-        }}
-      />
+              const targetId = currentCrewProfile.id || activeUserEmail || updated.email || 'crew-1';
+              const targetEmail = activeUserEmail || currentCrewProfile.email || updated.email;
+              try {
+                await EvencifyApi.updateCrewProfile(targetId, updated);
+                await syncDatabase();
+                markUserOnboardingCompleted(targetEmail);
+                setCrewOnboardingMandatory(false);
+                setCrewOnboardingOpen(false);
+                showToast('Crew profile saved & verified!');
+              } catch (err) {
+                console.error('Failed to save crew profile to Supabase:', err);
+                markUserOnboardingCompleted(targetEmail);
+                setCrewOnboardingMandatory(false);
+                setCrewOnboardingOpen(false);
+                showToast('Crew profile updated.');
+              }
+            }}
+          />
+        )}
 
-      {/* Organiser Onboarding Modal */}
-      <OrganiserOnboardingModal
-        isOpen={organiserOnboardingOpen}
-        isMandatory={organiserOnboardingMandatory}
-        onClose={() => {
-          setOrganiserOnboardingOpen(false);
-          setOrganiserOnboardingMandatory(false);
-          markUserOnboardingCompleted(activeUserEmail || currentOrganiserProfile.email);
-        }}
-        initialProfile={currentOrganiserProfile}
-        onSaveProfile={async (updated) => {
-          const merged = { ...currentOrganiserProfile, ...updated };
-          setCurrentOrganiserProfile(merged);
-          if (updated.companyName) setActiveUserName(updated.companyName);
-          else if (updated.name) setActiveUserName(updated.name);
-          if (updated.email) setActiveUserEmail(updated.email);
+        {/* Organiser Onboarding Modal */}
+        {organiserOnboardingOpen && (
+          <OrganiserOnboardingModal
+            isOpen={organiserOnboardingOpen}
+            isMandatory={organiserOnboardingMandatory}
+            onClose={() => {
+              setOrganiserOnboardingOpen(false);
+              setOrganiserOnboardingMandatory(false);
+              markUserOnboardingCompleted(activeUserEmail || currentOrganiserProfile.email);
+            }}
+            initialProfile={currentOrganiserProfile}
+            onSaveProfile={async (updated) => {
+              const merged = { ...currentOrganiserProfile, ...updated };
+              setCurrentOrganiserProfile(merged);
+              if (updated.companyName) setActiveUserName(updated.companyName);
+              else if (updated.name) setActiveUserName(updated.name);
+              if (updated.email) setActiveUserEmail(updated.email);
 
-          const targetId = currentOrganiserProfile.id || activeUserEmail || updated.email || 'org-1';
-          const targetEmail = activeUserEmail || currentOrganiserProfile.email || updated.email;
-          try {
-            await EvencifyApi.updateOrganiserProfile(targetId, updated);
-            await syncDatabase();
-            markUserOnboardingCompleted(targetEmail);
-            setOrganiserOnboardingMandatory(false);
-            setOrganiserOnboardingOpen(false);
-            showToast('Organiser profile saved & verified!');
-          } catch (err) {
-            console.error('Failed to save organiser profile to Supabase:', err);
-            markUserOnboardingCompleted(targetEmail);
-            setOrganiserOnboardingMandatory(false);
-            setOrganiserOnboardingOpen(false);
-            showToast('Organiser profile updated.');
-          }
-        }}
-      />
+              const targetId = currentOrganiserProfile.id || activeUserEmail || updated.email || 'org-1';
+              const targetEmail = activeUserEmail || currentOrganiserProfile.email || updated.email;
+              try {
+                await EvencifyApi.updateOrganiserProfile(targetId, updated);
+                await syncDatabase();
+                markUserOnboardingCompleted(targetEmail);
+                setOrganiserOnboardingMandatory(false);
+                setOrganiserOnboardingOpen(false);
+                showToast('Organiser profile saved & verified!');
+              } catch (err) {
+                console.error('Failed to save organiser profile to Supabase:', err);
+                markUserOnboardingCompleted(targetEmail);
+                setOrganiserOnboardingMandatory(false);
+                setOrganiserOnboardingOpen(false);
+                showToast('Organiser profile updated.');
+              }
+            }}
+          />
+        )}
 
-      {/* Create Event Modal (Organiser) */}
-      <CreateEventModal
-        isOpen={createEventModalOpen}
-        onClose={() => {
-          setCreateEventModalOpen(false);
-          if (
-            window.location.search.includes('create-event') ||
-            window.location.search.includes('new-event') ||
-            window.location.hash.includes('create-event')
-          ) {
-            window.history.replaceState({}, '', window.location.pathname);
-          }
-        }}
-        onEventCreated={handleEventCreated}
-        organiserName={currentOrganiserProfile.companyName || currentOrganiserProfile.name || 'Organiser'}
-        organiserId={currentOrganiserProfile.id || activeUserEmail}
-        organiserEmail={activeUserEmail || currentOrganiserProfile.email}
-      />
+        {/* Create Event Modal (Organiser) */}
+        {createEventModalOpen && (
+          <CreateEventModal
+            isOpen={createEventModalOpen}
+            onClose={() => {
+              setCreateEventModalOpen(false);
+              if (
+                window.location.search.includes('create-event') ||
+                window.location.search.includes('new-event') ||
+                window.location.hash.includes('create-event')
+              ) {
+                window.history.replaceState({}, '', window.location.pathname);
+              }
+            }}
+            onEventCreated={handleEventCreated}
+            organiserName={currentOrganiserProfile.companyName || currentOrganiserProfile.name || 'Organiser'}
+            organiserId={currentOrganiserProfile.id || activeUserEmail}
+            organiserEmail={activeUserEmail || currentOrganiserProfile.email}
+          />
+        )}
 
-      {/* Crew Profile Inspector Modal */}
-      <CrewProfileModal
-        isOpen={!!selectedCrewForDetail}
-        onClose={() => setSelectedCrewForDetail(null)}
-        crew={selectedCrewForDetail}
-        onInvite={(crew) => {
-          showToast(`Direct invitation sent to ${crew.name}!`);
-        }}
-        currentUserRole={currentRole}
-        currentUserId={
-          currentRole === 'admin'
-            ? 'admin-1'
-            : currentRole === 'crew'
-            ? currentCrewProfile.id
-            : currentOrganiserProfile.id
-        }
-        currentUserEmail={
-          currentRole === 'admin'
-            ? 'admin@apexevents.com'
-            : currentRole === 'crew'
-            ? currentCrewProfile.email
-            : currentOrganiserProfile.email
-        }
-      />
-
-      {/* Event Shift Coordination Chat Modal (Admin, Organiser, and Hired Crew) */}
-      {activeChatGroup && (
-        <EventCoordinationChatModal
-          isOpen={!!activeChatGroup}
-          onClose={() => setActiveChatGroup(null)}
-          group={activeChatGroup}
-          currentUser={{
-            id:
+        {/* Crew Profile Inspector Modal */}
+        {!!selectedCrewForDetail && (
+          <CrewProfileModal
+            isOpen={!!selectedCrewForDetail}
+            onClose={() => setSelectedCrewForDetail(null)}
+            crew={selectedCrewForDetail}
+            onInvite={(crew) => {
+              showToast(`Direct invitation sent to ${crew.name}!`);
+            }}
+            currentUserRole={currentRole}
+            currentUserId={
               currentRole === 'admin'
-                ? currentAdminProfile.id
-                : currentRole === 'organiser'
-                ? currentOrganiserProfile.id || 'org-1'
-                : currentCrewProfile.id,
-            name:
+                ? 'admin-1'
+                : currentRole === 'crew'
+                ? currentCrewProfile.id
+                : currentOrganiserProfile.id
+            }
+            currentUserEmail={
               currentRole === 'admin'
-                ? 'Platform Administrator'
-                : currentRole === 'organiser'
-                ? currentOrganiserProfile.companyName || currentOrganiserProfile.name
-                : currentCrewProfile.name,
-            role: currentRole,
-            photo: currentRole === 'crew' ? currentCrewProfile.photo : undefined,
-          }}
-          onSendMessage={handleSendMessageToGroup}
-          onDiscreateGroup={handleDiscreateGroup}
-        />
-      )}
+                ? 'admin@apexevents.com'
+                : currentRole === 'crew'
+                ? currentCrewProfile.email
+                : currentOrganiserProfile.email
+            }
+          />
+        )}
+
+        {/* Event Shift Coordination Chat Modal (Admin, Organiser, and Hired Crew) */}
+        {activeChatGroup && (
+          <EventCoordinationChatModal
+            isOpen={!!activeChatGroup}
+            onClose={() => setActiveChatGroup(null)}
+            group={activeChatGroup}
+            currentUser={{
+              id:
+                currentRole === 'admin'
+                  ? currentAdminProfile.id
+                  : currentRole === 'organiser'
+                  ? currentOrganiserProfile.id || 'org-1'
+                  : currentCrewProfile.id,
+              name:
+                currentRole === 'admin'
+                  ? 'Platform Administrator'
+                  : currentRole === 'organiser'
+                  ? currentOrganiserProfile.companyName || currentOrganiserProfile.name
+                  : currentCrewProfile.name,
+              role: currentRole,
+              photo: currentRole === 'crew' ? currentCrewProfile.photo : undefined,
+            }}
+            onSendMessage={handleSendMessageToGroup}
+            onDiscreateGroup={handleDiscreateGroup}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

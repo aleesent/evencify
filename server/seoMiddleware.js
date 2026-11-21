@@ -274,7 +274,7 @@ async function getPublicEvents() {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 2500);
-    const endpoint = `${supabaseUrl}/rest/v1/events?select=id,name,event_type,date,start_time,end_time,venue,full_address,city,organiser_name,crew_positions_total,crew_positions_available,required_category,pay_amount,pay_basis,status&limit=200`;
+    const endpoint = `${supabaseUrl}/rest/v1/events?select=id,event_name,event_type,event_date,start_time,end_time,venue,full_address,city,organiser_name,total_crew_required,crew_positions_available,required_category,pay_amount,payment_basis,payment_timeline,status,created_at&limit=200`;
 
     const res = await fetch(endpoint, {
       headers: {
@@ -292,21 +292,23 @@ async function getPublicEvents() {
           fetchedAt: now,
           data: rows.map((r) => ({
             id: r.id,
-            name: r.name,
+            name: r.event_name || r.name,
             eventType: r.event_type || 'Event',
-            date: r.date,
+            date: r.event_date || r.date,
             startTime: r.start_time,
             endTime: r.end_time,
             venue: r.venue,
             fullAddress: r.full_address,
             city: r.city || 'India',
             organiserName: r.organiser_name || 'Verified Organiser',
-            crewPositionsTotal: Number(r.crew_positions_total || 0),
+            crewPositionsTotal: Number(r.total_crew_required || r.crew_positions_total || 0),
             crewPositionsAvailable: Number(r.crew_positions_available || 0),
             requiredCategory: r.required_category || 'Event Crew',
             payAmount: Number(r.pay_amount || 0),
-            payBasis: r.pay_basis || 'Per Shift',
-            status: r.status || 'Open',
+            payBasis: r.payment_basis || r.pay_basis || 'Per Shift',
+            paymentTimeline: r.payment_timeline || 'Same Day',
+            status: r.status || 'published',
+            createdAt: r.created_at,
           })),
         };
         return cachedEvents.data;
@@ -368,6 +370,7 @@ function resolveRouteSeo(pathname, events) {
       canonicalUrl: `${BASE_URL}${clean}`,
       robots,
       ogType: 'website',
+      h1: labelMap[clean] ? labelMap[clean].split(' | ')[0] : 'Evencify Portal',
       structuredData: [],
     };
   }
@@ -376,12 +379,13 @@ function resolveRouteSeo(pathname, events) {
   if (clean === '/events') {
     return {
       statusCode: 200,
-      title: 'Upcoming Events in India & Event Staffing Opportunities | Evencify',
+      title: 'Upcoming Events in Surat & India | Live Shows | Evencify',
       description:
-        'Explore verified concerts, exhibitions, conferences, workshops, and corporate events in Surat, Ahmedabad, Mumbai, Bengaluru, and across India on Evencify.',
+        'Explore verified upcoming events in Surat, Gujarat, and across India. View event schedules, venues, and open event crew shifts on Evencify.',
       canonicalUrl: `${BASE_URL}/events`,
       robots: 'index, follow',
       ogType: 'website',
+      h1: 'Upcoming Events in India',
       structuredData: [
         buildBreadcrumbSchema([
           { name: 'Home', url: `${BASE_URL}/` },
@@ -394,12 +398,13 @@ function resolveRouteSeo(pathname, events) {
   if (clean === '/events/near-me') {
     return {
       statusCode: 200,
-      title: 'Events Near Me in Surat & India | Discover Live Events | Evencify',
+      title: 'Events Near Me in Surat & India | Live Events | Evencify',
       description:
-        'Find live concerts, exhibitions, workshops, and event crew shifts near your location on Evencify.',
+        'Find upcoming concerts, exhibitions, workshops, and live events near you today and this weekend across Surat and major Indian cities on Evencify.',
       canonicalUrl: `${BASE_URL}/events/near-me`,
       robots: 'index, follow',
       ogType: 'website',
+      h1: 'Events Happening Near You',
       structuredData: [
         buildBreadcrumbSchema([
           { name: 'Home', url: `${BASE_URL}/` },
@@ -413,12 +418,13 @@ function resolveRouteSeo(pathname, events) {
   if (clean === '/crew-jobs' || clean === '/event-jobs' || clean === '/event-staffing') {
     return {
       statusCode: 200,
-      title: 'Event Crew Jobs & Event Staffing Platform India | Evencify',
+      title: 'Event Crew Jobs in Surat & India | Staffing | Evencify',
       description:
-        'Find event jobs in Surat and across India. Apply as verified hospitality staff, event coordinators, promoters, and technical crew on Evencify.',
+        'Find verified event crew jobs, part-time shifts, and event staff openings in Surat, Ahmedabad, Mumbai, and across India with escrow payouts on Evencify.',
       canonicalUrl: `${BASE_URL}/crew-jobs`,
       robots: 'index, follow',
       ogType: 'website',
+      h1: 'Event Crew Jobs & Staffing Opportunities',
       structuredData: [
         buildBreadcrumbSchema([
           { name: 'Home', url: `${BASE_URL}/` },
@@ -431,12 +437,13 @@ function resolveRouteSeo(pathname, events) {
   if (clean === '/organise-event' || clean === '/event-organisers' || clean === '/event-management') {
     return {
       statusCode: 200,
-      title: 'Hire Event Crew & Manage Event Staffing Online | Evencify',
+      title: 'Hire Event Crew Online | Event Platform India | Evencify',
       description:
-        'Post event requirements, hire verified event staff in Surat and India, manage crew shifts, and settle payouts with Evencify.',
+        'Post event requirements, hire verified event staff in Surat and across India, coordinate shifts, and manage escrow crew payouts on Evencify.',
       canonicalUrl: `${BASE_URL}/organise-event`,
       robots: 'index, follow',
       ogType: 'website',
+      h1: 'Hire Verified Event Crew Across India',
       structuredData: [
         buildBreadcrumbSchema([
           { name: 'Home', url: `${BASE_URL}/` },
@@ -449,12 +456,13 @@ function resolveRouteSeo(pathname, events) {
   if (clean === '/about' || clean === '/about-us') {
     return {
       statusCode: 200,
-      title: 'About Evencify | Event Crew & Organiser Platform in India',
+      title: 'About Evencify | Event Crew & Organiser Platform India',
       description:
-        'Learn how Evencify connects event organisers with verified event crew in Surat and across India.',
+        'Learn about Evencify, our Surat headquarters, verified event crew network, escrow payout security, and how we support event organisers across India.',
       canonicalUrl: `${BASE_URL}/about`,
       robots: 'index, follow',
       ogType: 'website',
+      h1: 'About Evencify',
       structuredData: [
         buildBreadcrumbSchema([
           { name: 'Home', url: `${BASE_URL}/` },
@@ -467,12 +475,13 @@ function resolveRouteSeo(pathname, events) {
   if (clean === '/contact' || clean === '/contact-us') {
     return {
       statusCode: 200,
-      title: 'Contact Evencify | Event Crew & Organiser Support',
+      title: 'Contact Evencify | Organiser & Event Crew Support India',
       description:
-        'Contact the Evencify team for event organiser onboarding, crew verification, or partnership inquiries.',
+        'Contact the Evencify team in Surat, Gujarat for event organiser onboarding, crew verification support, and event staffing inquiries across India.',
       canonicalUrl: `${BASE_URL}/contact`,
       robots: 'index, follow',
       ogType: 'website',
+      h1: 'Contact Evencify',
       structuredData: [
         buildBreadcrumbSchema([
           { name: 'Home', url: `${BASE_URL}/` },
@@ -485,12 +494,13 @@ function resolveRouteSeo(pathname, events) {
   if (clean === '/privacy' || clean === '/privacy-policy') {
     return {
       statusCode: 200,
-      title: 'Privacy Policy | Evencify',
+      title: 'Privacy Policy | Data Security & Protection | Evencify',
       description:
-        'Read Evencify’s Privacy Policy covering user accounts, crew verification data, and platform security.',
+        "Read Evencify's Privacy Policy covering user accounts, event crew verification data, geolocation handling, and platform data security practices.",
       canonicalUrl: `${BASE_URL}/privacy`,
       robots: 'index, follow',
       ogType: 'website',
+      h1: 'Privacy Policy',
       structuredData: [
         buildBreadcrumbSchema([
           { name: 'Home', url: `${BASE_URL}/` },
@@ -503,12 +513,13 @@ function resolveRouteSeo(pathname, events) {
   if (clean === '/terms' || clean === '/terms-of-service') {
     return {
       statusCode: 200,
-      title: 'Terms of Service | Evencify',
+      title: 'Terms of Service | Platform & Escrow Rules | Evencify',
       description:
-        'Review Evencify’s Terms of Service for event organisers, freelance event crew, and public visitors.',
+        "Review Evencify's Terms of Service covering platform roles, event crew shift escrow terms, organizer responsibilities, and community conduct.",
       canonicalUrl: `${BASE_URL}/terms`,
       robots: 'index, follow',
       ogType: 'website',
+      h1: 'Terms of Service',
       structuredData: [
         buildBreadcrumbSchema([
           { name: 'Home', url: `${BASE_URL}/` },
@@ -521,12 +532,13 @@ function resolveRouteSeo(pathname, events) {
   if (clean === '/faq' || clean === '/help') {
     return {
       statusCode: 200,
-      title: 'Frequently Asked Questions | Evencify Help Center',
+      title: 'Evencify FAQ | Event Crew Jobs & Organiser Help Center',
       description:
-        'Answers to common questions about hiring event crew, finding event shifts in Surat and India, and using Evencify.',
+        'Find answers to common questions about hiring event crew, discovering upcoming events, escrow payouts, and shift coordination on Evencify.',
       canonicalUrl: `${BASE_URL}/faq`,
       robots: 'index, follow',
       ogType: 'website',
+      h1: 'Frequently Asked Questions',
       structuredData: [
         buildBreadcrumbSchema([
           { name: 'Home', url: `${BASE_URL}/` },
@@ -539,12 +551,13 @@ function resolveRouteSeo(pathname, events) {
   if (clean === '/sitemap') {
     return {
       statusCode: 200,
-      title: 'Sitemap | Evencify Directory',
+      title: 'Evencify Sitemap | Cities, Categories & Live Events',
       description:
-        'Browse all public cities, states, event categories, and upcoming event pages indexed on Evencify.',
+        'Browse the complete directory of public event cities, Indian states, event categories, crew staffing pages, and upcoming events on Evencify.',
       canonicalUrl: `${BASE_URL}/sitemap`,
       robots: 'index, follow',
       ogType: 'website',
+      h1: 'Evencify Event & City Index',
       structuredData: [
         buildBreadcrumbSchema([
           { name: 'Home', url: `${BASE_URL}/` },
@@ -558,13 +571,15 @@ function resolveRouteSeo(pathname, events) {
   for (const dk of DATE_KEYS) {
     if (clean === `/events/${dk}`) {
       const label = dk.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const pageLabel = dk === 'upcoming' ? 'Upcoming Events in India' : `Events ${label} in India`;
       return {
         statusCode: 200,
-        title: `Events Happening ${label} in India | Evencify`,
-        description: `Find upcoming verified concerts, expos, workshops, and crew opportunities happening ${label.toLowerCase()} across Surat and India.`,
+        title: `${pageLabel} | Live Shows | Evencify`,
+        description: `Discover verified events happening ${dk.replace(/-/g, ' ')} across Surat and India. Browse concerts, expos, workshops, and crew shifts on Evencify.`,
         canonicalUrl: `${BASE_URL}/events/${dk}`,
         robots: 'index, follow',
         ogType: 'website',
+        h1: pageLabel,
         structuredData: [
           buildBreadcrumbSchema([
             { name: 'Home', url: `${BASE_URL}/` },
@@ -601,11 +616,12 @@ function resolveRouteSeo(pathname, events) {
         const cat = CATEGORIES[normCat];
         return {
           statusCode: 200,
-          title: `${cat.name} Events in India & Crew Opportunities | Evencify`,
-          description: `Discover upcoming ${cat.name.toLowerCase()} across Surat, Mumbai, Bengaluru, Delhi, and India on Evencify.`,
+          title: `Upcoming ${cat.name} in India | Live Events | Evencify`,
+          description: `Find upcoming ${cat.name.toLowerCase()} across Surat, Mumbai, Bengaluru, Delhi, and India on Evencify. Explore verified schedules, venues, and crew roles.`,
           canonicalUrl: `${BASE_URL}/events/${normCat}`,
           robots: 'index, follow',
           ogType: 'website',
+          h1: `Upcoming ${cat.name} in India`,
           structuredData: [
             buildBreadcrumbSchema([
               { name: 'Home', url: `${BASE_URL}/` },
@@ -618,13 +634,19 @@ function resolveRouteSeo(pathname, events) {
 
       if (STATES[seg]) {
         const st = STATES[seg];
+        const isGujarat = seg === 'gujarat';
         return {
           statusCode: 200,
-          title: `Upcoming Events in ${st.name} | Event Staffing & Crew | Evencify`,
-          description: `Discover events and hire event crew across ${st.name} on Evencify.`,
+          title: isGujarat
+            ? 'Events in Gujarat | Concerts, Expos & Crew | Evencify'
+            : `Events in ${st.name} | Upcoming Shows & Crew | Evencify`,
+          description: isGujarat
+            ? 'Discover upcoming events in Gujarat across Surat, Ahmedabad, Vadodara, and Rajkot. Browse concerts, expos, corporate events, and crew shifts on Evencify.'
+            : `Discover upcoming concerts, workshops, conferences, exhibitions, and corporate events across ${st.name} with verified venues and crew shifts on Evencify.`,
           canonicalUrl: `${BASE_URL}/events/${seg}`,
           robots: 'index, follow',
           ogType: 'website',
+          h1: `Upcoming Events in ${st.name}`,
           structuredData: [
             buildBreadcrumbSchema([
               { name: 'Home', url: `${BASE_URL}/` },
@@ -642,13 +664,14 @@ function resolveRouteSeo(pathname, events) {
           statusCode: 200,
           title: isSurat
             ? 'Events in Surat & Hire Event Crew in Surat | Evencify'
-            : `Upcoming Events in ${city.name}, ${city.state} | Evencify`,
+            : `Events in ${city.name} | Upcoming Events | Evencify`,
           description: isSurat
-            ? 'Explore upcoming events in Surat, hire verified event crew in Surat, or find event jobs across Vesu, Adajan, Dumas Road, and City Light on Evencify.'
-            : `Discover upcoming events, conferences, concerts, and event staffing opportunities in ${city.name}, ${city.state} on Evencify.`,
+            ? 'Explore upcoming events in Surat, hire verified event crew, or find event jobs across Vesu, Adajan, Dumas Road, and SIECC on Evencify.'
+            : `Discover upcoming events in ${city.name}, ${city.state} with Evencify. Browse concerts, workshops, conferences, exhibitions, and event staffing shifts.`,
           canonicalUrl: `${BASE_URL}/events/${normCity}`,
           robots: 'index, follow',
           ogType: 'website',
+          h1: isSurat ? 'Events in Surat 2026' : `Upcoming Events in ${city.name}`,
           structuredData: [
             buildBreadcrumbSchema([
               { name: 'Home', url: `${BASE_URL}/` },
@@ -671,11 +694,12 @@ function resolveRouteSeo(pathname, events) {
         const cat = CATEGORIES[normCat];
         return {
           statusCode: 200,
-          title: `${cat.name} Events in ${st.name} | Evencify`,
-          description: `Browse ${cat.name.toLowerCase()} across ${st.name} on Evencify.`,
+          title: `${cat.name} in ${st.name} | Live Events | Evencify`,
+          description: `Discover upcoming ${cat.name.toLowerCase()} across ${st.name} on Evencify. Explore verified event dates, venues, organisers, and event crew openings.`,
           canonicalUrl: `${BASE_URL}/events/${seg1}/${normCat}`,
           robots: 'index, follow',
           ogType: 'website',
+          h1: `${cat.name} Events in ${st.name}`,
           structuredData: [
             buildBreadcrumbSchema([
               { name: 'Home', url: `${BASE_URL}/` },
@@ -691,11 +715,12 @@ function resolveRouteSeo(pathname, events) {
         const cat = CATEGORIES[normCat];
         return {
           statusCode: 200,
-          title: `${cat.name} in ${city.name} | Upcoming Events | Evencify`,
-          description: `Discover verified ${cat.name.toLowerCase()} in ${city.name}, ${city.state} on Evencify.`,
+          title: `${cat.name} in ${city.name} | Live Events | Evencify`,
+          description: `Discover upcoming ${cat.name.toLowerCase()} in ${city.name}, ${city.state} on Evencify. Browse verified event schedules, venues, and open event crew shifts.`,
           canonicalUrl: `${BASE_URL}/events/${normCity}/${normCat}`,
           robots: 'index, follow',
           ogType: 'website',
+          h1: `${cat.name} Events in ${city.name}`,
           structuredData: [
             buildBreadcrumbSchema([
               { name: 'Home', url: `${BASE_URL}/` },
@@ -726,6 +751,7 @@ function resolveRouteSeo(pathname, events) {
     canonicalUrl: `${BASE_URL}/404`,
     robots: 'noindex, nofollow',
     ogType: 'website',
+    h1: 'Page Not Found',
     structuredData: [],
   };
 }
@@ -735,40 +761,48 @@ function buildEventSeo(event) {
   const eventSlug = slugify(event.name);
   const canonicalUrl = `${BASE_URL}/events/${citySlug}/${eventSlug}`;
   const today = getTodayIsoDate();
+  const statusLower = String(event.status || '').toLowerCase();
   const isExpired = Boolean(event.date && event.date < today);
-  const isCancelled = String(event.status || '').toLowerCase() === 'cancelled';
+  const isCancelled = statusLower === 'cancelled';
+  const isPublicStatus =
+    statusLower === 'open' || statusLower === 'published' || statusLower === 'in-progress';
+  const isUpcoming = !isCancelled && !isExpired && isPublicStatus;
   const startIso = `${event.date}T${event.startTime || '10:00'}:00+05:30`;
   const endIso = `${event.date}T${event.endTime || '22:00'}:00+05:30`;
 
-  const eventStatus = isCancelled
-    ? 'https://schema.org/EventCancelled'
-    : 'https://schema.org/EventScheduled';
+  const eventSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: event.name,
+    startDate: startIso,
+    endDate: endIso,
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    image: [DEFAULT_IMAGE],
+    location: {
+      '@type': 'Place',
+      name: event.venue,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: event.fullAddress || event.venue,
+        addressLocality: event.city,
+        addressCountry: 'IN',
+      },
+    },
+    organizer: {
+      '@type': 'Organization',
+      name: event.organiserName,
+    },
+    description: `${event.name} (${event.eventType}) at ${event.venue} in ${event.city} on ${event.date}.`,
+  };
+
+  if (isCancelled) {
+    eventSchema.eventStatus = 'https://schema.org/EventCancelled';
+  } else if (isUpcoming) {
+    eventSchema.eventStatus = 'https://schema.org/EventScheduled';
+  }
 
   const schemas = [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'Event',
-      name: event.name,
-      startDate: startIso,
-      endDate: endIso,
-      eventStatus,
-      eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-      location: {
-        '@type': 'Place',
-        name: event.venue,
-        address: {
-          '@type': 'PostalAddress',
-          streetAddress: event.fullAddress || event.venue,
-          addressLocality: event.city,
-          addressCountry: 'IN',
-        },
-      },
-      organizer: {
-        '@type': 'Organization',
-        name: event.organiserName,
-      },
-      description: `${event.name} (${event.eventType}) at ${event.venue} in ${event.city} on ${event.date}.`,
-    },
+    eventSchema,
     buildBreadcrumbSchema([
       { name: 'Home', url: `${BASE_URL}/` },
       { name: 'Events', url: `${BASE_URL}/events` },
@@ -777,14 +811,13 @@ function buildEventSeo(event) {
     ]),
   ];
 
-  const statusLower = String(event.status || '').toLowerCase();
-  const isOpenForJob = statusLower === 'open' || statusLower === 'published' || statusLower === 'in-progress';
-  if (!isExpired && isOpenForJob && event.crewPositionsAvailable > 0 && event.payAmount > 0) {
+  if (isUpcoming && event.crewPositionsAvailable > 0 && event.payAmount > 0) {
     schemas.push({
       '@context': 'https://schema.org',
       '@type': 'JobPosting',
-      title: `${event.requiredCategory} — ${event.name}`,
+      title: `${event.requiredCategory} – ${event.name}`,
       description: `${event.crewPositionsAvailable} event crew positions for ${event.requiredCategory} at ${event.name} (${event.venue}, ${event.city}).`,
+      datePosted: event.createdAt || event.date,
       employmentType: 'TEMPORARY',
       hiringOrganization: {
         '@type': 'Organization',
@@ -805,20 +838,29 @@ function buildEventSeo(event) {
         value: {
           '@type': 'QuantitativeValue',
           value: event.payAmount,
-          unitText: event.payBasis === 'Per Day' ? 'DAY' : 'SHIFT',
+          unitText: event.payBasis === 'Per Hour' ? 'HOUR' : 'DAY',
         },
       },
-      validThrough: startIso,
+      validThrough: `${event.date}T23:59:59+05:30`,
     });
   }
 
+  const rawTitle = `${event.name} in ${event.city} | Evencify`;
+  const title =
+    rawTitle.length <= 60
+      ? rawTitle
+      : `${event.name.slice(0, Math.max(20, 46 - event.city.length)).trim()} – ${event.city} | Evencify`;
+  const rawDesc = `${event.name} at ${event.venue}, ${event.city} on ${event.date}. Organised by ${event.organiserName}. Explore venue details and ${event.requiredCategory || 'event crew'} openings on Evencify.`;
+  const description = rawDesc.length <= 160 ? rawDesc : `${rawDesc.slice(0, 157).trimEnd()}...`;
+
   return {
     statusCode: 200,
-    title: `${event.name} in ${event.city} | Event Schedule & Crew | Evencify`,
-    description: `${event.name} (${event.eventType}) in ${event.city} on ${event.date} at ${event.venue}. View verified event schedule and open crew opportunities on Evencify.`,
+    title,
+    description,
     canonicalUrl,
-    robots: isExpired ? 'noindex, follow' : 'index, follow',
-    ogType: 'event',
+    robots: isPublicStatus && !isExpired ? 'index, follow' : 'noindex, follow',
+    ogType: 'website',
+    h1: event.name,
     structuredData: schemas,
   };
 }
@@ -833,6 +875,7 @@ function injectHeadMetadata(html, seo) {
   const safeDesc = escapeHtml(seo.description);
   const safeCanonical = escapeHtml(seo.canonicalUrl);
   const safeRobots = escapeHtml(seo.robots);
+  const safeH1 = escapeHtml(seo.h1 || seo.title);
   const isNoIndex = String(seo.robots || '').startsWith('noindex');
 
   out = out.replace(/<title>[\s\S]*?<\/title>/i, `<title>${safeTitle}</title>`);
@@ -890,7 +933,7 @@ function injectHeadMetadata(html, seo) {
     `<meta name="twitter:description" content="${safeDesc}" />`
   );
 
-  // Replace existing JSON-LD block cleanly with route-specific schemas
+  // Replace ALL existing JSON-LD blocks cleanly with route-specific schemas (zero duplication)
   const jsonLdTags =
     seo.structuredData && seo.structuredData.length > 0
       ? seo.structuredData
@@ -901,9 +944,21 @@ function injectHeadMetadata(html, seo) {
           .join('\n    ')
       : '';
 
+  let replacedJsonLd = false;
+  out = out.replace(/<script\s+type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/gi, () => {
+    if (replacedJsonLd) return '';
+    replacedJsonLd = true;
+    return jsonLdTags;
+  });
+
+  // Update server-side crawlable semantic fallback inside #root for non-JS crawlers & GEO
+  const ssrFallback = isNoIndex
+    ? ''
+    : `<!--SEO_SSR_FALLBACK_START--><main style="min-height:100vh;background:#FDFDFD;color:#111215;padding:96px 24px 48px;max-width:760px"><h1>${safeH1}</h1><p>${safeDesc}</p><nav aria-label="Primary links"><a href="/">Home</a> · <a href="/events">Upcoming Events</a> · <a href="/events/surat">Events in Surat</a> · <a href="/crew-jobs">Event Crew Jobs</a> · <a href="/organise-event">For Organisers</a></nav></main><!--SEO_SSR_FALLBACK_END-->`;
+
   out = out.replace(
-    /<script\s+type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/i,
-    jsonLdTags
+    /<!--SEO_SSR_FALLBACK_START-->[\s\S]*?<!--SEO_SSR_FALLBACK_END-->/,
+    ssrFallback
   );
 
   return out;
@@ -918,6 +973,22 @@ export function sendCompressedResponse(req, res, statusCode, contentType, bodyBu
   });
   res.setHeader('Content-Type', contentType);
   res.setHeader('Vary', 'Accept-Encoding');
+
+  if (acceptEncoding.includes('br') && buf.length > 512) {
+    zlib.brotliCompress(
+      buf,
+      { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 4 } },
+      (err, compressed) => {
+        if (err) {
+          res.status(statusCode).send(buf);
+          return;
+        }
+        res.setHeader('Content-Encoding', 'br');
+        res.status(statusCode).send(compressed);
+      }
+    );
+    return;
+  }
 
   if (acceptEncoding.includes('gzip') && buf.length > 512) {
     zlib.gzip(buf, (err, compressed) => {

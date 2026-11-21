@@ -1,0 +1,27 @@
+# Evencify
+
+> Evencify is an event platform based in Surat, Gujarat, India that connects event organisers with verified event crew and helps visitors discover upcoming public events across India.
+
+## Canonical Domain
+- Website: https://evencify.com/
+- Sitemap: https://evencify.com/sitemap.xml
+- Robots: https://evencify.com/robots.txt
+
+## Core Public Sections
+- [Homepage](https://evencify.com/): Platform overview for event organisers and event crew in Surat and across India.
+- [Upcoming Events](https://evencify.com/events): Directory of verified upcoming public events across India.
+- [Events in Surat](https://evencify.com/events/surat): Local Surat events, expos, concerts, and event staffing opportunities.
+- [Events in Gujarat](https://evencify.com/events/gujarat): Statewide Gujarat event listings across Surat, Ahmedabad, Vadodara, and Rajkot.
+- [Events Near Me](https://evencify.com/events/near-me): Location-based event discovery across Indian cities.
+- [Event Crew Jobs](https://evencify.com/crew-jobs): Event staffing roles, shift categories, and crew onboarding overview.
+- [For Event Organisers](https://evencify.com/organise-event): Event crew hiring and workforce management overview for organisers.
+- [About Evencify](https://evencify.com/about): Platform background and mission.
+- [FAQ](https://evencify.com/faq): Frequently asked questions for organisers and event crew.
+- [Contact](https://evencify.com/contact): Official contact details (`support@evencify.com`).
+- [HTML Sitemap](https://evencify.com/sitemap): Index of public cities, states, and event categories.
+- [Privacy Policy](https://evencify.com/privacy)
+- [Terms of Service](https://evencify.com/terms)
+
+## Crawl & Privacy Boundaries
+- Public event listings, city/state/category directories, and informational pages are publicly crawlable and indexable.
+- Authentication pages (`/login`, `/signup`), user portals (`/crew`, `/organiser`), administrative consoles (`/admin`), and `/api/*` endpoints are private and marked `noindex`.

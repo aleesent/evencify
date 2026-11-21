@@ -202,21 +202,13 @@ export function generateAllSitemapEntries(
     });
   });
 
-  // 10. Crew & Organiser Public Solution Pages
+  // 10. Crew & Organiser Public Solution Pages (canonical URLs only; exclude alias paths)
   entries.push({
     loc: `${BASE_URL}/crew-jobs`,
     lastmod: today,
     changefreq: 'daily',
     priority: '0.85',
-    title: 'Event Crew Jobs & Event Staffing in Surat & India | Evencify',
-    section: 'Careers',
-  });
-  entries.push({
-    loc: `${BASE_URL}/event-staffing`,
-    lastmod: today,
-    changefreq: 'daily',
-    priority: '0.8',
-    title: 'Event Staffing Platform & Crew Shifts | Evencify',
+    title: 'Event Crew Jobs in Surat & India | Staffing | Evencify',
     section: 'Careers',
   });
   entries.push({
@@ -224,15 +216,7 @@ export function generateAllSitemapEntries(
     lastmod: today,
     changefreq: 'weekly',
     priority: '0.85',
-    title: 'Hire Event Crew & Manage Events | Evencify',
-    section: 'Organisers',
-  });
-  entries.push({
-    loc: `${BASE_URL}/event-management`,
-    lastmod: today,
-    changefreq: 'weekly',
-    priority: '0.8',
-    title: 'Event Management Platform India | Evencify',
+    title: 'Hire Event Crew Online | Event Platform India | Evencify',
     section: 'Organisers',
   });
 
@@ -278,7 +262,14 @@ export function generateAllSitemapEntries(
     section: 'Legal',
   });
 
-  return entries;
+  // Strictly deduplicate by canonical loc (e.g. prevents /events/delhi duplication between cities and states)
+  const seen = new Set<string>();
+  return entries.filter((entry) => {
+    const normalized = entry.loc.toLowerCase();
+    if (seen.has(normalized)) return false;
+    seen.add(normalized);
+    return true;
+  });
 }
 
 export function generateSitemapXml(entries: SitemapUrlEntry[]): string {

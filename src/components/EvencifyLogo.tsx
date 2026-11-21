@@ -31,8 +31,8 @@ export const EvencifyLogo: React.FC<EvencifyLogoProps> = ({
           <img
             src="/evencify.logo.png"
             alt="Evencify — Event Crew & Organiser Platform"
-            width={2161}
-            height={728}
+            width={540}
+            height={182}
             className={`${heightMap[size]} w-auto object-contain transition-transform duration-200 hover:scale-[1.02]`}
             style={{
               filter:

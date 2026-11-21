@@ -147,9 +147,9 @@ export const StateCategoryEventsPage: React.FC<StateCategoryEventsPageProps> = (
         ) : (
           <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-12 text-center my-6">
             <Calendar className="mx-auto h-10 w-10 text-neutral-400 mb-3" />
-            <h3 className="text-lg font-bold text-neutral-900">
+            <h2 className="text-lg font-bold text-neutral-900">
               No active {category.name.toLowerCase()} scheduled across {state.name} right now
-            </h3>
+            </h2>
             <p className="mt-1 text-sm text-neutral-500 max-w-md mx-auto">
               Organizing an event in {state.name}? List it on Evencify to hire background-verified crew and reach attendees.
             </p>
