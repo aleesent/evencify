@@ -210,3 +210,99 @@ apiRouter.post('/brevo/test-connection', async (req, res) => {
     return res.status(500).json({ success: false, message: err.message });
   }
 });
+
+// 6. Same-origin Supabase API Proxy Fallback (handles ISP/iframe/CORS browser fetch blocks)
+const ALLOWED_SUPABASE_PREFIXES = ['/rest/v1/', '/auth/v1/', '/storage/v1/', '/functions/v1/'];
+const FORWARDED_REQ_HEADERS = [
+  'apikey',
+  'authorization',
+  'content-type',
+  'accept',
+  'prefer',
+  'range',
+  'accept-profile',
+  'content-profile',
+  'x-client-info',
+  'x-supabase-api-version',
+  'if-none-match',
+  'if-modified-since',
+];
+const FORWARDED_RES_HEADERS = [
+  'content-type',
+  'content-range',
+  'preference-applied',
+  'etag',
+  'cache-control',
+];
+
+const getSupabaseUpstreamBase = () => {
+  const raw =
+    process.env.VITE_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    'https://tutspdayygbrrqtuepao.supabase.co';
+  return raw.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
+};
+
+apiRouter.use('/supabase', async (req, res) => {
+  try {
+    const reqUrl = req.url || '/';
+    const qIdx = reqUrl.indexOf('?');
+    const pathname = qIdx >= 0 ? reqUrl.slice(0, qIdx) : reqUrl;
+    const search = qIdx >= 0 ? reqUrl.slice(qIdx) : '';
+
+    if (
+      pathname.includes('..') ||
+      !ALLOWED_SUPABASE_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+    ) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Invalid Supabase proxy path.' }));
+    }
+
+    const upstreamBase = getSupabaseUpstreamBase();
+    const targetUrl = `${upstreamBase}${pathname}${search}`;
+
+    const headers = {};
+    for (const h of FORWARDED_REQ_HEADERS) {
+      const val = getReqHeader(req, h);
+      if (val !== undefined && val !== '') {
+        headers[h] = val;
+      }
+    }
+
+    const method = (req.method || 'GET').toUpperCase();
+    let body;
+    if (method !== 'GET' && method !== 'HEAD') {
+      if (typeof req.rawBody === 'string' && req.rawBody.length > 0) {
+        body = req.rawBody;
+      } else if (req.body !== undefined && req.body !== null) {
+        body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+      }
+    }
+
+    const upstreamRes = await fetch(targetUrl, {
+      method,
+      headers,
+      body,
+    });
+
+    const buf = Buffer.from(await upstreamRes.arrayBuffer());
+    res.statusCode = upstreamRes.status;
+    for (const h of FORWARDED_RES_HEADERS) {
+      const val = upstreamRes.headers.get(h);
+      if (val !== null) {
+        res.setHeader(h, val);
+      }
+    }
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    return res.end(buf);
+  } catch (err) {
+    res.statusCode = 502;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(
+      JSON.stringify({
+        message: err?.message || 'Supabase upstream proxy error',
+      })
+    );
+  }
+});

@@ -26,6 +26,18 @@ export interface AuthSessionUser {
   isVerified?: boolean;
 }
 
+function isTransientFetchError(err: unknown): boolean {
+  if (!err) return false;
+  const text = `${(err as any)?.message || ''} ${(err as any)?.details || ''} ${String(err)}`.toLowerCase();
+  return (
+    text.includes('failed to fetch') ||
+    text.includes('networkerror') ||
+    text.includes('load failed') ||
+    text.includes('aborterror') ||
+    text.includes('network request failed')
+  );
+}
+
 // ============================================================================
 // REAL USER CREDENTIAL PERSISTENCE & COLUMN-SAFE SUPABASE SYNC
 // ============================================================================
@@ -340,7 +352,11 @@ export const EvencifyApi = {
 
       return null;
     } catch (err) {
-      console.error('Failed to get current session:', err);
+      if (isTransientFetchError(err)) {
+        console.warn('Session refresh skipped (network unreachable); using local session.');
+      } else {
+        console.error('Failed to get current session:', err);
+      }
       return localUser;
     }
   },
@@ -1033,7 +1049,11 @@ export const EvencifyApi = {
         .order('event_date', { ascending: true });
 
       if (error) {
-        console.error('Error querying events from Supabase:', error);
+        if (isTransientFetchError(error)) {
+          console.warn('Supabase events temporarily unreachable; using fallback data.');
+        } else {
+          console.error('Error querying events from Supabase:', error);
+        }
         return INITIAL_EVENTS;
       }
 
@@ -1102,8 +1122,12 @@ export const EvencifyApi = {
         };
       });
     } catch (err) {
-      console.error('getEvents failure:', err);
-      return [];
+      if (isTransientFetchError(err)) {
+        console.warn('Supabase events request skipped (network unreachable); using fallback data.');
+      } else {
+        console.error('getEvents failure:', err);
+      }
+      return INITIAL_EVENTS;
     }
   },
 
@@ -1347,7 +1371,11 @@ export const EvencifyApi = {
       ]);
 
       if (appsRes.error) {
-        console.error('Error querying applications:', appsRes.error);
+        if (isTransientFetchError(appsRes.error)) {
+          console.warn('Supabase applications temporarily unreachable; using fallback data.');
+        } else {
+          console.error('Error querying applications:', appsRes.error);
+        }
         return INITIAL_APPLICATIONS;
       }
 
@@ -1397,8 +1425,12 @@ export const EvencifyApi = {
         };
       });
     } catch (err) {
-      console.error('getApplications failure:', err);
-      return [];
+      if (isTransientFetchError(err)) {
+        console.warn('Supabase applications request skipped (network unreachable); using fallback data.');
+      } else {
+        console.error('getApplications failure:', err);
+      }
+      return INITIAL_APPLICATIONS;
     }
   },
 
@@ -1644,7 +1676,11 @@ export const EvencifyApi = {
       ]);
 
       if (crewRes.error) {
-        console.error('Error fetching crew profiles:', crewRes.error);
+        if (isTransientFetchError(crewRes.error)) {
+          console.warn('Supabase crew profiles temporarily unreachable; using fallback data.');
+        } else {
+          console.error('Error fetching crew profiles:', crewRes.error);
+        }
         return INITIAL_CREW_PROFILES;
       }
 
@@ -1726,7 +1762,11 @@ export const EvencifyApi = {
 
       return crewProfilesList.length > 0 ? crewProfilesList : INITIAL_CREW_PROFILES;
     } catch (err) {
-      console.error('getCrewProfiles failure:', err);
+      if (isTransientFetchError(err)) {
+        console.warn('Supabase crew profiles request skipped (network unreachable); using fallback data.');
+      } else {
+        console.error('getCrewProfiles failure:', err);
+      }
       return INITIAL_CREW_PROFILES;
     }
   },
@@ -2138,8 +2178,15 @@ export const EvencifyApi = {
       ]);
 
       if (profilesRes.error || !profilesRes.data) {
-        console.error('Error fetching users:', profilesRes.error);
-        return [];
+        if (isTransientFetchError(profilesRes.error)) {
+          console.warn('Supabase users temporarily unreachable; using fallback data.');
+        } else {
+          console.error('Error fetching users:', profilesRes.error);
+        }
+        return INITIAL_USERS.map((u) => ({
+          ...u,
+          password: resolveUserPassword(null, u.email, u.id),
+        }));
       }
 
       const crewMap: Record<string, any> = {};
@@ -2206,8 +2253,15 @@ export const EvencifyApi = {
         return user;
       });
     } catch (err) {
-      console.error('getUsers failure:', err);
-      return [];
+      if (isTransientFetchError(err)) {
+        console.warn('Supabase users request skipped (network unreachable); using fallback data.');
+      } else {
+        console.error('getUsers failure:', err);
+      }
+      return INITIAL_USERS.map((u) => ({
+        ...u,
+        password: resolveUserPassword(null, u.email, u.id),
+      }));
     }
   },
 
@@ -2614,7 +2668,11 @@ export const EvencifyApi = {
         read: Boolean(n.is_read),
       }));
     } catch (err) {
-      console.error('getNotifications error:', err);
+      if (isTransientFetchError(err)) {
+        console.warn('Notifications refresh skipped (network unreachable).');
+      } else {
+        console.error('getNotifications error:', err);
+      }
       return [];
     }
   },
@@ -2782,7 +2840,11 @@ export const EvencifyApi = {
         messages: msgMap[g.id] || [],
       }));
     } catch (err) {
-      console.error('getCoordinationGroups error:', err);
+      if (isTransientFetchError(err)) {
+        console.warn('Coordination groups refresh skipped (network unreachable).');
+      } else {
+        console.error('getCoordinationGroups error:', err);
+      }
       return [];
     }
   },

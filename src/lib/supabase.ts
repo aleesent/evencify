@@ -64,7 +64,72 @@ export const clearSupabaseConfig = () => {
 
 const config = getSupabaseConfig();
 
+let useSameOriginSupabaseProxy = false;
+
+const isBrowserNetworkFailure = (err: unknown): boolean => {
+  if (!err) return false;
+  const msg = String((err as any)?.message || err).toLowerCase();
+  return (
+    err instanceof TypeError ||
+    msg.includes('failed to fetch') ||
+    msg.includes('networkerror') ||
+    msg.includes('load failed') ||
+    msg.includes('network request failed')
+  );
+};
+
+const toSameOriginProxyUrl = (rawUrl: string): string | null => {
+  if (typeof window === 'undefined') return null;
+  if (!rawUrl.startsWith(config.url)) return null;
+  const suffix = rawUrl.slice(config.url.length);
+  if (!suffix.startsWith('/')) return null;
+  return `${window.location.origin}/api/supabase${suffix}`;
+};
+
+const resilientSupabaseFetch: typeof fetch = async (input, init) => {
+  const nativeFetch = globalThis.fetch.bind(globalThis);
+  const rawUrl =
+    typeof input === 'string'
+      ? input
+      : input instanceof URL
+      ? input.toString()
+      : input.url;
+
+  const proxyUrl = toSameOriginProxyUrl(rawUrl);
+
+  const fetchViaProxy = () => {
+    if (!proxyUrl) return nativeFetch(input, init);
+    if (input instanceof Request) {
+      const clonedInit: RequestInit = {
+        method: input.method,
+        headers: input.headers,
+        body: input.method !== 'GET' && input.method !== 'HEAD' ? input.body : undefined,
+        ...init,
+      };
+      return nativeFetch(proxyUrl, clonedInit);
+    }
+    return nativeFetch(proxyUrl, init);
+  };
+
+  if (useSameOriginSupabaseProxy && proxyUrl) {
+    return fetchViaProxy();
+  }
+
+  try {
+    return await nativeFetch(input, init);
+  } catch (err) {
+    if (proxyUrl && isBrowserNetworkFailure(err)) {
+      useSameOriginSupabaseProxy = true;
+      return fetchViaProxy();
+    }
+    throw err;
+  }
+};
+
 export const supabase: SupabaseClient = createClient(config.url, config.key, {
+  global: {
+    fetch: resilientSupabaseFetch,
+  },
   auth: {
     persistSession: true,
     autoRefreshToken: true,
@@ -76,5 +141,3 @@ export const supabase: SupabaseClient = createClient(config.url, config.key, {
     },
   },
 });
-
-

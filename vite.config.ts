@@ -45,11 +45,17 @@ export default defineConfig(() => {
                   }
                 };
 
-                if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+                if (
+                  req.method === 'POST' ||
+                  req.method === 'PUT' ||
+                  req.method === 'PATCH' ||
+                  req.method === 'DELETE'
+                ) {
                   const chunks: any[] = [];
                   req.on('data', (chunk) => chunks.push(chunk));
                   req.on('end', async () => {
                     const raw = Buffer.concat(chunks).toString();
+                    (req as any).rawBody = raw;
                     try {
                       (req as any).body = raw ? JSON.parse(raw) : {};
                     } catch {
