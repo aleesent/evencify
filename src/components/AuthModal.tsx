@@ -108,6 +108,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   }, [isOpen, targetRole, initialMode, initialTab]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSelectAccountType = (role: 'crew' | 'organiser') => {
@@ -447,8 +456,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.12, ease: 'easeOut' }}
           onClick={onClose}
-          className="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs"
+          className="fixed inset-0 bg-neutral-950/60 backdrop-blur-[2px]"
         />
 
         {/* ======================================================== */}
@@ -457,10 +467,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {step === 'choose-role' && (
           <motion.div
             key="choose-role-step"
-            initial={{ opacity: 0, scale: 0.97, y: 12 }}
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: 12 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            exit={{ opacity: 0, scale: 0.98, y: 6 }}
+            transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+            style={{ willChange: 'transform, opacity' }}
             className="relative w-full max-w-lg overflow-hidden rounded-2xl sm:rounded-3xl border border-neutral-200/80 bg-white p-6 sm:p-8 shadow-2xl z-10 my-auto"
           >
             {/* Close Button */}

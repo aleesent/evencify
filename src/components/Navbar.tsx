@@ -35,6 +35,7 @@ interface NavbarProps {
   onNavigateCrewTab?: (tab: 'overview' | 'find-events' | 'applications' | 'profile') => void;
   onNavigateOrganiserTab?: (tab: 'overview' | 'events' | 'crew' | 'applications' | 'profile') => void;
   onOpenProfile?: () => void;
+  onPreloadAuth?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -53,6 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNavigateCrewTab,
   onNavigateOrganiserTab,
   onOpenProfile,
+  onPreloadAuth,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -120,10 +122,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] px-3 sm:px-4">
+    <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none px-3 sm:px-4">
       {/* Floating Glass Pill Container */}
       <header
-        className={`pointer-events-auto relative w-full transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`pointer-events-auto relative w-full transition-[width,height,margin,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           isScrolled
             ? 'mt-3 sm:mt-4 h-[62px] sm:h-[66px] w-[96%] md:w-[86%] lg:w-[80%] max-w-6xl rounded-[32px] sm:rounded-full bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-neutral-200/90 px-4 sm:px-6'
             : 'mt-4 sm:mt-5 h-[72px] sm:h-[76px] w-[97%] sm:w-[95%] max-w-7xl rounded-[36px] sm:rounded-full bg-white/95 backdrop-blur-md shadow-[0_6px_24px_rgba(0,0,0,0.05)] border border-neutral-200/80 px-4 sm:px-7'
@@ -145,12 +147,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
               }}
-              className="flex items-center text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 rounded-xl transition-transform hover:opacity-95 cursor-pointer"
+              className="flex items-center text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 rounded-xl transition-opacity hover:opacity-95 cursor-pointer"
               aria-label="Evencify Home - View Public Site"
               title="Return to Public View"
             >
               <div
-                className={`transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                className={`transition-[height] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                   isScrolled ? 'h-7 sm:h-8' : 'h-8 sm:h-9'
                 } flex items-center`}
               >
@@ -159,12 +161,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <img
                     src="/evencify.logo.png"
                     alt="Evencify — Event Crew & Organiser Platform"
-                    width={2161}
-                    height={728}
+                    width={540}
+                    height={182}
                     className="h-full w-auto object-contain select-none transition-transform duration-200 hover:scale-[1.02]"
                     style={{
                       filter:
-                        'drop-shadow(0 0 1.2px rgba(0, 0, 0, 0.85)) drop-shadow(0 1.5px 3.5px rgba(0, 0, 0, 0.28)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.14))',
+                        'drop-shadow(0 0 1.2px rgba(0, 0, 0, 0.85)) drop-shadow(0 1.5px 3.5px rgba(0, 0, 0, 0.25))',
                     }}
                     loading="eager"
                     decoding="async"
@@ -285,7 +287,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onOpenAuthModal(undefined, 'signup')}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-black px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-[#FED000] hover:bg-neutral-800 shadow-xs transition-all cursor-pointer"
+                  onMouseEnter={onPreloadAuth}
+                  onFocus={onPreloadAuth}
+                  onTouchStart={onPreloadAuth}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-black px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-[#FED000] hover:bg-neutral-800 shadow-xs transition-colors cursor-pointer"
                 >
                   <span>Get Started</span>
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -610,6 +615,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     setMobileMenuOpen(false);
                     onOpenAuthModal(undefined, 'signup');
                   }}
+                  onMouseEnter={onPreloadAuth}
+                  onTouchStart={onPreloadAuth}
                   className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-black py-3 text-sm font-bold text-[#FED000] shadow-xs cursor-pointer hover:bg-neutral-800 transition-colors"
                 >
                   <span>Get Started</span>

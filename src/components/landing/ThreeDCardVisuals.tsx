@@ -20,26 +20,38 @@ interface TiltProps {
  */
 export const ThreeDCardWrapper: React.FC<TiltProps> = ({ children, className = '' }) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number>(0);
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
+    if (!cardRef.current || rafRef.current) return;
+    const clientX = e.clientX;
+    const clientY = e.clientY;
 
-    const rotX = ((y - centerY) / centerY) * -10; // Max 10 deg tilt
-    const rotY = ((x - centerX) / centerX) * 10;
+    rafRef.current = window.requestAnimationFrame(() => {
+      rafRef.current = 0;
+      if (!cardRef.current) return;
+      const rect = cardRef.current.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
 
-    setRotateX(rotX);
-    setRotateY(rotY);
+      const rotX = ((y - centerY) / centerY) * -10; // Max 10 deg tilt
+      const rotY = ((x - centerX) / centerX) * 10;
+
+      setRotateX(rotX);
+      setRotateY(rotY);
+    });
   };
 
   const handleMouseLeave = () => {
+    if (rafRef.current) {
+      window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+    }
     setIsHovered(false);
     setRotateX(0);
     setRotateY(0);

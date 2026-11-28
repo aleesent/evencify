@@ -29,49 +29,80 @@ export const ScrollStorySection: React.FC<ScrollStorySectionProps> = ({
 }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [isInView, setIsInView] = useState(false);
+  const [isTabVisible, setIsTabVisible] = useState(
+    typeof document === 'undefined' ? true : document.visibilityState === 'visible'
+  );
 
   // 3D Tilt State
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [sheenPos, setSheenPos] = useState({ x: 50, y: 50 });
+  const sectionRef = useRef<HTMLElement>(null);
   const cardContainerRef = useRef<HTMLDivElement>(null);
+  const tiltRafRef = useRef<number>(0);
   const shouldReduceMotion = useReducedMotion();
 
   const STEP_DURATION = 5000; // ms per step
 
-  // Progression timer (pauses when user hovers or interacts)
+  // Only animate/advance while section is visible in viewport and tab is active
   useEffect(() => {
-    if (isHovered) return;
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setIsInView(true);
+      return;
+    }
 
-    const interval = 50;
-    const stepIncrement = (interval / STEP_DURATION) * 100;
-
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          setActiveStep((curr) => (curr + 1) % steps.length);
-          return 0;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry) {
+          setIsInView(entry.isIntersecting);
         }
-        return prev + stepIncrement;
-      });
-    }, interval);
+      },
+      { threshold: 0.15 }
+    );
 
-    return () => clearInterval(timer);
-  }, [isHovered, steps.length]);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      setIsTabVisible(document.visibilityState === 'visible');
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
+
+  const isAutoPlaying = isInView && isTabVisible && !isHovered;
+
+  // Single timer per step (0 React re-renders during the 5s animation instead of 20/sec)
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+
+    const timer = window.setTimeout(() => {
+      setActiveStep((curr) => (curr + 1) % steps.length);
+    }, STEP_DURATION);
+
+    return () => window.clearTimeout(timer);
+  }, [isAutoPlaying, activeStep, steps.length]);
+
+  useEffect(() => {
+    return () => {
+      if (tiltRafRef.current) window.cancelAnimationFrame(tiltRafRef.current);
+    };
+  }, []);
 
   const handleSelectStep = useCallback((index: number) => {
     setActiveStep(index);
-    setProgress(0);
   }, []);
 
   const handlePrev = useCallback(() => {
     setActiveStep((curr) => (curr === 0 ? steps.length - 1 : curr - 1));
-    setProgress(0);
   }, [steps.length]);
 
   const handleNext = useCallback(() => {
     setActiveStep((curr) => (curr + 1) % steps.length);
-    setProgress(0);
   }, [steps.length]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -86,24 +117,36 @@ export const ScrollStorySection: React.FC<ScrollStorySectionProps> = ({
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (shouldReduceMotion || !cardContainerRef.current) return;
-    const rect = cardContainerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+    if (tiltRafRef.current) return;
 
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
+    tiltRafRef.current = window.requestAnimationFrame(() => {
+      tiltRafRef.current = 0;
+      if (!cardContainerRef.current) return;
+      const rect = cardContainerRef.current.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
 
-    const rotateY = ((x - centerX) / centerX) * 6;
-    const rotateX = -((y - centerY) / centerY) * 6;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
 
-    setTilt({ x: rotateX, y: rotateY });
-    setSheenPos({
-      x: Math.round((x / rect.width) * 100),
-      y: Math.round((y / rect.height) * 100),
+      const rotateY = ((x - centerX) / centerX) * 6;
+      const rotateX = -((y - centerY) / centerY) * 6;
+
+      setTilt({ x: rotateX, y: rotateY });
+      setSheenPos({
+        x: Math.round((x / rect.width) * 100),
+        y: Math.round((y / rect.height) * 100),
+      });
     });
   };
 
   const handleMouseLeave = () => {
+    if (tiltRafRef.current) {
+      window.cancelAnimationFrame(tiltRafRef.current);
+      tiltRafRef.current = 0;
+    }
     setTilt({ x: 0, y: 0 });
     setSheenPos({ x: 50, y: 50 });
     setIsHovered(false);
@@ -139,10 +182,11 @@ export const ScrollStorySection: React.FC<ScrollStorySectionProps> = ({
 
   return (
     <section
+      ref={sectionRef}
       id={id}
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      className="relative bg-white text-neutral-900 py-12 sm:py-16 lg:py-24 px-4 sm:px-6 lg:px-12 scroll-mt-20 outline-none"
+      className="below-fold-section relative bg-white text-neutral-900 py-12 sm:py-16 lg:py-24 px-4 sm:px-6 lg:px-12 scroll-mt-20 outline-none"
       aria-label={sectionBadge || 'How It Works'}
     >
       <div className="mx-auto w-full max-w-6xl">
@@ -200,13 +244,11 @@ export const ScrollStorySection: React.FC<ScrollStorySectionProps> = ({
                     {step.category}
                   </span>
 
-                  {/* Clean, subtle progress indicator */}
-                  {isActive && !isHovered && (
-                    <motion.div
-                      className="absolute bottom-1 left-4 right-4 h-0.5 bg-[#FED000] rounded-full"
-                      initial={{ scaleX: 0, originX: 0 }}
-                      animate={{ scaleX: progress / 100 }}
-                      transition={{ duration: 0.05, ease: 'linear' }}
+                  {/* Clean, GPU-composited progress indicator (zero React re-renders) */}
+                  {isActive && isAutoPlaying && (
+                    <span
+                      key={`progress-${activeStep}`}
+                      className="animate-evencify-story-progress absolute bottom-1 left-4 right-4 h-0.5 bg-[#FED000] rounded-full pointer-events-none"
                     />
                   )}
                 </button>

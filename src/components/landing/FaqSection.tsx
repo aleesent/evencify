@@ -14,7 +14,7 @@ export const FaqSection: React.FC = () => {
   return (
     <section
       id="faq"
-      className="relative bg-white text-neutral-950 py-20 sm:py-28 lg:py-32 overflow-hidden"
+      className="below-fold-section relative bg-white text-neutral-950 py-20 sm:py-28 lg:py-32 overflow-hidden"
     >
       <div className="relative mx-auto max-w-[1160px] px-4 sm:px-6 lg:px-8">
         {/* Section Heading */}

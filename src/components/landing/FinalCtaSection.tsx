@@ -19,7 +19,7 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({
   const handleOrganiser = onHireCrew || onJoinAsOrganiser;
 
   return (
-    <section id="final-cta" className="relative overflow-hidden py-20 lg:py-28 bg-white border-t border-neutral-200 text-neutral-950">
+    <section id="final-cta" className="below-fold-section relative overflow-hidden py-20 lg:py-28 bg-white border-t border-neutral-200 text-neutral-950">
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center space-y-5">
           {/* Eyebrow badge matching minimal aesthetic */}

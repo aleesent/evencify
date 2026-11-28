@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'motion/react';
 import { EvencifyLogo } from './EvencifyLogo';
 import { UserRole } from '../types';
 import { navigateTo } from '../services/router';
@@ -18,43 +17,23 @@ export const Footer: React.FC<FooterProps> = ({
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative bg-[#090A0D] text-white overflow-hidden">
+    <footer className="below-fold-section relative bg-[#090A0D] text-white overflow-hidden">
       {/* Dynamic Animated Yellow Border Line at the top edge */}
-      <div className="relative w-full h-[2px] bg-neutral-900 overflow-hidden z-20">
+      <div className="relative w-full h-[2px] bg-neutral-900 overflow-hidden z-20" aria-hidden="true">
         {/* Subtle static ambient glow track */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#FED000]/15 to-transparent" />
 
         {/* Primary radiant yellow beam sliding across */}
-        <motion.div
-          className="absolute top-0 bottom-0 w-64 sm:w-96 bg-gradient-to-r from-transparent via-[#FED000] to-transparent shadow-[0_0_14px_#FED000]"
-          initial={{ x: '-100%' }}
-          animate={{ x: '100vw' }}
-          transition={{
-            repeat: Infinity,
-            duration: 4.2,
-            ease: 'easeInOut',
-          }}
-        />
+        <div className="animate-evencify-beam-primary absolute top-0 bottom-0 w-64 sm:w-96 bg-gradient-to-r from-transparent via-[#FED000] to-transparent shadow-[0_0_14px_#FED000]" />
 
         {/* Secondary counter beam for fluid dynamic energy */}
-        <motion.div
-          className="absolute top-0 bottom-0 w-40 sm:w-60 bg-gradient-to-r from-transparent via-[#FFF066] to-transparent opacity-80 shadow-[0_0_10px_#FED000]"
-          initial={{ x: '-50%' }}
-          animate={{ x: '100vw' }}
-          transition={{
-            repeat: Infinity,
-            duration: 6.8,
-            ease: 'linear',
-            delay: 1.6,
-          }}
-        />
+        <div className="animate-evencify-beam-secondary absolute top-0 bottom-0 w-40 sm:w-60 bg-gradient-to-r from-transparent via-[#FFF066] to-transparent opacity-80 shadow-[0_0_10px_#FED000]" />
       </div>
 
       {/* Dynamic Ambient Yellow Lighting behind content */}
-      <motion.div
-        className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-32 bg-gradient-to-b from-[#FED000]/10 via-[#FED000]/3 to-transparent blur-3xl z-0"
-        animate={{ opacity: [0.35, 0.7, 0.35] }}
-        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+      <div
+        className="animate-evencify-glow-pulse pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-32 bg-gradient-to-b from-[#FED000]/10 via-[#FED000]/3 to-transparent blur-3xl z-0"
+        aria-hidden="true"
       />
 
       {/* Main Footer Content */}
@@ -267,12 +246,16 @@ export const Footer: React.FC<FooterProps> = ({
         </div>
 
         {/* Bottom Sub-Bar */}
-        <div className="mt-8 pt-8 border-t border-neutral-900 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 gap-4">
-          <div className="text-center sm:text-left">
+        <div className="mt-8 pt-8 border-t border-neutral-900 flex flex-col lg:grid lg:grid-cols-3 items-center text-xs text-neutral-500 gap-4">
+          <div className="text-center lg:text-left">
             <span>© {currentYear} Evencify Technologies Pvt. Ltd. All rights reserved.</span>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-neutral-400">
+          <div className="text-center text-neutral-400">
+            Designed and developed by <span className="text-white font-semibold">ArvexaStudio</span>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center lg:justify-end gap-4 sm:gap-6 text-neutral-400">
             <a
               href="/about"
               onClick={(e) => {

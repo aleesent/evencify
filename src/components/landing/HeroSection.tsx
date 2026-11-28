@@ -1,29 +1,53 @@
-import React, { useRef } from 'react';
-import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react';
+import React, { useEffect, useRef } from 'react';
 
 interface HeroSectionProps {
   onJoinCrew?: () => void;
   onHireCrew?: () => void;
   onGetStarted?: () => void;
   onScrollToHowItWorks?: () => void;
+  onPreloadAuth?: () => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onJoinCrew,
   onHireCrew,
   onGetStarted,
+  onPreloadAuth,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const bgLayerRef = useRef<HTMLDivElement>(null);
   const handlePrimaryCta = onGetStarted || onHireCrew || onJoinCrew || (() => {});
-  const prefersReducedMotion = useReducedMotion();
 
-  // Subtle scroll parallax for the background image layer
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end start'],
-  });
+  // Lightweight GPU-composited scroll parallax without loading motion/react on first paint
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return;
 
-  const parallaxY = useTransform(scrollYProgress, [0, 1], [0, 24]);
+    let rafId = 0;
+    const updateParallax = () => {
+      rafId = 0;
+      const section = containerRef.current;
+      const bg = bgLayerRef.current;
+      if (!section || !bg) return;
+      const height = section.offsetHeight || 1;
+      const scrolled = Math.min(Math.max(window.scrollY, 0), height);
+      const offsetY = (scrolled / height) * 24;
+      bg.style.transform = `translate3d(0, ${offsetY.toFixed(2)}px, 0)`;
+    };
+
+    const onScroll = () => {
+      if (!rafId) {
+        rafId = window.requestAnimationFrame(updateParallax);
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (rafId) window.cancelAnimationFrame(rafId);
+    };
+  }, []);
 
   return (
     <section
@@ -39,9 +63,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="absolute inset-0 bg-[#F8F9FD]" />
 
         {/* Full-bleed background image covering viewport seamlessly without hard edges */}
-        <motion.div
-          style={{ y: prefersReducedMotion ? 0 : parallaxY }}
-          className="hero-bg-layer"
+        <div
+          ref={bgLayerRef}
+          className="hero-bg-layer will-change-transform"
           aria-hidden="true"
         />
 
@@ -49,7 +73,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="hero-blend-layer" aria-hidden="true" />
 
         {/* Soft bottom seamless gradient fade into subsequent sections */}
-        <div 
+        <div
           className="absolute bottom-0 left-0 right-0 h-24 sm:h-32 pointer-events-none bg-gradient-to-b from-transparent via-[#F8F9FD]/40 to-[#F8F9FD]"
           aria-hidden="true"
         />
@@ -86,8 +110,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           <div className="mt-8 sm:mt-9">
             <button
               id="hero-get-started-cta"
+              type="button"
               onClick={handlePrimaryCta}
-              className="group relative inline-flex items-center justify-center rounded-full bg-black text-white font-semibold text-[15px] sm:text-[16px] h-[52px] sm:h-[56px] w-[160px] sm:w-[170px] shadow-sm hover:scale-[1.025] hover:bg-neutral-900 active:scale-[0.98] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] cursor-pointer tracking-tight"
+              onMouseEnter={onPreloadAuth}
+              onFocus={onPreloadAuth}
+              onTouchStart={onPreloadAuth}
+              className="group relative inline-flex items-center justify-center rounded-full bg-black text-white font-semibold text-[15px] sm:text-[16px] h-[52px] sm:h-[56px] w-[160px] sm:w-[170px] shadow-sm hover:scale-[1.025] hover:bg-neutral-900 active:scale-[0.98] transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] cursor-pointer tracking-tight"
               aria-label="Get started with Evencify"
             >
               <span>Get started</span>
@@ -98,4 +126,5 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     </section>
   );
 };
+
 

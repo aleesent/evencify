@@ -100,3 +100,73 @@ body {
   }
 }
 
+/* ========================================================================= */
+/* PERFORMANCE: GPU-COMPOSITED ANIMATIONS & BELOW-THE-FOLD CONTAINMENT       */
+/* ========================================================================= */
+
+.below-fold-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 760px;
+}
+
+@keyframes evencify-beam-slide {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+  }
+  100% {
+    transform: translate3d(100vw, 0, 0);
+  }
+}
+
+@keyframes evencify-glow-pulse {
+  0%, 100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes evencify-story-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animate-evencify-beam-primary {
+  will-change: transform;
+  animation: evencify-beam-slide 4.2s ease-in-out infinite;
+}
+
+.animate-evencify-beam-secondary {
+  will-change: transform;
+  animation: evencify-beam-slide 6.8s linear 1.6s infinite;
+}
+
+.animate-evencify-glow-pulse {
+  will-change: opacity;
+  animation: evencify-glow-pulse 4.5s ease-in-out infinite;
+}
+
+.animate-evencify-story-progress {
+  transform-origin: left center;
+  will-change: transform;
+  animation: evencify-story-progress 5s linear forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-evencify-beam-primary,
+  .animate-evencify-beam-secondary,
+  .animate-evencify-glow-pulse,
+  .animate-evencify-story-progress {
+    animation: none;
+  }
+}
+
+

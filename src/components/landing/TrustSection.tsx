@@ -62,7 +62,7 @@ export const TrustSection: React.FC<TrustSectionProps> = ({ onCreateAccount }) =
     <section
       ref={sectionRef}
       id="trust"
-      className="trust-section relative w-full m-0 p-0 scroll-mt-20 overflow-hidden bg-white"
+      className="below-fold-section trust-section relative w-full m-0 p-0 scroll-mt-20 overflow-hidden bg-white"
       style={{
         position: 'relative',
         background: '#ffffff',

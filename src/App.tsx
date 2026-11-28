@@ -53,13 +53,25 @@ import { SEOHead } from './components/seo/SEOHead';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 
-// Landing Page Components (Strictly Informational / Marketing)
+// Above-the-Fold Hero Component (eager for immediate LCP paint)
 import { HeroSection } from './components/landing/HeroSection';
-import { ForCrewSection } from './components/landing/ForCrewSection';
-import { ForOrganisersSection } from './components/landing/ForOrganisersSection';
-import { TrustSection } from './components/landing/TrustSection';
-import { FinalCtaSection } from './components/landing/FinalCtaSection';
-import { FaqSection } from './components/landing/FaqSection';
+
+// Below-the-Fold Landing Sections (lazy-loaded so motion/react stays off the initial critical path)
+const ForCrewSection = lazy(() =>
+  import('./components/landing/ForCrewSection').then((m) => ({ default: m.ForCrewSection }))
+);
+const ForOrganisersSection = lazy(() =>
+  import('./components/landing/ForOrganisersSection').then((m) => ({ default: m.ForOrganisersSection }))
+);
+const TrustSection = lazy(() =>
+  import('./components/landing/TrustSection').then((m) => ({ default: m.TrustSection }))
+);
+const FinalCtaSection = lazy(() =>
+  import('./components/landing/FinalCtaSection').then((m) => ({ default: m.FinalCtaSection }))
+);
+const FaqSection = lazy(() =>
+  import('./components/landing/FaqSection').then((m) => ({ default: m.FaqSection }))
+);
 
 // Lazy-loaded SEO Sub-pages (keeps initial mobile homepage bundle lean)
 const EventsDiscoveryPage = lazy(() =>
@@ -105,12 +117,49 @@ const RobotsPage = lazy(() =>
   import('./components/seo/pages/RobotsPage').then((m) => ({ default: m.RobotsPage }))
 );
 
-// Lazy-loaded Modals (loaded on demand when triggered)
+// Shared preloader for AuthModal so clicking "Get started" opens with 0ms chunk latency
+let authModalImportPromise: Promise<typeof import('./components/AuthModal')> | null = null;
+const preloadAuthModal = () => {
+  if (!authModalImportPromise) {
+    authModalImportPromise = import('./components/AuthModal');
+  }
+  return authModalImportPromise;
+};
+
+const ACCOUNT_TYPE_PROMPT_SEEN_KEY = 'evencify_account_type_prompt_seen';
+
+const markAccountTypePromptSeen = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(ACCOUNT_TYPE_PROMPT_SEEN_KEY, '1');
+  } catch {
+    // ignore storage access errors
+  }
+};
+
+const hasSeenAccountTypePrompt = (): boolean => {
+  if (typeof window === 'undefined') return true;
+  try {
+    return localStorage.getItem(ACCOUNT_TYPE_PROMPT_SEEN_KEY) === '1';
+  } catch {
+    return true;
+  }
+};
+
+const isAutomatedCrawler = (): boolean => {
+  if (typeof navigator === 'undefined') return true;
+  if (navigator.webdriver) return true;
+  return /bot|crawl|spider|lighthouse|headless|slurp|bingpreview|googlebot|pagespeed/i.test(
+    navigator.userAgent || ''
+  );
+};
+
+// Lazy-loaded Modals (loaded on demand / preloaded on idle & hover)
 const RoleSelectorModal = lazy(() =>
   import('./components/RoleSelectorModal').then((m) => ({ default: m.RoleSelectorModal }))
 );
 const AuthModal = lazy(() =>
-  import('./components/AuthModal').then((m) => ({ default: m.AuthModal }))
+  preloadAuthModal().then((m) => ({ default: m.AuthModal }))
 );
 const DirectLinksModal = lazy(() =>
   import('./components/DirectLinksModal').then((m) => ({ default: m.DirectLinksModal }))
@@ -230,24 +279,8 @@ export default function App() {
   const [directLinksOpen, setDirectLinksOpen] = useState(false);
 
   // Dynamic SEO Metadata reactively tuned to active view & route
+  // Note: Overlay modals on public pages must never mutate public indexable pages to noindex.
   const currentSeo = useMemo(() => {
-    if (authModalOpen) {
-      if (authInitialMode === 'login') {
-        if (authTargetRole === 'crew') return getSEOData({ type: 'crew-login' });
-        if (authTargetRole === 'organiser') return getSEOData({ type: 'organiser-login' });
-        return getSEOData({ type: 'login' });
-      } else {
-        if (authTargetRole === 'crew') return getSEOData({ type: 'crew-signup' });
-        if (authTargetRole === 'organiser') return getSEOData({ type: 'organiser-signup' });
-        return getSEOData({ type: 'signup' });
-      }
-    }
-    if (createEventModalOpen) {
-      return getSEOData({ type: 'create-event' });
-    }
-    if (directLinksOpen) {
-      return getSEOData({ type: 'direct-links' });
-    }
     if (currentRole === 'admin') {
       return getSEOData({ type: 'admin' });
     }
@@ -258,22 +291,10 @@ export default function App() {
       return getSEOData({ type: 'organiser-portal' });
     }
     return getSEODataFromRoute(route, events);
-  }, [
-    authModalOpen,
-    authInitialMode,
-    authTargetRole,
-    createEventModalOpen,
-    directLinksOpen,
-    currentRole,
-    route,
-    events,
-  ]);
+  }, [currentRole, route, events]);
 
   const hasLeafSeoHead =
     currentRole === 'visitor' &&
-    !authModalOpen &&
-    !createEventModalOpen &&
-    !directLinksOpen &&
     route.type !== 'home' &&
     !AUTH_OR_PORTAL_SHORTCUT_ROUTES.has(route.type) &&
     route.type !== 'not-found';
@@ -301,10 +322,33 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Dedicated automatic database synchronizer (runs silently in the background)
-  const syncDatabase = async () => {
+  const lastSyncTimeRef = useRef<number>(0);
+
+  // Dedicated automatic database synchronizer (scoped by auth state to keep public load fast)
+  const syncDatabase = async (forceFull: boolean = false) => {
     if (!isSupabaseConfigured()) return;
+    lastSyncTimeRef.current = Date.now();
     try {
+      const syncEmail =
+        activeUserEmailRef.current ||
+        (() => {
+          try {
+            const u = JSON.parse(localStorage.getItem('evencify_active_user') || '{}');
+            return u.email || '';
+          } catch {
+            return '';
+          }
+        })();
+
+      const isAuthedSync = forceFull || Boolean(syncEmail) || currentRoleRef.current !== 'visitor';
+
+      // Public visitors only need the public events list (avoids 5 unnecessary private queries on load)
+      if (!isAuthedSync) {
+        const dbEvents = await EvencifyApi.getEvents();
+        setEvents(dbEvents);
+        return;
+      }
+
       const [dbEvents, dbCrew, dbApps, dbGroups, dbUsers, dbNotifs] = await Promise.allSettled([
         EvencifyApi.getEvents(),
         EvencifyApi.getCrewProfiles(),
@@ -320,16 +364,12 @@ export default function App() {
       if (dbCrew.status === 'fulfilled' && dbCrew.value.length > 0) {
         setCrewList(dbCrew.value);
         setCurrentCrewProfile((prev) => {
-          const match = dbCrew.value.find((c) => c.email === activeUserEmail || c.id === prev.id);
+          const match = dbCrew.value.find(
+            (c) => c.email === activeUserEmailRef.current || c.id === prev.id
+          );
           return match || prev;
         });
       }
-      const syncEmail = activeUserEmail || (() => {
-        try {
-          const u = JSON.parse(localStorage.getItem('evencify_active_user') || '{}');
-          return u.email || '';
-        } catch { return ''; }
-      })();
 
       if (syncEmail) {
         try {
@@ -366,10 +406,94 @@ export default function App() {
 
   // Open authentication modal with targeted role and mode
   const handleOpenAuth = (role?: UserRole, initialMode: 'login' | 'signup' = 'signup') => {
+    preloadAuthModal();
+    markAccountTypePromptSeen();
     setAuthTargetRole(role);
     setAuthInitialMode(initialMode);
     setAuthModalOpen(true);
   };
+
+  // First-time visitor popup: show "Choose Account Type" once on first visit, then on click only
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // Preload AuthModal & below-the-fold landing chunks smoothly once browser is idle
+    const win = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+
+    const runIdlePrefetch = () => {
+      preloadAuthModal();
+    };
+
+    let idleId: number | null = null;
+    let idleFallbackTimer: number | null = null;
+    if (typeof win.requestIdleCallback === 'function') {
+      idleId = win.requestIdleCallback(runIdlePrefetch, { timeout: 1500 });
+    } else {
+      idleFallbackTimer = window.setTimeout(runIdlePrefetch, 450);
+    }
+
+    // Never auto-open for returning visitors, crawlers, logged-in users, or non-home/shortcut routes
+    if (hasSeenAccountTypePrompt() || isAutomatedCrawler()) {
+      return () => {
+        if (idleId !== null && typeof win.cancelIdleCallback === 'function') {
+          win.cancelIdleCallback(idleId);
+        }
+        if (idleFallbackTimer !== null) window.clearTimeout(idleFallbackTimer);
+      };
+    }
+
+    const hasCachedSession = (() => {
+      try {
+        const cached = localStorage.getItem('evencify_active_user');
+        if (!cached) return false;
+        const parsed = JSON.parse(cached);
+        return Boolean(parsed?.email && parsed?.role);
+      } catch {
+        return false;
+      }
+    })();
+
+    const path = window.location.pathname.toLowerCase();
+    const hasUrlShortcut = Boolean(window.location.search || window.location.hash);
+
+    if (hasCachedSession || path !== '/' || hasUrlShortcut) {
+      return () => {
+        if (idleId !== null && typeof win.cancelIdleCallback === 'function') {
+          win.cancelIdleCallback(idleId);
+        }
+        if (idleFallbackTimer !== null) window.clearTimeout(idleFallbackTimer);
+      };
+    }
+
+    // Non-blocking delay after first paint so initial hero LCP renders smoothly first
+    const promptTimer = window.setTimeout(() => {
+      if (
+        hasSeenAccountTypePrompt() ||
+        activeUserEmailRef.current ||
+        currentRoleRef.current !== 'visitor' ||
+        isLoggingOutRef.current
+      ) {
+        return;
+      }
+      markAccountTypePromptSeen();
+      preloadAuthModal().finally(() => {
+        setAuthTargetRole(undefined);
+        setAuthInitialMode('signup');
+        setAuthModalOpen(true);
+      });
+    }, 950);
+
+    return () => {
+      window.clearTimeout(promptTimer);
+      if (idleId !== null && typeof win.cancelIdleCallback === 'function') {
+        win.cancelIdleCallback(idleId);
+      }
+      if (idleFallbackTimer !== null) window.clearTimeout(idleFallbackTimer);
+    };
+  }, []);
 
   // Direct URL Links & Deep Linking Listener
   // Supports:
@@ -646,11 +770,13 @@ export default function App() {
     };
 
     // 1. Immediately check cached session to prevent UI flash
+    let hasCachedUser = false;
     try {
       const cached = localStorage.getItem('evencify_active_user');
       if (cached) {
         const u = JSON.parse(cached);
         if (u?.email && u?.role) {
+          hasCachedUser = true;
           applySessionUser(u);
         }
       }
@@ -658,24 +784,80 @@ export default function App() {
       // ignore parse error
     }
 
-    // 2. Perform initial background database sync
-    syncDatabase();
+    // 2. Defer initial background database sync & session verification until after first paint
+    const startupTimer = window.setTimeout(() => {
+      if (!isMounted) return;
+      syncDatabase(hasCachedUser);
 
-    // 3. Verify session against database
-    EvencifyApi.getCurrentSession().then((sessionUser) => {
-      if (isLoggingOutRef.current || !isMounted) return;
-      if (sessionUser) {
-        applySessionUser(sessionUser);
-      }
-    });
+      // Verify session against database
+      EvencifyApi.getCurrentSession().then((sessionUser) => {
+        if (isLoggingOutRef.current || !isMounted) return;
+        if (sessionUser) {
+          applySessionUser(sessionUser);
+          if (!hasCachedUser) {
+            syncDatabase(true);
+          }
+        }
+      });
+    }, 120);
 
     if (!isSupabaseConfigured()) {
       return () => {
         isMounted = false;
+        window.clearTimeout(startupTimer);
       };
     }
 
-    // Setup Postgres realtime listeners across all live public tables
+    // Automatic periodic background sync (only when tab is visible & user is authenticated)
+    const syncInterval = setInterval(() => {
+      if (
+        isMounted &&
+        document.visibilityState === 'visible' &&
+        (activeUserEmailRef.current || currentRoleRef.current !== 'visitor')
+      ) {
+        syncDatabase(true);
+      }
+    }, 30000);
+
+    // Throttled focus/visibility sync (minimum 25s cooldown to prevent network storms)
+    const handleFocusSync = () => {
+      if (document.visibilityState !== 'visible' || !isMounted) return;
+      if (Date.now() - lastSyncTimeRef.current < 25000) return;
+      if (activeUserEmailRef.current || currentRoleRef.current !== 'visitor') {
+        syncDatabase(true);
+      }
+    };
+    window.addEventListener('focus', handleFocusSync);
+    document.addEventListener('visibilitychange', handleFocusSync);
+
+    // Listen to real-time auth state changes using full session resolution
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (isLoggingOutRef.current || _event === 'SIGNED_OUT' || !session?.user) {
+        return;
+      }
+      if (isMounted) {
+        const verifiedUser = await EvencifyApi.getCurrentSession();
+        if (verifiedUser && isMounted && !isLoggingOutRef.current) {
+          applySessionUser(verifiedUser);
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      window.clearTimeout(startupTimer);
+      clearInterval(syncInterval);
+      window.removeEventListener('focus', handleFocusSync);
+      document.removeEventListener('visibilitychange', handleFocusSync);
+      authListener?.subscription?.unsubscribe();
+    };
+  }, []);
+
+  // Subscribe to Supabase Realtime Postgres updates only when authenticated (keeps public landing fast & zero-socket)
+  useEffect(() => {
+    if (!isSupabaseConfigured() || authenticatedRole === 'visitor') return;
+
+    let isMounted = true;
     const channel = supabase
       .channel('evencify-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, async () => {
@@ -700,7 +882,6 @@ export default function App() {
         const freshUsers = await EvencifyApi.getUsers();
         if (isMounted && freshUsers && freshUsers.length > 0) setUsers(freshUsers);
 
-        // Check if the changed profile belongs to the active user
         const targetEmail = activeUserEmailRef.current || (() => {
           try {
             return JSON.parse(localStorage.getItem('evencify_active_user') || '{}')?.email || '';
@@ -758,44 +939,11 @@ export default function App() {
       })
       .subscribe();
 
-    // Automatic periodic background sync (every 20 seconds)
-    const syncInterval = setInterval(() => {
-      if (isMounted) {
-        syncDatabase();
-      }
-    }, 20000);
-
-    // Automatic sync whenever tab/window regains focus or visibility
-    const handleFocusSync = () => {
-      if (document.visibilityState === 'visible' && isMounted) {
-        syncDatabase();
-      }
-    };
-    window.addEventListener('focus', handleFocusSync);
-    document.addEventListener('visibilitychange', handleFocusSync);
-
-    // Listen to real-time auth state changes using full session resolution
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (isLoggingOutRef.current || _event === 'SIGNED_OUT' || !session?.user) {
-        return;
-      }
-      if (isMounted) {
-        const verifiedUser = await EvencifyApi.getCurrentSession();
-        if (verifiedUser && isMounted && !isLoggingOutRef.current) {
-          applySessionUser(verifiedUser);
-        }
-      }
-    });
-
     return () => {
       isMounted = false;
-      clearInterval(syncInterval);
-      window.removeEventListener('focus', handleFocusSync);
-      document.removeEventListener('visibilitychange', handleFocusSync);
       supabase.removeChannel(channel);
-      authListener?.subscription?.unsubscribe();
     };
-  }, []);
+  }, [authenticatedRole]);
 
   // Role switching
   const handleSelectRole = (role: UserRole) => {
@@ -893,8 +1041,9 @@ export default function App() {
       showToast(`Admin Console Unlocked: ${email}`);
     }
 
-    // Refresh latest user accounts and synced real credentials
-    syncDatabase();
+    // Mark prompt seen and refresh full authenticated dataset
+    markAccountTypePromptSeen();
+    syncDatabase(true);
   };
 
   const handleLogout = async () => {
@@ -1579,20 +1728,23 @@ export default function App() {
             onJoinCrew={() => handleOpenAuth(undefined, 'signup')}
             onHireCrew={() => handleOpenAuth(undefined, 'signup')}
             onScrollToHowItWorks={() => handleScrollToSection('trust')}
+            onPreloadAuth={preloadAuthModal}
           />
 
-          <ForCrewSection onJoinCrew={() => handleOpenAuth(undefined, 'signup')} />
+          <Suspense fallback={<div className="min-h-[600px] bg-white" aria-hidden="true" />}>
+            <ForCrewSection onJoinCrew={() => handleOpenAuth(undefined, 'signup')} />
 
-          <ForOrganisersSection onHireCrew={() => handleOpenAuth(undefined, 'signup')} />
+            <ForOrganisersSection onHireCrew={() => handleOpenAuth(undefined, 'signup')} />
 
-          <TrustSection onCreateAccount={() => handleOpenAuth(undefined, 'signup')} />
+            <TrustSection onCreateAccount={() => handleOpenAuth(undefined, 'signup')} />
 
-          <FinalCtaSection
-            onJoinCrew={() => handleOpenAuth(undefined, 'signup')}
-            onHireCrew={() => handleOpenAuth(undefined, 'signup')}
-          />
+            <FinalCtaSection
+              onJoinCrew={() => handleOpenAuth(undefined, 'signup')}
+              onHireCrew={() => handleOpenAuth(undefined, 'signup')}
+            />
 
-          <FaqSection />
+            <FaqSection />
+          </Suspense>
         </div>
       );
     }
@@ -1767,6 +1919,7 @@ export default function App() {
             showToast('Administrator profile: Console is active.');
           }
         }}
+        onPreloadAuth={preloadAuthModal}
       />
 
       {/* Main Content Areas */}
@@ -1883,6 +2036,7 @@ export default function App() {
           <AuthModal
             isOpen={authModalOpen}
             onClose={() => {
+              markAccountTypePromptSeen();
               setAuthModalOpen(false);
               if (
                 window.location.search.includes('auth=') ||
