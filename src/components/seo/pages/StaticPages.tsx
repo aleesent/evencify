@@ -151,11 +151,27 @@ export const ContactPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block font-bold text-neutral-700 mb-1">Email Address</label>
+                <label className="block font-bold text-neutral-700 mb-1">
+                  Email Address <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="email"
                   required
                   placeholder="you@example.com"
+                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-2.5 text-sm focus:outline-none focus:border-neutral-900"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-neutral-700 mb-1">
+                  Mobile Number <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  minLength={10}
+                  pattern="[+0-9\s\-()]{10,20}"
+                  title="Please enter a valid 10-digit mobile number"
+                  placeholder="+91 98765 43210"
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-2.5 text-sm focus:outline-none focus:border-neutral-900"
                 />
               </div>

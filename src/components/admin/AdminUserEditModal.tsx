@@ -20,6 +20,7 @@ import {
   Copy,
 } from 'lucide-react';
 import { UserAccount, CREW_CATEGORIES, CrewCategory } from '../../types';
+import { getMobileValidationError, normalizeMobileNumber } from '../../utils/phone';
 
 interface AdminUserEditModalProps {
   isOpen: boolean;
@@ -150,6 +151,11 @@ export const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
       setError('Email address is required.');
       return;
     }
+    const mobileErr = getMobileValidationError(formData.phone);
+    if (mobileErr) {
+      setError(mobileErr);
+      return;
+    }
     if (!formData.id.trim()) {
       setError('User ID cannot be empty.');
       return;
@@ -167,6 +173,7 @@ export const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
 
     onSave(originalId, {
       ...formData,
+      phone: normalizeMobileNumber(formData.phone || ''),
       password: trimmedPass,
     });
     onClose();
@@ -378,12 +385,13 @@ export const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Phone Number
+                    Mobile Number <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-2.5 h-4 w-4 text-neutral-400" />
                     <input
                       type="tel"
+                      required
                       value={formData.phone || ''}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="w-full text-xs rounded-xl border border-neutral-200 bg-white pl-9 pr-3.5 py-2.5 text-neutral-900 focus:border-neutral-400 focus:outline-hidden"

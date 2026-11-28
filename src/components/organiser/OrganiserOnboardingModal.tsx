@@ -3,6 +3,7 @@ import { OrganiserProfile } from '../../types';
 import { X, Building2, ShieldCheck, CheckCircle2, ArrowRight, Lock, Loader2, Upload, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EvencifyApi } from '../../services/api';
+import { getMobileValidationError, normalizeMobileNumber } from '../../utils/phone';
 
 const MAX_FILE_SIZE_BYTES = 250 * 1024; // 250 KB exact limit
 
@@ -41,23 +42,23 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Strict blank state for onboarding: completely blank, no auto-filled data
+  // Initialize onboarding fields (preserve already-registered details including mobile number)
   useEffect(() => {
     if (isOpen) {
-      setName('');
-      setCompanyName('');
-      setEmail('');
-      setPhone('');
-      setAddress('');
-      setPincode('');
-      setCity('');
-      setHasUdyam(false);
-      setUdyamNumber('');
-      setPhotoUrl('');
+      setName(initialProfile?.name || '');
+      setCompanyName(initialProfile?.companyName || '');
+      setEmail(initialProfile?.email || '');
+      setPhone(initialProfile?.phone || '');
+      setAddress(initialProfile?.address || '');
+      setPincode(initialProfile?.pincode || initialProfile?.pinCode || '');
+      setCity(initialProfile?.city || '');
+      setHasUdyam(Boolean(initialProfile?.hasUdyam));
+      setUdyamNumber(initialProfile?.udyamNumber || '');
+      setPhotoUrl(initialProfile?.photoUrl || '');
       setUploadError(null);
       setFormError(null);
     }
-  }, [isOpen]);
+  }, [isOpen, initialProfile]);
 
   if (!isOpen) return null;
 
@@ -139,8 +140,9 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
       setFormError('Please enter a valid business email address.');
       return;
     }
-    if (!phone.trim()) {
-      setFormError('Please enter an active contact phone number.');
+    const mobileErr = getMobileValidationError(phone);
+    if (mobileErr) {
+      setFormError(mobileErr);
       return;
     }
     if (!city.trim()) {
@@ -166,7 +168,7 @@ export const OrganiserOnboardingModal: React.FC<OrganiserOnboardingModalProps> =
         name: name.trim(),
         companyName: companyName.trim(),
         email: email.trim().toLowerCase(),
-        phone: phone.trim(),
+        phone: normalizeMobileNumber(phone),
         address: address.trim(),
         pincode: pincode.trim(),
         pinCode: pincode.trim(),

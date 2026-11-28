@@ -39,6 +39,7 @@ import {
   hasUserCompletedOnboarding,
   markUserOnboardingCompleted,
 } from './utils/onboarding';
+import { isValidMobileNumber } from './utils/phone';
 
 // SEO Metadata & Public Routing
 import { getSEOData, getSEODataFromRoute } from './services/seoData';
@@ -161,6 +162,9 @@ const RoleSelectorModal = lazy(() =>
 const AuthModal = lazy(() =>
   preloadAuthModal().then((m) => ({ default: m.AuthModal }))
 );
+const MandatoryMobileModal = lazy(() =>
+  import('./components/MandatoryMobileModal').then((m) => ({ default: m.MandatoryMobileModal }))
+);
 const DirectLinksModal = lazy(() =>
   import('./components/DirectLinksModal').then((m) => ({ default: m.DirectLinksModal }))
 );
@@ -239,6 +243,8 @@ export default function App() {
   const [authenticatedRole, setAuthenticatedRole] = useState<UserRole>('visitor');
   const [activeUserEmail, setActiveUserEmail] = useState<string>('');
   const [activeUserName, setActiveUserName] = useState<string>('');
+  const [activeUserPhone, setActiveUserPhone] = useState<string>('');
+  const [profilePhoneChecked, setProfilePhoneChecked] = useState<boolean>(false);
 
   const activeUserEmailRef = useRef<string>('');
   activeUserEmailRef.current = activeUserEmail;
@@ -745,27 +751,46 @@ export default function App() {
     let isMounted = true;
 
     // Helper to safely apply verified session user & load profile
-    const applySessionUser = (sessionUser: any) => {
+    const applySessionUser = (sessionUser: any, isVerifiedFromDb: boolean = false) => {
       if (!sessionUser || !isMounted || isLoggingOutRef.current) return;
       setActiveUserEmail(sessionUser.email);
       setActiveUserName(sessionUser.name);
       setAuthenticatedRole(sessionUser.role);
       setCurrentRole(sessionUser.role);
 
+      if (sessionUser.phone && isValidMobileNumber(sessionUser.phone)) {
+        setActiveUserPhone(sessionUser.phone);
+        setProfilePhoneChecked(true);
+      }
+
       if (sessionUser.role === 'organiser') {
         EvencifyApi.getOrganiserProfile(sessionUser.email).then((org) => {
           if (isMounted && !isLoggingOutRef.current) {
-            if (org) setCurrentOrganiserProfile(org);
+            if (org) {
+              setCurrentOrganiserProfile(org);
+              if (org.phone && isValidMobileNumber(org.phone)) {
+                setActiveUserPhone(org.phone);
+              }
+            }
             verifyOrganiserProfileCompleteness(org);
+            setProfilePhoneChecked(true);
           }
         });
       } else if (sessionUser.role === 'crew') {
         EvencifyApi.getCrewProfile(sessionUser.email).then((cr) => {
           if (isMounted && !isLoggingOutRef.current) {
-            if (cr) setCurrentCrewProfile(cr);
+            if (cr) {
+              setCurrentCrewProfile(cr);
+              if (cr.phone && isValidMobileNumber(cr.phone)) {
+                setActiveUserPhone(cr.phone);
+              }
+            }
             verifyCrewProfileCompleteness(cr);
+            setProfilePhoneChecked(true);
           }
         });
+      } else if (isVerifiedFromDb) {
+        setProfilePhoneChecked(true);
       }
     };
 
@@ -793,7 +818,7 @@ export default function App() {
       EvencifyApi.getCurrentSession().then((sessionUser) => {
         if (isLoggingOutRef.current || !isMounted) return;
         if (sessionUser) {
-          applySessionUser(sessionUser);
+          applySessionUser(sessionUser, true);
           if (!hasCachedUser) {
             syncDatabase(true);
           }
@@ -968,11 +993,22 @@ export default function App() {
     role: UserRole,
     email: string,
     name?: string,
-    isNewRegistration: boolean = false
+    isNewRegistration: boolean = false,
+    phone?: string
   ) => {
     setActiveUserEmail(email);
     setAuthenticatedRole(role);
     setCurrentRole(role);
+    setProfilePhoneChecked(false);
+
+    const matchedUserRecord = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+    const initialKnownPhone = phone || matchedUserRecord?.phone || '';
+    if (isValidMobileNumber(initialKnownPhone)) {
+      setActiveUserPhone(initialKnownPhone);
+      setProfilePhoneChecked(true);
+    } else {
+      setActiveUserPhone('');
+    }
 
     const emailName = email.split('@')[0];
     const defaultName = name || (emailName ? emailName.charAt(0).toUpperCase() + emailName.slice(1) : 'User');
@@ -981,22 +1017,38 @@ export default function App() {
       const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.role === 'crew');
       const existingCrew = crewList.find((c) => c.email.toLowerCase() === email.toLowerCase());
       const finalName = name || existing?.name || existingCrew?.name || defaultName;
+      const resolvedPhone = phone || existingCrew?.phone || existing?.phone || '';
+      if (isValidMobileNumber(resolvedPhone)) {
+        setActiveUserPhone(resolvedPhone);
+        setProfilePhoneChecked(true);
+      }
       setActiveUserName(finalName);
       if (existingCrew) {
-        setCurrentCrewProfile(existingCrew);
+        setCurrentCrewProfile({
+          ...existingCrew,
+          phone: existingCrew.phone || resolvedPhone,
+        });
       } else {
         const freshCrew: CrewProfile = {
           ...EMPTY_CREW_PROFILE,
           id: `crew-${Date.now()}`,
           name: finalName,
           email: email,
+          phone: resolvedPhone,
         };
         setCurrentCrewProfile(freshCrew);
       }
       EvencifyApi.getCrewProfile(email).then((cr) => {
         if (cr) {
-          setCurrentCrewProfile(cr);
+          setCurrentCrewProfile({
+            ...cr,
+            phone: cr.phone || resolvedPhone,
+          });
+          if (isValidMobileNumber(cr.phone)) {
+            setActiveUserPhone(cr.phone);
+          }
         }
+        setProfilePhoneChecked(true);
       });
       showToast(`Welcome! Signed in as ${finalName} (Crew)`);
 
@@ -1008,6 +1060,11 @@ export default function App() {
     } else if (role === 'organiser') {
       const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.role === 'organiser');
       const finalName = name || existing?.name || defaultName;
+      const resolvedPhone = phone || existing?.phone || '';
+      if (isValidMobileNumber(resolvedPhone)) {
+        setActiveUserPhone(resolvedPhone);
+        setProfilePhoneChecked(true);
+      }
       setActiveUserName(finalName);
       const initialOrg: OrganiserProfile = {
         ...EMPTY_ORGANISER_PROFILE,
@@ -1015,12 +1072,20 @@ export default function App() {
         name: finalName,
         companyName: finalName,
         email: email,
+        phone: resolvedPhone,
       };
       setCurrentOrganiserProfile(initialOrg);
       EvencifyApi.getOrganiserProfile(email).then((org) => {
         if (org) {
-          setCurrentOrganiserProfile(org);
+          setCurrentOrganiserProfile({
+            ...org,
+            phone: org.phone || resolvedPhone,
+          });
+          if (isValidMobileNumber(org.phone)) {
+            setActiveUserPhone(org.phone);
+          }
         }
+        setProfilePhoneChecked(true);
       });
       showToast(`Welcome! Signed in as ${finalName} (Organiser)`);
 
@@ -1038,6 +1103,7 @@ export default function App() {
       }
     } else if (role === 'admin') {
       setActiveUserName(currentAdminProfile.name);
+      setProfilePhoneChecked(true);
       showToast(`Admin Console Unlocked: ${email}`);
     }
 
@@ -1073,6 +1139,8 @@ export default function App() {
     setCurrentRole('visitor');
     setActiveUserEmail('');
     setActiveUserName('');
+    setActiveUserPhone('');
+    setProfilePhoneChecked(false);
     setAuthenticatedRole('visitor');
     setCurrentCrewProfile(EMPTY_CREW_PROFILE);
     setCurrentOrganiserProfile(EMPTY_ORGANISER_PROFILE);
@@ -2107,12 +2175,24 @@ export default function App() {
               setCurrentCrewProfile(merged);
               if (updated.name) setActiveUserName(updated.name);
               if (updated.email) setActiveUserEmail(updated.email);
+              if (updated.phone && isValidMobileNumber(updated.phone)) {
+                setActiveUserPhone(updated.phone);
+                setProfilePhoneChecked(true);
+              }
 
               const targetId = currentCrewProfile.id || activeUserEmail || updated.email || 'crew-1';
               const targetEmail = activeUserEmail || currentCrewProfile.email || updated.email;
               try {
                 await EvencifyApi.updateCrewProfile(targetId, updated);
-                await syncDatabase();
+                if (updated.phone && isValidMobileNumber(updated.phone) && targetEmail) {
+                  await EvencifyApi.updateUserPhone({
+                    id: targetId,
+                    email: targetEmail,
+                    role: 'crew',
+                    phone: updated.phone,
+                  });
+                }
+                await syncDatabase(true);
                 markUserOnboardingCompleted(targetEmail);
                 setCrewOnboardingMandatory(false);
                 setCrewOnboardingOpen(false);
@@ -2145,12 +2225,24 @@ export default function App() {
               if (updated.companyName) setActiveUserName(updated.companyName);
               else if (updated.name) setActiveUserName(updated.name);
               if (updated.email) setActiveUserEmail(updated.email);
+              if (updated.phone && isValidMobileNumber(updated.phone)) {
+                setActiveUserPhone(updated.phone);
+                setProfilePhoneChecked(true);
+              }
 
               const targetId = currentOrganiserProfile.id || activeUserEmail || updated.email || 'org-1';
               const targetEmail = activeUserEmail || currentOrganiserProfile.email || updated.email;
               try {
                 await EvencifyApi.updateOrganiserProfile(targetId, updated);
-                await syncDatabase();
+                if (updated.phone && isValidMobileNumber(updated.phone) && targetEmail) {
+                  await EvencifyApi.updateUserPhone({
+                    id: targetId,
+                    email: targetEmail,
+                    role: 'organiser',
+                    phone: updated.phone,
+                  });
+                }
+                await syncDatabase(true);
                 markUserOnboardingCompleted(targetEmail);
                 setOrganiserOnboardingMandatory(false);
                 setOrganiserOnboardingOpen(false);
@@ -2240,6 +2332,71 @@ export default function App() {
             onDiscreateGroup={handleDiscreateGroup}
           />
         )}
+
+        {/* Compulsory Mobile Number Gate for any logged-in user missing a valid mobile number */}
+        {(() => {
+          const isAuthed = Boolean(activeUserEmail) && authenticatedRole !== 'visitor';
+          if (!isAuthed || !profilePhoneChecked) return null;
+
+          const matchedUser = users.find(
+            (u) => u.email.toLowerCase() === activeUserEmail.toLowerCase()
+          );
+          const effectivePhone =
+            activeUserPhone ||
+            (authenticatedRole === 'crew'
+              ? currentCrewProfile.phone
+              : authenticatedRole === 'organiser'
+              ? currentOrganiserProfile.phone
+              : '') ||
+            matchedUser?.phone ||
+            '';
+
+          if (isValidMobileNumber(effectivePhone)) return null;
+
+          const activeRole = authenticatedRole as 'crew' | 'organiser' | 'admin';
+          const activeId =
+            activeRole === 'crew'
+              ? currentCrewProfile.id
+              : activeRole === 'organiser'
+              ? currentOrganiserProfile.id
+              : currentAdminProfile.id;
+
+          return (
+            <MandatoryMobileModal
+              isOpen={true}
+              userEmail={activeUserEmail}
+              userName={activeUserName}
+              userRole={activeRole}
+              onLogout={handleLogout}
+              onSaveMobile={async (mobile) => {
+                const res = await EvencifyApi.updateUserPhone({
+                  id: matchedUser?.id || activeId,
+                  email: activeUserEmail,
+                  role: activeRole,
+                  phone: mobile,
+                });
+                if (res.success) {
+                  setActiveUserPhone(res.phone);
+                  if (activeRole === 'crew') {
+                    setCurrentCrewProfile((prev) => ({ ...prev, phone: res.phone }));
+                  } else if (activeRole === 'organiser') {
+                    setCurrentOrganiserProfile((prev) => ({ ...prev, phone: res.phone }));
+                  }
+                  setUsers((prev) =>
+                    prev.map((u) =>
+                      u.email.toLowerCase() === activeUserEmail.toLowerCase()
+                        ? { ...u, phone: res.phone }
+                        : u
+                    )
+                  );
+                  showToast('Mobile number verified and saved!');
+                  syncDatabase(true);
+                }
+                return res;
+              }}
+            />
+          );
+        })()}
       </Suspense>
     </div>
   );

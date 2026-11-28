@@ -3,6 +3,7 @@ import { CrewProfile, CrewCategory, CREW_CATEGORIES } from '../../types';
 import { X, CheckCircle2, Upload, ArrowRight, Loader2, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EvencifyApi } from '../../services/api';
+import { getMobileValidationError, normalizeMobileNumber } from '../../utils/phone';
 
 const MAX_FILE_SIZE_BYTES = 250 * 1024; // 250 KB exact limit
 
@@ -44,26 +45,26 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Always strictly completely blank on open for Crew Onboarding (all fields including phone number)
+  // Initialize onboarding fields (preserve already-registered mobile number if available)
   useEffect(() => {
     if (isOpen) {
-      setName('');
-      setPhone('');
-      setEmail('');
-      setAge('');
-      setGender('');
-      setCity('');
-      setAddress('');
-      setPincode('');
-      setExperienceYears(0);
-      setExperienceLevel('');
-      setSelectedCategories([]);
-      setPhotoUrl('');
-      setExpectedPay('');
+      setName(initialProfile?.name || '');
+      setPhone(initialProfile?.phone || '');
+      setEmail(initialProfile?.email || '');
+      setAge(initialProfile?.age || '');
+      setGender((initialProfile?.gender as any) || '');
+      setCity(initialProfile?.city || '');
+      setAddress(initialProfile?.address || '');
+      setPincode(initialProfile?.pincode || initialProfile?.pinCode || '');
+      setExperienceYears(initialProfile?.experienceYears || 0);
+      setExperienceLevel((initialProfile?.experienceLevel as any) || '');
+      setSelectedCategories(initialProfile?.categories || []);
+      setPhotoUrl(initialProfile?.photoUrl || '');
+      setExpectedPay(initialProfile?.expectedPay || '');
       setUploadError(null);
       setFormError(null);
     }
-  }, [isOpen]);
+  }, [isOpen, initialProfile]);
 
   if (!isOpen) return null;
 
@@ -146,8 +147,9 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
       setFormError('Please enter your full name.');
       return;
     }
-    if (!phone.trim()) {
-      setFormError('Please enter your active phone number.');
+    const mobileErr = getMobileValidationError(phone);
+    if (mobileErr) {
+      setFormError(mobileErr);
       return;
     }
     if (!email.trim() || !email.includes('@')) {
@@ -183,7 +185,7 @@ export const CrewOnboardingModal: React.FC<CrewOnboardingModalProps> = ({
     try {
       await onSaveProfile({
         name: name.trim(),
-        phone: phone.trim(),
+        phone: normalizeMobileNumber(phone),
         email: email.trim().toLowerCase(),
         age: Number(age),
         gender,

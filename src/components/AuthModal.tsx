@@ -3,6 +3,7 @@ import { UserRole } from '../types';
 import {
   X,
   Mail,
+  Phone,
   Lock,
   ArrowRight,
   ArrowLeft,
@@ -21,6 +22,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { EvencifyLogo } from './EvencifyLogo';
 import { EvencifyApi } from '../services/api';
 import { BrevoClient } from '../services/brevoClient';
+import { getMobileValidationError, normalizeMobileNumber } from '../utils/phone';
 
 export interface AuthModalProps {
   isOpen: boolean;
@@ -30,7 +32,13 @@ export interface AuthModalProps {
   initialMode?: 'signup' | 'login';
   onModeChange?: (mode: 'signup' | 'login') => void;
   onRoleChange?: (role: 'crew' | 'organiser') => void;
-  onAuthenticated: (role: UserRole, email: string, name?: string, isNewRegistration?: boolean) => void;
+  onAuthenticated: (
+    role: UserRole,
+    email: string,
+    name?: string,
+    isNewRegistration?: boolean,
+    phone?: string
+  ) => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -50,6 +58,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [mode, setMode] = useState<'signup' | 'login'>('signup');
 
   const [fullName, setFullName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -157,6 +166,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           return;
         }
 
+        const mobileError = getMobileValidationError(mobileNumber);
+        if (mobileError) {
+          setAuthError(mobileError);
+          setIsLoading(false);
+          return;
+        }
+
         if (password.length < 6) {
           setAuthError('Password must be at least 6 characters long.');
           setIsLoading(false);
@@ -201,10 +217,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         setIsLoading(false);
         if (res.user.role === 'admin') {
-          onAuthenticated('admin' as any, res.user.email, res.user.name, false);
+          onAuthenticated('admin' as any, res.user.email, res.user.name, false, res.user.phone);
         } else {
           const userRole = res.user.role === 'organiser' ? 'organiser' : 'crew';
-          onAuthenticated(userRole, res.user.email, res.user.name, false);
+          onAuthenticated(userRole, res.user.email, res.user.name, false, res.user.phone);
         }
         onClose();
       }
@@ -335,12 +351,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         return;
       }
 
-      // Step 2: Code verified! Complete user account creation in Supabase
+      // Step 2: Code verified! Complete user account creation in Supabase with compulsory mobile number
+      const normalizedMobile = normalizeMobileNumber(mobileNumber);
       const signUpRes = await EvencifyApi.signUp({
         email: email.trim(),
         password,
         role: selectedRole,
         fullName: fullName.trim(),
+        phone: normalizedMobile,
       });
 
       if (signUpRes.error) {
@@ -353,7 +371,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setIsLoading(false);
 
       setTimeout(() => {
-        onAuthenticated(selectedRole, signUpRes.user.email, signUpRes.user.name, true);
+        onAuthenticated(
+          selectedRole,
+          signUpRes.user.email,
+          signUpRes.user.name,
+          true,
+          signUpRes.user.phone || normalizedMobile
+        );
         onClose();
       }, 900);
     } catch (err: any) {
@@ -710,21 +734,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </div>
                 )}
 
-                {/* Full Name field (Only shown in Create Account view) */}
+                {/* Full Name & Compulsory Mobile Number fields (Create Account view) */}
                 {mode === 'signup' && (
-                  <div>
-                    <label className="block text-xs font-medium text-neutral-700 mb-1">
-                      {selectedRole === 'crew' ? 'Full Name' : 'Company or Organiser Name'}
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder={selectedRole === 'crew' ? 'e.g. Aarav Mehta' : 'e.g. Singhania Live Events'}
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-none transition-all"
-                    />
-                  </div>
+                  <>
+                    <div>
+                      <label className="block text-xs font-medium text-neutral-700 mb-1">
+                        {selectedRole === 'crew' ? 'Full Name' : 'Company or Organiser Name'}{' '}
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder={selectedRole === 'crew' ? 'e.g. Aarav Mehta' : 'e.g. Singhania Live Events'}
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-none transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-neutral-700 mb-1">
+                        Mobile Number <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-3.5 top-3 h-4 w-4 text-neutral-400" />
+                        <input
+                          type="tel"
+                          required
+                          autoComplete="tel"
+                          inputMode="tel"
+                          placeholder="+91 98765 43210"
+                          value={mobileNumber}
+                          onChange={(e) => setMobileNumber(e.target.value)}
+                          className="w-full rounded-xl border border-neutral-300 bg-white pl-10 pr-4 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+                  </>
                 )}
 
                 {/* Email field */}

@@ -17,12 +17,14 @@ import {
   EventCoordinationGroup,
   EventChatMessage,
 } from '../types';
+import { getMobileValidationError, normalizeMobileNumber } from '../utils/phone';
 
 export interface AuthSessionUser {
   id: string;
   email: string;
   name: string;
   role: 'crew' | 'organiser' | 'admin';
+  phone?: string;
   isVerified?: boolean;
 }
 
@@ -222,6 +224,7 @@ export const EvencifyApi = {
               email: parsed.email,
               name: parsed.name || parsed.email.split('@')[0],
               role: parsed.role,
+              phone: parsed.phone || '',
               isVerified: Boolean(parsed.isVerified ?? true),
             };
           }
@@ -306,6 +309,7 @@ export const EvencifyApi = {
             email: profile.email || session.user.email || '',
             name: profile.full_name || 'Evencify User',
             role: assignedRole,
+            phone: profile.phone || session.user.user_metadata?.phone || localUser?.phone || '',
             isVerified: Boolean(profile.is_verified ?? true),
           };
           if (typeof window !== 'undefined') {
@@ -318,11 +322,13 @@ export const EvencifyApi = {
       // Local storage fallback for users verified via Brevo OTP or admin/offline
       if (localUser) {
         if (localUser.role === 'admin' || localUser.email.toLowerCase() === 'admin@evencify.com') {
+          const adminSeed = INITIAL_USERS.find((u) => u.email.toLowerCase() === 'admin@evencify.com');
           return {
             id: localUser.id || 'usr-admin',
             email: localUser.email || 'admin@evencify.com',
             name: localUser.name || 'Evencify Operations Admin',
             role: 'admin',
+            phone: localUser.phone || adminSeed?.phone || '',
             isVerified: true,
           };
         }
@@ -340,6 +346,7 @@ export const EvencifyApi = {
               email: profile.email,
               name: profile.full_name || localUser.name || 'Evencify User',
               role: (profile.role || localUser.role) as 'crew' | 'organiser' | 'admin',
+              phone: profile.phone || localUser.phone || '',
               isVerified: Boolean(profile.is_verified ?? true),
             };
           }
@@ -370,6 +377,7 @@ export const EvencifyApi = {
     password?: string;
     role: 'crew' | 'organiser';
     fullName: string;
+    phone: string;
     companyName?: string;
   }): Promise<{ user: AuthSessionUser; error?: string }> {
     if (params.role === ('admin' as any)) {
@@ -378,6 +386,11 @@ export const EvencifyApi = {
 
     const cleanEmail = params.email.trim().toLowerCase();
     const realPassword = (params.password || '').trim();
+    const mobileError = getMobileValidationError(params.phone);
+    if (mobileError) {
+      return { user: null as any, error: mobileError };
+    }
+    const cleanPhone = normalizeMobileNumber(params.phone);
 
     if (!realPassword || realPassword.length < 6) {
       return { user: null as any, error: 'Password must be at least 6 characters long.' };
@@ -390,6 +403,7 @@ export const EvencifyApi = {
         email: cleanEmail,
         name: params.fullName || (params.role === 'crew' ? 'Aarav Mehta' : 'Singhania Events'),
         role: params.role,
+        phone: cleanPhone,
         isVerified: true,
       };
       saveStoredPassword(cleanEmail, offlineUserId, realPassword);
@@ -408,6 +422,7 @@ export const EvencifyApi = {
             role: params.role,
             full_name: params.fullName,
             company_name: params.companyName,
+            phone: cleanPhone,
           },
         },
       });
@@ -434,9 +449,22 @@ export const EvencifyApi = {
                 verification_badge: 'Email Verified',
                 full_name: params.fullName || existingProfile.full_name,
                 role: params.role || existingProfile.role,
+                phone: cleanPhone || existingProfile.phone || null,
                 is_active: true,
               })
               .eq('id', existingProfile.id);
+
+            if ((params.role || existingProfile.role) === 'crew') {
+              await supabase
+                .from('crew_profiles')
+                .update({ phone: cleanPhone })
+                .eq('user_id', existingProfile.id);
+            } else if ((params.role || existingProfile.role) === 'organiser') {
+              await supabase
+                .from('organiser_profiles')
+                .update({ phone: cleanPhone })
+                .eq('user_id', existingProfile.id);
+            }
 
             saveStoredPassword(cleanEmail, existingProfile.id, realPassword, { overridden: true });
             await syncPasswordToProfile(existingProfile.id, cleanEmail, realPassword);
@@ -446,6 +474,7 @@ export const EvencifyApi = {
               email: cleanEmail,
               name: params.fullName || existingProfile.full_name || 'Evencify User',
               role: (params.role || existingProfile.role) as 'crew' | 'organiser',
+              phone: cleanPhone || existingProfile.phone || '',
               isVerified: true,
             };
 
@@ -462,11 +491,12 @@ export const EvencifyApi = {
 
       const userId = data?.user?.id || `usr-${Date.now()}`;
 
-      // Ensure profile record exists in profiles table with verified status
+      // Ensure profile record exists in profiles table with verified status & compulsory mobile number
       const { error: profileUpsertError } = await supabase.from('profiles').upsert({
         id: userId,
         email: cleanEmail,
         full_name: params.fullName,
+        phone: cleanPhone,
         role: params.role,
         is_active: true,
         is_verified: true,
@@ -481,10 +511,13 @@ export const EvencifyApi = {
       saveStoredPassword(cleanEmail, userId, realPassword);
       await syncPasswordToProfile(userId, cleanEmail, realPassword);
 
-      // Ensure role specific profile table is initialized
+      // Ensure role specific profile table is initialized with compulsory mobile number
       if (params.role === 'crew') {
         await supabase.from('crew_profiles').upsert({
           user_id: userId,
+          name: params.fullName,
+          email: cleanEmail,
+          phone: cleanPhone,
           rating: 4.9,
           total_reviews: 0,
           completed_events: 0,
@@ -495,6 +528,9 @@ export const EvencifyApi = {
       } else if (params.role === 'organiser') {
         await supabase.from('organiser_profiles').upsert({
           user_id: userId,
+          name: params.fullName,
+          email: cleanEmail,
+          phone: cleanPhone,
           company_name: params.companyName || params.fullName || '',
           udyam_registered: false,
         });
@@ -505,6 +541,7 @@ export const EvencifyApi = {
         email: cleanEmail,
         name: params.fullName,
         role: params.role,
+        phone: cleanPhone,
         isVerified: true,
       };
 
@@ -582,6 +619,7 @@ export const EvencifyApi = {
           email: 'admin@evencify.com',
           name: dbProfile?.full_name || 'Evencify Operations Admin',
           role: 'admin',
+          phone: dbProfile?.phone || seedUser?.phone || '',
           isVerified: true,
         };
         saveStoredPassword('admin@evencify.com', adminUser.id, rawPassword);
@@ -605,6 +643,7 @@ export const EvencifyApi = {
           email: dbProfile?.email || seedUser.email,
           name: dbProfile?.full_name || seedUser.name,
           role: (dbProfile?.role || seedUser.role) as 'crew' | 'organiser' | 'admin',
+          phone: dbProfile?.phone || seedUser.phone || '',
           isVerified: Boolean(dbProfile?.is_verified ?? seedUser.isVerified),
         };
         saveStoredPassword(sessionUser.email, sessionUser.id, rawPassword);
@@ -672,6 +711,7 @@ export const EvencifyApi = {
             email: dbProfile.email || effectiveEmail,
             name: dbProfile.full_name || 'Evencify User',
             role: dbProfile.role as 'crew' | 'organiser' | 'admin',
+            phone: dbProfile.phone || '',
             isVerified: Boolean(dbProfile.is_verified ?? true),
           };
           saveStoredPassword(verifiedUser.email, verifiedUser.id, rawPassword, {
@@ -722,12 +762,14 @@ export const EvencifyApi = {
           data.user.user_metadata?.name ||
           data.user.email?.split('@')[0] ||
           'Evencify User';
+        const fallbackPhone = data.user.user_metadata?.phone || '';
 
         try {
           await supabase.from('profiles').upsert({
             id: data.user.id,
             email: (data.user.email || effectiveEmail).toLowerCase(),
             full_name: fallbackName,
+            phone: fallbackPhone || null,
             role: fallbackRole,
             is_active: true,
             is_verified: true,
@@ -740,6 +782,7 @@ export const EvencifyApi = {
           id: data.user.id,
           email: data.user.email || effectiveEmail,
           full_name: fallbackName,
+          phone: fallbackPhone,
           role: fallbackRole,
           is_active: true,
           is_verified: true,
@@ -763,6 +806,7 @@ export const EvencifyApi = {
         email: profile.email || data.user.email || effectiveEmail,
         name: profile.full_name || 'Evencify User',
         role: profile.role as 'crew' | 'organiser' | 'admin',
+        phone: profile.phone || data.user.user_metadata?.phone || '',
         isVerified: Boolean(profile.is_verified),
       };
 
@@ -831,6 +875,105 @@ export const EvencifyApi = {
     await syncPasswordToProfile(targetUserId, cleanEmail, realPass);
 
     return { success: true };
+  },
+
+  /**
+   * Persist compulsory mobile number for an existing user across profiles, role tables, auth metadata, and local session
+   */
+  async updateUserPhone(params: {
+    id?: string;
+    email: string;
+    role: 'crew' | 'organiser' | 'admin';
+    phone: string;
+  }): Promise<{ success: boolean; phone: string; error?: string }> {
+    const mobileError = getMobileValidationError(params.phone);
+    if (mobileError) {
+      return { success: false, phone: '', error: mobileError };
+    }
+
+    const cleanPhone = normalizeMobileNumber(params.phone);
+    const cleanEmail = (params.email || '').trim().toLowerCase();
+
+    // Update cached local session immediately
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('evencify_active_user');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && (!cleanEmail || parsed.email?.toLowerCase() === cleanEmail)) {
+            localStorage.setItem(
+              'evencify_active_user',
+              JSON.stringify({ ...parsed, phone: cleanPhone })
+            );
+          }
+        }
+      } catch {
+        // ignore storage error
+      }
+    }
+
+    if (!isSupabaseConfigured()) {
+      return { success: true, phone: cleanPhone };
+    }
+
+    try {
+      let targetId = params.id;
+      if (!targetId && cleanEmail) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', cleanEmail)
+          .maybeSingle();
+        if (prof?.id) targetId = prof.id;
+      }
+
+      if (targetId) {
+        await supabase
+          .from('profiles')
+          .update({ phone: cleanPhone, updated_at: new Date().toISOString() })
+          .eq('id', targetId);
+      } else if (cleanEmail) {
+        await supabase
+          .from('profiles')
+          .update({ phone: cleanPhone, updated_at: new Date().toISOString() })
+          .eq('email', cleanEmail);
+      }
+
+      if (params.role === 'crew') {
+        if (targetId) {
+          await supabase.from('crew_profiles').update({ phone: cleanPhone }).eq('user_id', targetId);
+        } else if (cleanEmail) {
+          await supabase.from('crew_profiles').update({ phone: cleanPhone }).eq('email', cleanEmail);
+        }
+      } else if (params.role === 'organiser') {
+        if (targetId) {
+          await supabase.from('organiser_profiles').update({ phone: cleanPhone }).eq('user_id', targetId);
+        } else if (cleanEmail) {
+          await supabase.from('organiser_profiles').update({ phone: cleanPhone }).eq('email', cleanEmail);
+        }
+      }
+
+      // Sync Supabase Auth user_metadata if active session matches
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && (!cleanEmail || user.email?.toLowerCase() === cleanEmail)) {
+          await supabase.auth.updateUser({ data: { phone: cleanPhone } });
+        }
+      } catch {
+        // Non-fatal
+      }
+
+      return { success: true, phone: cleanPhone };
+    } catch (err: any) {
+      if (isTransientFetchError(err)) {
+        return { success: true, phone: cleanPhone };
+      }
+      return {
+        success: false,
+        phone: '',
+        error: err?.message || 'Failed to save mobile number.',
+      };
+    }
   },
 
   /**
@@ -2271,12 +2414,17 @@ export const EvencifyApi = {
   async createUserAccount(newUser: UserAccount): Promise<UserAccount> {
     const cleanEmail = newUser.email.trim().toLowerCase();
     const realPassword = (newUser.password || '').trim();
+    const mobileError = getMobileValidationError(newUser.phone);
+    if (mobileError) {
+      throw new Error(mobileError);
+    }
+    const cleanPhone = normalizeMobileNumber(newUser.phone || '');
 
     if (!isSupabaseConfigured()) {
       if (realPassword) {
         saveStoredPassword(cleanEmail, newUser.id, realPassword, { overridden: true });
       }
-      return { ...newUser, password: realPassword };
+      return { ...newUser, phone: cleanPhone, password: realPassword };
     }
 
     const { data: existingProf } = await supabase
@@ -2301,7 +2449,7 @@ export const EvencifyApi = {
       role: newUser.role,
       full_name: newUser.name,
       email: cleanEmail,
-      phone: newUser.phone || null,
+      phone: cleanPhone,
       city: newUser.city || 'Surat',
       address: newUser.address || null,
       pincode: (newUser as any).pincode || null,
@@ -2328,7 +2476,7 @@ export const EvencifyApi = {
         user_id: userId,
         name: newUser.name,
         email: cleanEmail,
-        phone: newUser.phone || null,
+        phone: cleanPhone,
         city: newUser.city || 'Surat',
         rating: newUser.systemRating || 0,
         completed_events: newUser.completedEventsCount || 0,
@@ -2342,7 +2490,7 @@ export const EvencifyApi = {
         name: newUser.name,
         company_name: newUser.companyName || `${newUser.name} Events`,
         email: cleanEmail,
-        phone: newUser.phone || null,
+        phone: cleanPhone,
         city: newUser.city || 'Surat',
         address: newUser.address || null,
         udyam_registered: Boolean(newUser.hasUdyam ?? isVer),
@@ -2353,6 +2501,7 @@ export const EvencifyApi = {
     return {
       ...newUser,
       id: userId,
+      phone: cleanPhone,
       password: realPassword,
       verificationBadge: finalBadge,
     };
